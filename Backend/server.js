@@ -1,14 +1,15 @@
 
-
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const passport = require("passport");
 require("dotenv").config();
 require("./config/passport");
+const path = require('path');
 
-const { Server } = require("socket.io");  // socket.io ka Server import karna hai
-const http = require("http");              // Node ka HTTP module
+
+const { Server } = require("socket.io"); 
+const http = require("http");             
 
 const authRoutes = require("./Routes/authRoute");
 
@@ -18,15 +19,20 @@ app.use(express.json());
 
 app.use(passport.initialize());
 
+
 app.use("/api/auth", authRoutes);
 
-// HTTP server create karo Express app se
-const server = http.createServer(app);
+app.use(express.static(path.join(__dirname, '../Frontend/dist')));
 
-// Socket.IO server create karo, HTTP server ke upar
+
+app.get('*wildcard', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend/dist/index.html'));
+});
+
+const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*",  // ya apne frontend URL se restrict karo
+    origin: "*",  
     methods: ["GET", "POST"],
   },
 });
@@ -65,6 +71,7 @@ io.on("connection", (socket) => {
 });
 
 });
+
 
 // MongoDB connect aur server start
 mongoose
