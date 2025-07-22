@@ -1,6 +1,5 @@
 import React from "react";
 import { Link,useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import video from "../assets/video.mp4";
 import img2 from "../assets/App Business Website in Pink and Bright Blue Color Blocks Style (1).png";
 
@@ -30,14 +29,12 @@ function Home() {
 
           <div>
             
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 className="bg-purple-600 text-white px-4 py-2 rounded-2xl hover:bg-purple-700 transition"
                  onClick={handleStartDemo}
               >
                 Start Demo
-              </motion.button>
+              </button>
     
           </div>
         </div>
