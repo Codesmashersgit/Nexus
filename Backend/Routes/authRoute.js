@@ -24,12 +24,13 @@ router.get(
   passport.authenticate("google", { session: false, failureRedirect: "/login" }),
   (req, res) => {
     const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
-const username = encodeURIComponent(req.user.username || req.user.email); // safe encoding
-res.redirect(`${process.env.CLIENT_URL}/oauth-success?token=${token}&username=${username}`);
-
-    res.redirect(`${process.env.CLIENT_URL}/oauth-success?token=${token}`);
+    const username = encodeURIComponent(req.user.username || req.user.email); // safe encoding
+    
+    // Only one redirect here
+    res.redirect(`${process.env.CLIENT_URL}/oauth-success?token=${token}&username=${username}`);
   }
 );
+
 //otp yahan se bro//
 router.post("/send-otp", async (req, res) => {
   try {
