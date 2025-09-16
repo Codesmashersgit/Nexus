@@ -2,4 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 
+@font-face {
+  font-family: 'font-1';
+  src: url('./assets/c7e0cf6c760983e7-s.p.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+}
 
+body {
+  font-family: 'font-1';
+} */

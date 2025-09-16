@@ -1,72 +1,109 @@
-import React from "react";
-import { Link,useNavigate } from "react-router-dom";
-import video from "../assets/video.mp4";
-import img2 from "../assets/App Business Website in Pink and Bright Blue Color Blocks Style (1).png";
+// import React from "react";
+// import { useState,useEffect } from "react";
+// import { useNavigate } from "react-router-dom";
+// function Home() {
+//   const [isAuthenticated, setIsAuthenticated] = useState(false);
+//   const navigate = useNavigate();
 
+//   useEffect(() => {
+//     const token = localStorage.getItem('token');
+//     setIsAuthenticated(!!token);
+//   }, []);
+
+//   function handleClick() {
+//     if (isAuthenticated) {
+//       navigate('/dashboard');
+//     } else {
+//       navigate('/login');
+//     }
+//   }
+
+//   return (
+//   <>
+//       <div className="h-screen w-screen bg-[#E7F99A] fixed p-5  ">
+//         <div className="h-full bg-[#FFFFFF] p-2">
+//           <div className="flex ">
+//             <div className="flex flex-col items-center text-center">
+//           <h1 className="pt-[40%] px-[5%] text-4xl font-bold ">Video Calls & Meeting For Everyone</h1>
+//           <p className="p-8 text-center font-light text-xl">Connect, Collborate & Celebrate with Chroma Meet.</p>
+//           <button onClick={handleClick} className="border border-[#E4E4E4] rounded-[7px] bg-white p-[9px] shadow-[0px_-4px_0px_0px_rgba(242,242,242,0.92)_inset,0px_1px_2px_0px_rgba(255,255,255,0.05),0px_-2px_0px_0px_rgba(255,255,255,0.25)_inset] text-[##1E1E1E] font-medium -tracking-[0.12px] w-32 hover:scale-110 transition-all ease-in-out">Start Now</button>
+//           </div>
+//           <img src="https://img.freepik.com/premium-vector/illustration-cartoon-female-user-entering-login_241107-682.jpg" className="w-[800px] h-[700px]" alt="" />
+          
+//           </div>
+
+         
+//         </div>
+       
+        
+      
+//       </div> 
+// </>
+     
+//   );
+// }
+
+// export default Home;
+
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Home() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
 
-  const handleStartDemo = () => {
-    const token = localStorage.getItem("authToken");
-    if (token) {
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsAuthenticated(!!token);
+  }, []);
+
+  function handleClick() {
+    if (isAuthenticated) {
       navigate("/dashboard");
     } else {
       navigate("/login");
     }
-  };
+  }
+
   return (
     <>
-      <div className="relative bg-black">
-        <div className="lg:absolute flex flex-col items-center justify-center gap-6 md:mx-16 h-screen lg:w-1/2 p-2">
-          <h1 className="text-2xl md:text-3xl lg:text-5xl text-purple-600 uppercase font-bold text-center md:max-w-full md:w-[90%]">
-            Video call & Meeting for everyone
-          </h1>
-
-          <p className="text-base font-normal text-center text-white">
-            Connect, Collaborate from anywhere with Chroma Meet
-          </p>
-
-          <div>
-            
+      <div className="h-screen w-full fixed bg-[#E7F99A] p-5">
+        <div className="h-full bg-[#FFFFFF] p-2 rounded-md shadow-md">
+          <div className="flex flex-col md:flex-row justify-between items-center h-full">
+            {/* Text Section */}
+            <div className="flex flex-col items-center text-center px-4 md:px-10 py-28 md:py-0 md:w-1/2">
+              <h1 className="text-3xl md:text-5xl font-bold leading-tight">
+                Video Calls & Meetings For Everyone
+              </h1>
+              <p className="mt-6 text-lg md:text-xl font-light">
+                Connect, Collaborate & Celebrate with Chroma Meet.
+              </p>
               <button
-                className="bg-purple-600 text-white px-4 py-2 rounded-2xl hover:bg-purple-700 transition"
-                 onClick={handleStartDemo}
+                onClick={handleClick}
+                className="border border-[#E4E4E4] rounded-[7px] bg-white py-2 px-6 shadow-[0px_-4px_0px_0px_rgba(242,242,242,0.92)_inset,0px_1px_2px_0px_rgba(255,255,255,0.05),0px_-2px_0px_0px_rgba(255,255,255,0.25)_inset] text-[#1E1E1E] font-medium tracking-tight hover:scale-110 transition-all ease-in-out"
               >
-                Start Demo
+                Start Now
               </button>
-    
+            </div>
+
+            {/* Image Section */}
+            <div className="md:w-1/2 p-4 md:flex hidden justify-center items-center">
+              <img
+                src="https://img.freepik.com/premium-vector/illustration-cartoon-female-user-entering-login_241107-682.jpg"
+                alt="Hero"
+                className="w-full max-w-[400px] md:max-w-[600px] h-auto object-contain"
+              />
+            </div>
+            <div className="p-5 absolute top-[50%] lg:hidden justify-center items-center">
+              <img
+                src="https://img.freepik.com/premium-vector/illustration-cartoon-female-user-entering-login_241107-682.jpg"
+                alt="Hero"
+                className="w-full max-w-[400px] md:max-w-[600px] h-auto object-contain"
+              />
+            </div>
           </div>
         </div>
-
-        <div className="flex flex-col items-end">
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            src={video}
-            className="w-[700px] h-[100vh] object-cover border-none hidden md:block"
-          />
-        </div>
-
-        <div>
-          <div className="lg:absolute md:absolute absolute lg:top-[37%] md:top-[48%] top-[60%] left-6 md:left-14 text-purple-600 lg:left-12 uppercase lg:text-5xl md:text-4xl font-bold lg:w-1/2 w-1/3">
-            <p className="text-center">Real-time audio/video chat</p>
-          </div>
-
-          <div className="lg:absolute md:absolute absolute lg:right-[5%] lg:top-[60%] top-[73%] md:top-[65%] md:right-28 right-12 text-purple-600 lg:text-5xl md:text-4xl font-bold lg:w-1/2 w-1/3 uppercase">
-            <p className="text-center">Secure, High-Quality Video Conferencing</p>
-          </div>
-          <div className="lg:absolute md:absolute absolute lg:left-12 lg:top-[85%] md:top-[83%] top-[88%] md:left-20 left-6 w-1/3 lg:w-1/2 lg:text-5xl text-white uppercase font-bold md:text-4xl">
-            <p className="text-center">Built for Educators, Teams & Communities</p>
-          </div>
-        </div>
-
-        <img src={img2} className="md:p-10 py-1 w-full rounded-xl" />
       </div>
-
-      {/* <Footer /> */}
     </>
   );
 }

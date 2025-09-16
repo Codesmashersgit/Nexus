@@ -1,8 +1,8 @@
 
 import React from "react";
-import { useState } from "react";
+// import { useState } from "react";
 import './App.css';
-import Navbar from "./pages/Navbar";
+import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Home from "./pages/Home";
@@ -12,14 +12,15 @@ import Dashboard from "./user/Dashboard";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Room from "./user/Room";
+import Demo from './pages/Analytics';
+import Pricing from "./pages/Pricing";
 
-import { useEffect } from "react";
+// import { useEffect } from "react";
 
 // Wrapper component to control layout
 function Layout() {
   const location = useLocation();
 
-  // Define paths where navbar should be hidden
   const hideNavbarRoutes = ["/room"];
 
   // Check if current path includes any of those (support dynamic room ids)
@@ -29,9 +30,11 @@ function Layout() {
 
   return (
     <>
-      {!shouldHideNavbar && <Navbar />}
+      {!shouldHideNavbar && <Navbar/>}
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/analytics" element={<Demo/>}/>
+        <Route path="/pricing" element={<Pricing/>}/>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/oauth-success" element={<OAuthSuccess />} />
