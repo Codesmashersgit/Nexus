@@ -12,6 +12,8 @@ import { CiCalendarDate } from "react-icons/ci";
 import { MdEmail } from "react-icons/md";
 import { FaWhatsapp } from "react-icons/fa";
 import { v4 as uuidv4 } from 'uuid';
+import { useNavigate } from 'react-router-dom';
+
 
 
 
@@ -24,6 +26,8 @@ function Dashboard() {
   const [showCreateRoomForm, setShowCreateRoomForm] = useState(false);
 const [roomName, setRoomName] = useState("");
 const [roomList, setRoomList] = useState([]);
+const [isLogged, setisLogged] = useState(false);
+const navigate= useNavigate();
 
 
   // Toggle dropdown
@@ -68,7 +72,10 @@ const handleCreateRoom = (e) => {
 useEffect(() => {
   const storedRooms = localStorage.getItem("rooms");
   if (storedRooms) setRoomList(JSON.parse(storedRooms));
-}, []);
+  const token = localStorage.getItem("authToken");
+    setisLogged(!!token); // true if token exists
+  }, []); // component mount par run karega
+;
 
 useEffect(() => {
   localStorage.setItem("rooms", JSON.stringify(roomList));
@@ -83,7 +90,8 @@ useEffect(() => {
   };
   const handleLogout = () => {
   if (window.confirm("Are you sure you want to logout?")) {
-    localStorage.removeItem("authToken")
+    localStorage.removeItem("authToken");
+    setisLogged(false);
     alert("You have been logged out successfully!");
     window.location.href = "/"; 
   }
@@ -233,9 +241,14 @@ const whatsappURL = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
         
       case "Logout":
         return (
-          <Logout onLogout={() => window.location.href = "/"} />
-          
-        )
+          <>
+        {isLogged ? (
+        <button onClick={handleLogout}>Logout</button>
+      ) : (
+        <button onClick={() => navigate("/login")}>Login</button>
+      )}
+      </>
+    );
       default:
         return null;
     }
