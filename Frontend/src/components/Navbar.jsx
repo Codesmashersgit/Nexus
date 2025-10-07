@@ -1,25 +1,33 @@
 
 import React, { useEffect, useState } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { CiMenuFries } from "react-icons/ci";
 import { IoCloseSharp } from "react-icons/io5";
+import img from "../assets/Group.png"
 
 function Navbar() {
   const [username, setUsername] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     const storedName = localStorage.getItem("username");
-    if (storedName) {
+    const token= localStorage.getItem("authToken");
+    if (storedName && token) {
       setUsername(storedName);
+    }
+    else{
+      setUsername("Dashboard");
     }
   }, []);
 
   function handleDashboardClick() {
-    if (location.pathname !== "/dashboard") {
+    if (username ) {
       navigate("/dashboard");
+    }
+    else{
+      navigate("/login")
+
     }
   }
 
@@ -28,11 +36,11 @@ function Navbar() {
   }
 
   return (
-    <nav className="fixed md:top-0 md:px-5 top-0 px-2 w-full z-50 shadow-lg rounded">
-      <div className="mx-auto flex justify-between items-center px-6 py-4">
-        {/* Logo */}
-        <div className="lg:text-3xl md:text-xl text-[20px] font-bold md:mb-0">
-          Chroma<span className="lg:text-xl font-normal">meet</span>
+    <nav className="fixed md:top-0 md:px-5 top-0 px-2 w-full shadow-lg rounded">
+      <div className="mx-auto flex justify-around items-center px-6 py-3 z-50 ">
+        <div className="lg:text-3xl md:text-xl text-[20px] font-bold md:mb-0 flex items-center gap-2 justify-center">
+          <img src={img}alt="" className="w-[51px]"></img>
+          <h1 className="lg:text-[30px] font-bold">Ne<span className="text-[#fa1239]">xu</span>s</h1>
         </div>
 
         <div className="md:hidden text-2xl cursor-pointer" onClick={toggleMenu}>
