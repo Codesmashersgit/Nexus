@@ -153,9 +153,9 @@ function ForgotPassword() {
   };
 
   return (
-    <div className="lg:min-h-screen flex items-center justify-center py-28 bg-gray-50">
-      <div className="bg-white rounded-xl shadow-lg p-10 max-w-md w-full">
-        <h2 className="text-2xl font-bold text-purple-700 mb-6 text-center">Forgot Password</h2>
+    <div className=" pt-28 flex justify-center bg-gray-50">
+      <div className="bg-white rounded-xl shadow-lg lg:p-10 p-5 max-w-md w-full mt-32">
+        <h2 className="text-2xl font-bold text-[#fa1239] mb-6 text-center">Forgot Password</h2>
 
         {message && <div className="text-green-600 text-sm text-center mb-4">{message}</div>}
         {error && <div className="text-red-500 text-sm text-center mb-4">{error}</div>}
@@ -174,8 +174,8 @@ function ForgotPassword() {
             <button
               type="submit"
               disabled={loading}
-              className={`bg-purple-600 text-white py-3 rounded-lg font-semibold transition ${
-                loading ? "opacity-50 cursor-not-allowed" : "hover:bg-purple-700"
+              className={`bg-[#fa1239] text-white py-3 rounded-lg font-semibold transition ${
+                loading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#fa1239]"
               }`}
             >
               {loading ? "Sending OTP..." : "Send OTP"}
