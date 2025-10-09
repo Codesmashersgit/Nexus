@@ -39,9 +39,9 @@ function Login() {
   };
 
   return (
-    <div className="md:min-h-screen flex items-center justify-center py-4 md:py-20">
-      <div className="bg-white rounded-xl shadow-lg p-10 ">
-        <h2 className="md:text-3xl text-2xl font-bold text-purple-700 mb-8 text-center">
+    <div className="md:min-h-screen flex items-center justify-center py-20">
+      <div className="bg-white rounded-xl shadow-lg lg:p-10 w-full lg:w-auto p-5">
+        <h2 className="md:text-3xl text-2xl font-bold text-[#fa1239] mb-8 text-center">
           Login to Your Account
         </h2>
 
@@ -72,7 +72,7 @@ function Login() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="border border-gray-300 rounded-lg py-3 px-4"
+            className="border border-gray-300 rounded-lg py-3 px-4 lg:w-80"
           />
 
           <input
@@ -88,7 +88,7 @@ function Login() {
           <div className="text-right">
             <Link
               to="/forgot-password"
-              className="text-sm text-purple-600 hover:underline"
+              className="text-sm text-[#fa1239] font-normal hover:underline"
             >
               Forgot Password?
             </Link>
@@ -96,7 +96,7 @@ function Login() {
 
           <button
             type="submit"
-            className="bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition"
+            className="bg-[#fa1239] text-white py-3 rounded-lg font-semibold hover:bg-[#e1052a] transition"
           >
             Login
           </button>
@@ -107,7 +107,7 @@ function Login() {
           Don't have an account?{" "}
           <Link
             to="/signup"
-            className="text-purple-600 font-semibold hover:underline"
+            className="text-[#fa1239] font-medium hover:underline"
           >
             Sign Up
           </Link>
