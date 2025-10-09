@@ -2,7 +2,7 @@ import React from 'react'
 
 const Pricing = () => {
   return (
-    <div className="max-w-4xl mx-auto pt-[15%]">
+    <div className="max-w-4xl mx-auto py-20 z-0 relative lg:mt-40">
       <h2 className="text-3xl font-bold text-center mb-8">Choose Your Plan</h2>
       <div className="flex flex-col md:flex-row gap-6 justify-center">
         
