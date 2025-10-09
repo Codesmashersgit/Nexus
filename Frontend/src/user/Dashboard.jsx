@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { RxDashboard } from "react-icons/rx";
-import { RiVideoAddFill, RiMenuFoldFill, RiLockPasswordFill, RiCloseFill } from "react-icons/ri";
+import { RiVideoAddFill, RiMenuFoldFill, RiLockPasswordFill} from "react-icons/ri";
 import { ImUser } from "react-icons/im";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import { IoHome } from "react-icons/io5";
@@ -13,6 +13,7 @@ import { MdEmail } from "react-icons/md";
 import { FaWhatsapp } from "react-icons/fa";
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from 'react-router-dom';
+import { IoCloseSharp } from "react-icons/io5";
 
 
 
@@ -297,8 +298,8 @@ const whatsappURL = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
   return (
     <div className='lg:flex'>
       {/* Mobile Menu Button */}
-      <div className="px-6 py-4 text-xl flex lg:hidden cursor-pointer" onClick={toggleMenu}>
-        {isMenuOpen ? "": <RiMenuFoldFill />}
+      <div className="px-6 pt-20 text-xl flex lg:hidden cursor-pointer" onClick={toggleMenu}>
+        {isMenuOpen ? <IoCloseSharp />: <RiMenuFoldFill />}
       </div>
 
       {/* Sidebar - Mobile */}
@@ -309,7 +310,7 @@ const whatsappURL = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
       )}
 
       {/* Sidebar - Desktop */}
-      <div className='hidden lg:flex lg:w-[20%] md:w-[22%] flex-col pl-7 mt-36 gap-6 relative h-[80vh] overflow-auto shadow-lg bg-white rounded-r-md'>
+      <div className='hidden lg:flex w-[20%] flex-col pl-7 mt-36 gap-6 h-[80vh] overflow-auto shadow-lg bg-white rounded-r-md'>
         {MenuItems}
       </div>
 
