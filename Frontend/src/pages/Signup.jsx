@@ -35,9 +35,9 @@ function Signup() {
   };
 
   return (
-    <div className="md:min-h-screen flex justify-center py-4 md:py-20">
-      <div className="bg-white rounded-xl shadow-lg p-10">
-        <h2 className="md:text-3xl text-2xl font-bold text-purple-700 mb-8 text-center">
+    <div className="md:min-h-screen flex justify-center py-20">
+      <div className="bg-white rounded-xl shadow-lg lg:p-10 lg:w-[400px] w-full p-5">
+        <h2 className="md:text-3xl text-2xl font-bold text-[#fa1239] mb-8 text-center">
           Create an Account
         </h2>
 
@@ -84,7 +84,7 @@ function Signup() {
           />
           <button
             type="submit"
-            className="bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition"
+            className="bg-[#fa1239] text-white py-3 rounded-lg font-semibold hover:bg-[#e1052a] transition"
           >
             Sign Up
           </button>
@@ -92,7 +92,7 @@ function Signup() {
 
         <p className="mt-6 text-center text-gray-600">
           Already have an account?{" "}
-          <Link to="/login" className="text-purple-600 font-semibold hover:underline">
+          <Link to="/login" className="text-[#fa1239] font-normal hover:underline">
             Login
           </Link>
         </p>
