@@ -3,6 +3,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
+
 function Home() {
   const navigate = useNavigate();
 
@@ -20,7 +21,7 @@ function Home() {
   
           <div className="flex flex-col md:flex-row">
   {/* Text Section */}
-  <div className="h-[90vh] flex-1 flex flex-col lg:items-center lg:justify-center py-28 mt-16 text-center px-4 bg-gradient-to-r from-[#ffc6d0] to-[#ffdae0]">
+  <div className="h-[90vh] flex-1 flex flex-col lg:items-center lg:justify-center pt-20 mt-16 text-center px-4">
     <h1 className="text-3xl md:text-[70px] font-bold leading-tight">
       Video <span className="text-[#fa1239]">Calls & Meetings</span> For Everyone
     </h1>
@@ -36,22 +37,13 @@ function Home() {
     </button>
   </div>
 
-
-          {/* Image Section */}
-          {/* <div className="md:w-1/2 p-4 md:flex hidden justify-center items-center">
-            <img
-              src=""
-              alt="Hero"
-              className="w-full max-w-[400px] md:max-w-[600px] h-[500px] object-contain"
-            />
-          </div> */}
-          {/* <div className="p-5 absolute top-[50%] lg:hidden justify-center items-center">
+          <div className="lg:hidden">
             <img
               src="https://img.freepik.com/premium-vector/illustration-cartoon-female-user-entering-login_241107-682.jpg"
               alt="Hero"
               className="w-full max-w-[400px] md:max-w-[600px] h-auto object-contain"
             />
-          </div> */}
+          </div>
         </div>
   );
 }
