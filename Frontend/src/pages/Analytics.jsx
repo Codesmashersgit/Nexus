@@ -3,9 +3,9 @@ import React from 'react'
 function Analytics() {
   return (
     
-    <div className="min-h-screen pt-[10%] px-7">
+    <div className="h-screen pt-20 px-7 relative z-0">
       {/* Header */}
-      <header className="mb-8">
+      <header className="mb-8 bg-white ">
         <h1 className="text-3xl font-light text-gray-900 ">Meeting Platform Analytics</h1>
         <p className="text-gray-600 font-light mt-1">Key metrics for your meetings and users</p>
       </header>
