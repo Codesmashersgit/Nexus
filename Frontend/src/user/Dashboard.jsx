@@ -29,7 +29,57 @@ const [roomName, setRoomName] = useState("");
 const [roomList, setRoomList] = useState([]);
 const [isLogged, setisLogged] = useState(false);
 const navigate= useNavigate();
+ const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Basic validation
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setError('Please fill in all fields.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError("New passwords don't match.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch('http://localhost:5000/api/auth/change-password', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`, // ✅ Add token here
+  },
+  body: JSON.stringify({
+    currentPassword,
+    newPassword,
+  }),
+});
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage('Password updated successfully!');
+        setError('');
+        // Clear form
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        setError(data.message || 'Error updating password');
+        setMessage('');
+      }
+    } catch (err) {
+      setError('Something went wrong.');
+      console.error(err);
+    }
+  }
 
   // Toggle dropdown
   const toggleDropdown = () => setIsDropdownOpen(prev => !prev);
@@ -92,6 +142,7 @@ useEffect(() => {
   const handleLogout = () => {
   if (window.confirm("Are you sure you want to logout?")) {
     localStorage.removeItem("authToken");
+    localStorage.removeItem("username");
     setisLogged(false);
     alert("You have been logged out successfully!");
     window.location.href = "/"; 
@@ -216,20 +267,23 @@ const whatsappURL = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
       case "Change Password":
         return(
           <> 
-          <div className='shadow-lg lg:p-6 py-4 rounded-md bg-slate-200 mt-[-60px]'>
-            <h2 className='text-2xl font-bold mb-10 lg:mt-0 px-5'>Change Password</h2>
+          <div className='shadow-lg lg:p-6 py-4 rounded-md bg-slate-200 mt-[-60px] w-96 ml-72'>
+            <h2 className='text-2xl font-bold mb-10 lg:mt-0 px-5 flex justify-center items-center'>Change Password</h2>
             
-            <form className=''>
-              <div className='flex gap-7 flex-wrap items-center px-5 lg:px-0 lg:ml-7'>
+            <form onSubmit={handleSubmit}>
+              <div className='flex gap-7 flex-col items-center px-5 lg:px-0 lg:ml-0 '>
               <label className='font-medium '>Current Password:</label>
-              <input type="password" className='border px-8 py-4 rounded-md ' placeholder='Enter current password' />
+              <input type="password" className='border px-4 py-2 rounded-full w-80 ' placeholder='Enter current password' />
               
               <label className='font-medium'>New Password:</label>
-              <input type="password" className='border px-8 py-4 rounded-md' placeholder='Enter new password' />
+              <input type="password" className='border px-4 py-2 rounded-full w-80' placeholder='Enter new password' />
               
               <label className='font-medium'>Confirm New Password:</label>
-              <input type="password" className='border px-8 py-4 rounded-md' placeholder='Confirm new password' />
+              <input type="password" className='border px-4 py-2 rounded-full w-80' placeholder='Confirm new password' />
               </div>
+               {error && <p className="text-red-500 text-center mt-4">{error}</p>}
+        {message && <p className="text-green-600 text-center mt-4">{message}</p>}
+
               <div className='flex justify-center mt-10'>
               <button type="submit" className='bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors '>Update Password</button>
               </div>
