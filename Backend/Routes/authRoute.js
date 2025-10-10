@@ -5,6 +5,7 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 const router = express.Router();
+const verifytoken= require("../Middleware/Auth");
 
 const { register, login } = require("../Controller/auth-controller");
 const User = require("../Model/User");
@@ -80,7 +81,41 @@ router.post("/send-otp", async (req, res) => {
     res.status(500).json({ message: "Server error sending OTP." });
   }
 });
+router.post("/change-password", verifytoken, async (req, res) => {
+  const userId = req.user.id; // ✅ Available because of middleware
+  const { currentPassword, newPassword } = req.body;
 
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ message: "Please provide both current and new passwords." });
+  }
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    if (!user.password) {
+      return res.status(400).json({ message: "Password change not supported for Google login users." });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Current password is incorrect." });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ message: "New password must be at least 8 characters long." });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.status(200).json({ message: "Password changed successfully." });
+  } catch (error) {
+    console.error("Error in /change-password:", error);
+    res.status(500).json({ message: "Server error changing password." });
+  }
+});
 // Verify OTP
 router.post("/verify-otp", async (req, res) => {
   try {
