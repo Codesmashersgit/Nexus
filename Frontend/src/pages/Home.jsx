@@ -8,12 +8,14 @@ function Home() {
   const navigate = useNavigate();
 
   function handleClick() {
-    const token = localStorage.getItem("token"); // get token fresh on click
-    if (token) {
-      navigate("/dashboard");
-    } else {
-      navigate("/login");
-    }
+    const token = localStorage.getItem("authToken");
+  const storedName = localStorage.getItem("username");
+
+  if (token && storedName) {
+    navigate("/dashboard");
+  } else {
+    navigate("/login");
+  }
   }
 
   return (
