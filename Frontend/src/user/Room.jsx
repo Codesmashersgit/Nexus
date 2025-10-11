@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import Peer from "simple-peer";
@@ -34,7 +33,6 @@ function Room({ roomname, userName }) {
   useEffect(() => {
     socketRef.current = io(SERVER_URL);
 
-    // Setup socket event listeners early
     socketRef.current.on("user-joined", (userId) => {
       const peer = createPeer(userId, socketRef.current.id, userVideo.current.srcObject);
       peersRef.current.push({ peerID: userId, peer });
@@ -74,7 +72,6 @@ function Room({ roomname, userName }) {
       setTypingUsers((prev) => prev.filter((user) => user.id !== id));
     });
 
-    // Get user media and join room after setting listeners
     navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
       userVideo.current.srcObject = stream;
       socketRef.current.emit("join-room", roomname);
@@ -183,10 +180,9 @@ function Room({ roomname, userName }) {
   };
 
   return (
-    <div className="flex h-screen">
-      {/* Video section - 75% width */}
-      <div className="relative w-3/4 bg-black flex flex-col">
-        {/* User video */}
+    <div className="flex md:flex-row h-screen fixed">
+      {/* Video section */}
+      <div className="relative md:w-3/4 w-full bg-black flex flex-col">
         <video
           muted
           ref={userVideo}
@@ -195,12 +191,10 @@ function Room({ roomname, userName }) {
           className="w-full h-full object-cover"
         />
 
-        {/* Peer videos */}
         {peers.map((peer, index) => (
           <Video key={index} peer={peer} />
         ))}
 
-        {/* Controls */}
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-6 bg-black bg-opacity-60 rounded-full px-6 py-3 z-50">
           <button onClick={toggleMic} title="Toggle Mic" className="text-white">
             <FontAwesomeIcon
@@ -225,8 +219,8 @@ function Room({ roomname, userName }) {
         </div>
       </div>
 
-      {/* Chat section - 25% width */}
-      <div className="w-1/4 border-l border-gray-400 flex flex-col h-full">
+      {/* Chat section */}
+      <div className="md:w-1/4 hidden w-full border-t md:border-t-0 md:border-l border-gray-400 lg:flex md:h-full">
         <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-gray-50">
           {chatMessages.map((msg, idx) => (
             <div
@@ -288,7 +282,7 @@ function Video({ peer }) {
       playsInline
       autoPlay
       ref={ref}
-      className="w-screen h-screen bg-black rounded mt-2"
+      className="w-full h-48 md:h-auto bg-black rounded mt-2"
     />
   );
 }
