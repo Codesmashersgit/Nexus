@@ -15,9 +15,6 @@ import Room from "./user/Room";
 import Demo from './pages/Analytics';
 import Pricing from "./pages/Pricing";
 
-// import { useEffect } from "react";
-
-// Wrapper component to control layout
 function Layout() {
   const location = useLocation();
 
