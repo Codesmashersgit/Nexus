@@ -29,7 +29,7 @@ function Layout() {
     <>
       {!shouldHideNavbar && <Navbar/>}
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Home/>} />
         <Route path="/analytics" element={<Demo/>}/>
         <Route path="/pricing" element={<Pricing/>}/>
         <Route path="/login" element={<Login />} />
