@@ -1,50 +1,86 @@
-import React from 'react'
+import React from "react";
+import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
 
-function Analytics() {
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
+
+const AnalyticsDashboard = () => {
+  const stats = [
+    { title: "Total Users", value: "12,430", growth: "+12%" },
+    { title: "Active Sessions", value: "895", growth: "+3.4%" },
+    { title: "Revenue", value: "₹5.2L", growth: "+9.2%" },
+    { title: "Bounce Rate", value: "22%", growth: "-1.8%" },
+  ];
+
+  const chartData = {
+    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    datasets: [
+      {
+        label: "Visitors",
+        data: [500,700,750,850,720,1050,2050],
+        fill: true,
+        borderColor: "#9333ea",
+        backgroundColor: "rgba(147, 51, 234, 0.1)",
+        tension: 0.4,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { stepSize: 500 },
+      },
+    },
+  };
+
   return (
-    
-    <div className="h-screen pt-20 px-7 relative z-0">
-      {/* Header */}
-      <header className="mb-8 bg-white ">
-        <h1 className="text-3xl font-light text-gray-900 ">Meeting Platform Analytics</h1>
-        <p className="text-gray-600 font-light mt-1">Key metrics for your meetings and users</p>
-      </header>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <h1 className="lg:text-3xl text-xl font-bold mb-8 text-gray-800 mt-16">📊 Analytics Dashboard</h1>
 
-      {/* Metrics cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-gray-500 text-sm font-medium">Total Meetings</h2>
-          <p className="mt-1 text-3xl font-semibold text-gray-900">1,234</p>
-          <p className="text-green-500 mt-2">+12% since last week</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-gray-500 text-sm font-medium">Active Users</h2>
-          <p className="mt-1 text-3xl font-semibold text-gray-900">567</p>
-          <p className="text-green-500 mt-2">+7% since last week</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-gray-500 text-sm font-medium">Avg Meeting Duration</h2>
-          <p className="mt-1 text-3xl font-semibold text-gray-900">42 min</p>
-          <p className="text-yellow-500 mt-2">-2% since last week</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-gray-500 text-sm font-medium">Recordings Used</h2>
-          <p className="mt-1 text-3xl font-semibold text-gray-900">128 GB</p>
-          <p className="text-green-500 mt-2">+15% since last week</p>
-        </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        {stats.map((stat, index) => (
+          <div
+            key={index}
+            className="bg-white p-5 rounded-xl shadow hover:shadow-md transition border-l-4 border-purple-600"
+          >
+            <h3 className="text-sm text-gray-500">{stat.title}</h3>
+            <p className="text-2xl font-bold text-gray-800 mt-1">{stat.value}</p>
+            <p
+              className={`text-sm mt-1 ${
+                stat.growth.startsWith("-") ? "text-red-500" : "text-green-500"
+              }`}
+            >
+              {stat.growth} from last week
+            </p>
+          </div>
+        ))}
       </div>
 
-      {/* Chart placeholder */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <h2 className="text-gray-700 text-xl font-semibold mb-4">Meetings Over Time</h2>
-        <div className="h-56 flex items-center justify-center text-gray-400 italic">
-          {/* Replace this with a real chart */}
-          Chart goes here
+      {/* Line Chart */}
+      <div className="bg-white rounded-xl shadow p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-gray-700">Weekly Visitors</h2>
+          <span className="text-sm text-gray-400">Last 7 days</span>
         </div>
+        <Line data={chartData} options={chartOptions} height={100} />
       </div>
     </div>
   );
-}
+};
 
-
-export default Analytics
+export default AnalyticsDashboard;
