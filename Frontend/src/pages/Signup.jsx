@@ -1,12 +1,14 @@
-
 import React, { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import PhoneInput from "react-phone-input-2";
+import 'react-phone-input-2/lib/style.css';
 
 function Signup() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");  // phone value will be in full international format without '+'
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -15,11 +17,18 @@ function Signup() {
     e.preventDefault();
     setError("");
 
+    // Basic validation: phone length
+    if (!phone || phone.length < 10) {
+      setError("Please enter a valid phone number");
+      return;
+    }
+
     try {
       const res = await axios.post("http://localhost:5000/api/auth/register", {
         email,
         password,
         username: fullName,
+        phone: "+" + phone, 
       });
 
       const { token } = res.data;
@@ -74,6 +83,22 @@ function Signup() {
             onChange={(e) => setEmail(e.target.value)}
             className="border border-gray-300 rounded-lg py-3 px-4"
           />
+
+          <PhoneInput
+            country={'in'}  // default country India
+            value={phone}
+            onChange={setPhone}
+            inputProps={{
+              name: 'phone',
+              required: true,
+              autoFocus: false
+            }}
+            inputStyle={{ width: '100%', borderRadius: '0.5rem', padding: '0.75rem', borderColor: '#d1d5db' }}  // Tailwind gray-300 = #d1d5db
+            containerStyle={{}}
+            countryCodeEditable={true}
+            disableCountryCode={false}
+          />
+
           <input
             type="password"
             placeholder="Password"
