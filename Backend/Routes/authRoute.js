@@ -1,11 +1,8 @@
 const express = require("express");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
-const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 const router = express.Router();
-const verifytoken = require("../Middleware/Auth");
 
 const { register, login } = require("../Controller/auth-controller");
 const User = require("../Model/User");
@@ -56,13 +53,39 @@ router.post('/send-otp', async (req, res) => {
 // Verify OTP
 router.post('/check-otp', async (req, res) => {
   const { phone, code } = req.body;
+  console.log(phone,code);
   try {
     const result = await client.verify.services(serviceSid)
       .verificationChecks.create({ to: phone, code });
-    res.json({ status: result.status });
+    res.json({ status: result.status }); 
   } catch (err) {
     console.error('Verify check error:', err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/reset-password', async (req, res) => {
+  const { phone, password } = req.body;
+
+  try {
+    // Password hash karo
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // User dhundo aur update karo
+    const user = await User.findOneAndUpdate(
+      { phone },                 
+      { password: hashedPassword }, 
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    res.json({ message: 'Password reset successfully.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error.' });
   }
 });
 
