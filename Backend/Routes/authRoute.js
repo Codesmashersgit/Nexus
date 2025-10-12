@@ -41,7 +41,7 @@ router.post('/send-otp', async (req, res) => {
   if (!phone) return res.status(400).json({ error: 'phone required' });
 
   try {
-    const verification = await client.verify.services(serviceSid)
+    const verification = await client.verify.v2.services(serviceSid)
       .verifications.create({ to: phone, channel: 'sms' });
     res.json({ sid: verification.sid, status: verification.status });
   } catch (err) {
@@ -55,7 +55,7 @@ router.post('/check-otp', async (req, res) => {
   const { phone, code } = req.body;
   console.log(phone,code);
   try {
-    const result = await client.verify.services(serviceSid)
+    const result = await client.verify.v2.services(serviceSid)
       .verificationChecks.create({ to: phone, code });
     res.json({ status: result.status }); 
   } catch (err) {
