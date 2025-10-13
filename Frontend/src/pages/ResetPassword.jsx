@@ -37,7 +37,7 @@ export default function ResetPassword() {
       setPassword("");
       setConfirmPassword("");
       setLoading(false);
-      navigate("/");
+      navigate("/login");
 
     } catch (err) {
       setLoading(false);
