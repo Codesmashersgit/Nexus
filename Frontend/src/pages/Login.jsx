@@ -9,13 +9,15 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const SERVER_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
+      const res = await axios.post(`${SERVER_URL}/api/auth/login`, {
         email,
         password,
       });
@@ -35,7 +37,7 @@ function Login() {
   };
 
   const handleGoogle = () => {
-    window.location.href = "http://localhost:5000/api/auth/google";
+    window.location.href = `${SERVER_URL}/api/auth/google`;
   };
 
   return (
