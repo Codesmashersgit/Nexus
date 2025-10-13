@@ -7,7 +7,6 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Home from "./pages/Home";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import OAuthSuccess from "./pages/OauthSuccess";
 import Dashboard from "./user/Dashboard"; 
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -34,7 +33,6 @@ function Layout() {
         <Route path="/pricing" element={<Pricing/>}/>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/oauth-success" element={<OAuthSuccess />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/forgot-Password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
