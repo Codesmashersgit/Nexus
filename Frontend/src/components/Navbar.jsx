@@ -35,6 +35,7 @@ function Navbar() {
   function toggleMenu() {
     setMenuOpen(!menuOpen);
   }
+  
 
   return (
     <nav className="fixed md:top-0 md:px-5 top-0 px-2 w-full shadow-lg rounded z-50 bg-white ">
