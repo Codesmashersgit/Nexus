@@ -12,7 +12,7 @@ export default function ResetPassword() {
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
+const SERVER_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMsg("");
@@ -30,7 +30,7 @@ export default function ResetPassword() {
 
     try {
       setLoading(true);
-      const res = await axios.post(`http://localhost:5000/api/auth/reset-password/${token}`, {
+      const res = await axios.post(`${SERVER_URL}/api/auth/reset-password/${token}`, {
         password,
       });
       setMsg(res.data.message || "Password reset successfully.");
