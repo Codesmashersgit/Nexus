@@ -5,6 +5,7 @@ import axios from "axios";
 import PhoneInput from "react-phone-input-2";
 import 'react-phone-input-2/lib/style.css';
 
+
 function Signup() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -12,6 +13,8 @@ function Signup() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const SERVER_URL = import.meta.env.VITE_BACKEND_URL;
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,7 +27,7 @@ function Signup() {
     }
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/register", {
+      const res = await axios.post(`${SERVER_URL}/api/auth/register`, {
         email,
         password,
         username: fullName,
@@ -40,7 +43,7 @@ function Signup() {
   };
 
   const handleGoogle = () => {
-    window.location.href = "http://localhost:5000/api/auth/google";
+    window.location.href = `${SERVER_URL}/api/auth/google`;
   };
 
   return (
