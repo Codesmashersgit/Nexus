@@ -30,6 +30,7 @@ const AnalyticsDashboard = () => {
         borderColor: "#9333ea",
         backgroundColor: "rgba(147, 51, 234, 0.1)",
         tension: 0.4,
+         borderWidth: 1
       },
     ],
   };
