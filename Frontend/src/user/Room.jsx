@@ -33,12 +33,14 @@ function Room({ roomname, userName }) {
   useEffect(() => {
     socketRef.current = io(SERVER_URL);
 
+    // User joined
     socketRef.current.on("user-joined", (userId) => {
       const peer = createPeer(userId, socketRef.current.id, userVideo.current.srcObject);
       peersRef.current.push({ peerID: userId, peer });
       setPeers((users) => [...users, peer]);
     });
 
+    // Signal received
     socketRef.current.on("signal", (data) => {
       const item = peersRef.current.find((p) => p.peerID === data.from);
       if (item) {
@@ -50,6 +52,7 @@ function Room({ roomname, userName }) {
       }
     });
 
+    // User left
     socketRef.current.on("user-left", (userId) => {
       const peerObj = peersRef.current.find((p) => p.peerID === userId);
       if (peerObj) peerObj.peer.destroy();
@@ -57,10 +60,12 @@ function Room({ roomname, userName }) {
       setPeers(peersRef.current.map((p) => p.peer));
     });
 
+    // Receive chat message
     socketRef.current.on("receive-message", ({ id, name, message }) => {
       setChatMessages((messages) => [...messages, { id, name, message }]);
     });
 
+    // Typing indicators
     socketRef.current.on("typing", ({ id, name }) => {
       setTypingUsers((prev) => {
         if (prev.find((user) => user.id === id)) return prev;
@@ -72,13 +77,28 @@ function Room({ roomname, userName }) {
       setTypingUsers((prev) => prev.filter((user) => user.id !== id));
     });
 
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
-      userVideo.current.srcObject = stream;
-      socketRef.current.emit("join-room", roomname);
-    });
+    // Get user media
+    navigator.mediaDevices
+      .getUserMedia({ video: true, audio: true })
+      .then((stream) => {
+        userVideo.current.srcObject = stream;
+        socketRef.current.emit("join-room", roomname);
+      })
+      .catch((err) => {
+        console.error("Error accessing media devices.", err);
+        alert("Cannot access camera/microphone. Please allow permission.");
+      });
 
     return () => {
-      socketRef.current.disconnect();
+      if (socketRef.current) {
+        socketRef.current.off("user-joined");
+        socketRef.current.off("signal");
+        socketRef.current.off("user-left");
+        socketRef.current.off("receive-message");
+        socketRef.current.off("typing");
+        socketRef.current.off("stop-typing");
+        socketRef.current.disconnect();
+      }
       peersRef.current.forEach((p) => p.peer.destroy());
     };
   }, [roomname]);
@@ -224,7 +244,7 @@ function Room({ roomname, userName }) {
         <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-gray-50">
           {chatMessages.map((msg, idx) => (
             <div
-              key={idx}
+              key={`${msg.id}-${idx}`}
               className={`rounded-full p-4 text-sm break-words ${
                 msg.id === socketRef.current.id ? "bg-gray-300 font-bold" : "bg-white"
               }`}
@@ -270,11 +290,16 @@ function Video({ peer }) {
   const ref = useRef();
 
   useEffect(() => {
-    peer.on("stream", (stream) => {
+    const handleStream = (stream) => {
       if (ref.current) {
         ref.current.srcObject = stream;
       }
-    });
+    };
+    peer.on("stream", handleStream);
+
+    return () => {
+      peer.off("stream", handleStream);
+    };
   }, [peer]);
 
   return (
