@@ -24,7 +24,8 @@ router.get(
     const username = encodeURIComponent(req.user.username || req.user.email); // safe encoding
 
     // Redirect with token and username
-    res.redirect(`${process.env.CLIENT_URL}/oauth-success?token=${token}&username=${username}`);
+    const clientUrl = process.env.CLIENT_URL.replace(/\/$/, ''); 
+    res.redirect(`${clientUrl}/oauth-success?token=${token}&username=${username}`);
   }
 );
 
