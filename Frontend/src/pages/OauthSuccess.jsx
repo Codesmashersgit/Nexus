@@ -6,6 +6,11 @@ function OAuthSuccess() {
   const location = useLocation();
 
   useEffect(() => {
+    if (location.pathname.startsWith("//")) {
+      const fixedPath = location.pathname.replace(/^\/\//, "/") + location.search;
+      navigate(fixedPath, { replace: true });
+      return;
+    }
     const query = new URLSearchParams(location.search);
     const token = query.get("token");
     const username = query.get("username");
