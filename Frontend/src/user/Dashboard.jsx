@@ -29,8 +29,7 @@ const [roomName, setRoomName] = useState("");
 const [roomList, setRoomList] = useState([]);
 const [isLogged, setisLogged] = useState(false);
 const navigate= useNavigate();
- 
-const CLIENT_URL = import.meta.env.CLIENT_URL || "http://localhost:5173";
+ const SERVER_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
   // Toggle dropdown
   const toggleDropdown = () => setIsDropdownOpen(prev => !prev);
 
@@ -130,7 +129,7 @@ useEffect(() => {
       ) : (
        <ul className='list-disc pl-5 space-y-4'>
   {roomList.map((room, index) => {
-    const roomURL = `${CLIENT_URL}/room/${room.name}`;
+    const roomURL = `${SERVER_URL}/room/${room.name}`;
 const shareText = `Join my video room "${room.name}": ${roomURL}`;
 const whatsappURL = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
 
