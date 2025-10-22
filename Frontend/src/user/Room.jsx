@@ -11,7 +11,7 @@ import {
   faDesktop,
 } from "@fortawesome/free-solid-svg-icons";
 
-const SERVER_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const SERVER_URL = import.meta.env.CLIENT_URL || "http://localhost:5173";
 
 function Room({ roomname, userName }) {
   const [peers, setPeers] = useState([]);
