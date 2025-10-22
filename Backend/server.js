@@ -37,36 +37,48 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
 
- socket.on("join-room", (roomID) => {
-  socket.join(roomID);
-  socket.to(roomID).emit("user-joined", socket.id);
+  socket.on("join-room", (roomID) => {
+    socket.join(roomID);
+    socket.roomID = roomID; // roomID को socket instance पर सेव कर लें
+    socket.to(roomID).emit("user-joined", socket.id);
+  });
 
   socket.on("signal", (data) => {
     io.to(data.to).emit("signal", data);
   });
 
   socket.on("send-message", ({ name, message }) => {
-    io.to(roomID).emit("receive-message", {
-      id: socket.id,
-      name,
-      message,
-    });
+    const roomID = socket.roomID;
+    if (roomID) {
+      io.to(roomID).emit("receive-message", {
+        id: socket.id,
+        name,
+        message,
+      });
+    }
   });
 
   socket.on("typing", (data) => {
-    socket.to(roomID).emit("typing", { id: socket.id, name: data.name });
+    const roomID = socket.roomID;
+    if (roomID) {
+      socket.to(roomID).emit("typing", { id: socket.id, name: data.name });
+    }
   });
 
   socket.on("stop-typing", () => {
-    socket.to(roomID).emit("stop-typing", { id: socket.id });
+    const roomID = socket.roomID;
+    if (roomID) {
+      socket.to(roomID).emit("stop-typing", { id: socket.id });
+    }
   });
 
   socket.on("disconnect", () => {
-    socket.to(roomID).emit("user-left", socket.id);
+    const roomID = socket.roomID;
+    if (roomID) {
+      socket.to(roomID).emit("user-left", socket.id);
+    }
     console.log(`Socket ${socket.id} disconnected`);
   });
-});
-
 });
 
 
