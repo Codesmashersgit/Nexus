@@ -11,7 +11,7 @@ import {
   faDesktop,
 } from "@fortawesome/free-solid-svg-icons";
 
-const SERVER_URL = import.meta.env.CLIENT_URL || "http://localhost:5173";
+const SERVER_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
 function Room({ roomname, userName }) {
   const [peers, setPeers] = useState([]);
@@ -21,6 +21,7 @@ function Room({ roomname, userName }) {
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [typingUsers, setTypingUsers] = useState([]);
+  const [socketId, setSocketId] = useState(null);
 
   const socketRef = useRef();
   const userVideo = useRef();
@@ -33,26 +34,29 @@ function Room({ roomname, userName }) {
   useEffect(() => {
     socketRef.current = io(SERVER_URL);
 
-    // User joined
-    socketRef.current.on("user-joined", (userId) => {
-      const peer = createPeer(userId, socketRef.current.id, userVideo.current.srcObject);
-      peersRef.current.push({ peerID: userId, peer });
-      setPeers((users) => [...users, peer]);
+    socketRef.current.on("connect", () => {
+      setSocketId(socketRef.current.id);
     });
 
-    // Signal received
+    socketRef.current.on("user-joined", (userId) => {
+      const stream = userVideo.current?.srcObject || null;
+      const peer = createPeer(userId, socketRef.current.id, stream);
+      peersRef.current.push({ peerID: userId, peer });
+      setPeers((prev) => [...prev, peer]);
+    });
+
     socketRef.current.on("signal", (data) => {
-      const item = peersRef.current.find((p) => p.peerID === data.from);
-      if (item) {
-        item.peer.signal(data.signal);
+      const existingPeer = peersRef.current.find((p) => p.peerID === data.from);
+      const stream = userVideo.current?.srcObject || null;
+      if (existingPeer) {
+        existingPeer.peer.signal(data.signal);
       } else {
-        const peer = addPeer(data.signal, data.from, userVideo.current.srcObject);
+        const peer = addPeer(data.signal, data.from, stream);
         peersRef.current.push({ peerID: data.from, peer });
-        setPeers((users) => [...users, peer]);
+        setPeers((prev) => [...prev, peer]);
       }
     });
 
-    // User left
     socketRef.current.on("user-left", (userId) => {
       const peerObj = peersRef.current.find((p) => p.peerID === userId);
       if (peerObj) peerObj.peer.destroy();
@@ -60,46 +64,41 @@ function Room({ roomname, userName }) {
       setPeers(peersRef.current.map((p) => p.peer));
     });
 
-    // Receive chat message
     socketRef.current.on("receive-message", ({ id, name, message }) => {
-      setChatMessages((messages) => [...messages, { id, name, message }]);
+      setChatMessages((msgs) => [...msgs, { id, name, message }]);
     });
 
-    // Typing indicators
     socketRef.current.on("typing", ({ id, name }) => {
-      setTypingUsers((prev) => {
-        if (prev.find((user) => user.id === id)) return prev;
-        return [...prev, { id, name }];
-      });
+      setTypingUsers((prev) =>
+        prev.find((user) => user.id === id) ? prev : [...prev, { id, name }]
+      );
     });
 
     socketRef.current.on("stop-typing", ({ id }) => {
       setTypingUsers((prev) => prev.filter((user) => user.id !== id));
     });
 
-    // Get user media
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
       .then((stream) => {
-        userVideo.current.srcObject = stream;
+        if (userVideo.current) userVideo.current.srcObject = stream;
         socketRef.current.emit("join-room", roomname);
       })
       .catch((err) => {
-        console.error("Error accessing media devices.", err);
+        console.error("Error accessing media devices:", err);
         alert("Cannot access camera/microphone. Please allow permission.");
       });
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.off("user-joined");
-        socketRef.current.off("signal");
-        socketRef.current.off("user-left");
-        socketRef.current.off("receive-message");
-        socketRef.current.off("typing");
-        socketRef.current.off("stop-typing");
-        socketRef.current.disconnect();
+      // Cleanup socket events
+      const socket = socketRef.current;
+      if (socket) {
+        socket.removeAllListeners();
+        socket.disconnect();
       }
-      peersRef.current.forEach((p) => p.peer.destroy());
+
+      // Destroy peers
+      peersRef.current.forEach(({ peer }) => peer.destroy());
     };
   }, [roomname]);
 
@@ -122,7 +121,7 @@ function Room({ roomname, userName }) {
 
   const sendMessage = (e) => {
     e.preventDefault();
-    if (message.trim() === "") return;
+    if (!message.trim()) return;
     socketRef.current.emit("send-message", { name: userName, message });
     setMessage("");
     socketRef.current.emit("stop-typing");
@@ -133,67 +132,75 @@ function Room({ roomname, userName }) {
   }, [chatMessages]);
 
   const toggleMic = () => {
-    const audioTrack = userVideo.current.srcObject.getAudioTracks()[0];
-    audioTrack.enabled = !audioTrack.enabled;
-    setIsMicOn(audioTrack.enabled);
+    const stream = userVideo.current?.srcObject;
+    const audioTrack = stream?.getAudioTracks()[0];
+    if (audioTrack) {
+      audioTrack.enabled = !audioTrack.enabled;
+      setIsMicOn(audioTrack.enabled);
+    }
   };
 
   const toggleCamera = () => {
-    const videoTrack = userVideo.current.srcObject.getVideoTracks()[0];
-    videoTrack.enabled = !videoTrack.enabled;
-    setIsCameraOn(videoTrack.enabled);
+    const stream = userVideo.current?.srcObject;
+    const videoTrack = stream?.getVideoTracks()[0];
+    if (videoTrack) {
+      videoTrack.enabled = !videoTrack.enabled;
+      setIsCameraOn(videoTrack.enabled);
+    }
   };
 
   const toggleScreenShare = async () => {
-    if (!isScreenSharing) {
-      try {
+    try {
+      if (!isScreenSharing) {
         const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
         const screenTrack = screenStream.getVideoTracks()[0];
         screenTrackRef.current = screenTrack;
 
         peersRef.current.forEach(({ peer }) => {
-          const sender = peer._pc.getSenders().find((s) => s.track.kind === "video");
+          const sender = peer._pc?.getSenders?.().find((s) => s.track?.kind === "video");
           if (sender) sender.replaceTrack(screenTrack);
         });
 
-        screenTrack.onended = () => {
-          peersRef.current.forEach(({ peer }) => {
-            const sender = peer._pc.getSenders().find((s) => s.track.kind === "video");
-            if (sender) sender.replaceTrack(userVideo.current.srcObject.getVideoTracks()[0]);
-          });
-          setIsScreenSharing(false);
-        };
-
+        screenTrack.onended = stopScreenShare;
         setIsScreenSharing(true);
-      } catch (err) {
-        console.error("Screen share error:", err);
+      } else {
+        stopScreenShare();
       }
-    } else {
-      if (screenTrackRef.current) {
-        screenTrackRef.current.stop();
-        setIsScreenSharing(false);
-      }
+    } catch (err) {
+      console.error("Screen share error:", err);
     }
   };
 
+  const stopScreenShare = () => {
+    const originalTrack = userVideo.current?.srcObject?.getVideoTracks()[0];
+    peersRef.current.forEach(({ peer }) => {
+      const sender = peer._pc?.getSenders?.().find((s) => s.track?.kind === "video");
+      if (sender && originalTrack) sender.replaceTrack(originalTrack);
+    });
+
+    if (screenTrackRef.current) {
+      screenTrackRef.current.stop();
+      screenTrackRef.current = null;
+    }
+    setIsScreenSharing(false);
+  };
+
   const endCall = () => {
-    peersRef.current.forEach((p) => p.peer.destroy());
-    socketRef.current.disconnect();
+    peersRef.current.forEach(({ peer }) => peer.destroy());
+    socketRef.current?.disconnect();
     window.location.href = "/dashboard";
   };
 
-  // Typing input handler with throttle + debounce
   const handleInputChange = (e) => {
     setMessage(e.target.value);
-
     const now = Date.now();
+
     if (now - lastTypingTime.current > 300) {
       socketRef.current.emit("typing", { name: userName });
       lastTypingTime.current = now;
     }
 
-    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-
+    clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
       socketRef.current.emit("stop-typing");
     }, 1000);
@@ -203,18 +210,13 @@ function Room({ roomname, userName }) {
     <div className="flex md:flex-row h-screen fixed">
       {/* Video section */}
       <div className="relative md:w-3/4 w-full bg-black flex flex-col">
-        <video
-          muted
-          ref={userVideo}
-          autoPlay
-          playsInline
-          className="w-full h-full object-cover"
-        />
+        <video muted ref={userVideo} autoPlay playsInline className="w-full h-full object-cover" />
 
         {peers.map((peer, index) => (
           <Video key={index} peer={peer} />
         ))}
 
+        {/* Controls */}
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-6 bg-black bg-opacity-60 rounded-full px-6 py-3 z-50">
           <button onClick={toggleMic} title="Toggle Mic" className="text-white">
             <FontAwesomeIcon
@@ -246,12 +248,10 @@ function Room({ roomname, userName }) {
             <div
               key={`${msg.id}-${idx}`}
               className={`rounded-full p-4 text-sm break-words ${
-                msg.id === socketRef.current.id ? "bg-gray-300 font-bold" : "bg-white"
+                msg.id === socketId ? "bg-gray-300 font-bold" : "bg-white"
               }`}
             >
-              <strong>
-                {msg.name || (msg.id === socketRef.current.id ? "You" : "Unknown")}:
-              </strong>{" "}
+              <strong>{msg.name || (msg.id === socketId ? "You" : "Unknown")}:</strong>{" "}
               {msg.message}
             </div>
           ))}
@@ -274,7 +274,7 @@ function Room({ roomname, userName }) {
             value={message}
             onChange={handleInputChange}
             onBlur={() => {
-              if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+              clearTimeout(typingTimeoutRef.current);
               socketRef.current.emit("stop-typing");
             }}
             placeholder="Type message..."
@@ -291,25 +291,14 @@ function Video({ peer }) {
 
   useEffect(() => {
     const handleStream = (stream) => {
-      if (ref.current) {
-        ref.current.srcObject = stream;
-      }
+      if (ref.current) ref.current.srcObject = stream;
     };
     peer.on("stream", handleStream);
 
-    return () => {
-      peer.off("stream", handleStream);
-    };
+    return () => peer.off("stream", handleStream);
   }, [peer]);
 
-  return (
-    <video
-      playsInline
-      autoPlay
-      ref={ref}
-      className="w-full h-48 md:h-auto bg-black rounded mt-2"
-    />
-  );
+  return <video playsInline autoPlay ref={ref} className="w-full h-48 md:h-auto bg-black rounded mt-2" />;
 }
 
 export default Room;
