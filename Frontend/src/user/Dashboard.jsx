@@ -29,7 +29,7 @@ const [roomName, setRoomName] = useState("");
 const [roomList, setRoomList] = useState([]);
 const [isLogged, setisLogged] = useState(false);
 const navigate= useNavigate();
- const SERVER_URL = import.meta.env.CLIENT_URL || "http://localhost:5173";
+ const SERVER_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
   // Toggle dropdown
   const toggleDropdown = () => setIsDropdownOpen(prev => !prev);
 
