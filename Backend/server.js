@@ -28,7 +28,7 @@ app.use("/api/auth", authRoutes);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL,  
+    origin: process.env.SERVER_URL,  
     methods: ["GET", "POST"],
     credentials: true
   },
@@ -39,7 +39,7 @@ io.on("connection", (socket) => {
 
   socket.on("join-room", (roomID) => {
     socket.join(roomID);
-    socket.roomID = roomID; // roomID को socket instance पर सेव कर लें
+    socket.roomID = roomID;
     socket.to(roomID).emit("user-joined", socket.id);
   });
 
