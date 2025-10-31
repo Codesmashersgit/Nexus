@@ -10,6 +10,7 @@ import {
   faPhoneSlash,
   faDesktop,
 } from "@fortawesome/free-solid-svg-icons";
+import { useNavigate } from "react-router-dom";
 
 const SERVER_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
@@ -31,58 +32,66 @@ function Room({ roomname, userName }) {
   const typingTimeoutRef = useRef(null);
   const lastTypingTime = useRef(0);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
-    socketRef.current = io(SERVER_URL);
+    socketRef.current = io(SERVER_URL, { transports: ["websocket"] });
 
     socketRef.current.on("connect", () => {
       setSocketId(socketRef.current.id);
     });
 
-    socketRef.current.on("user-joined", (userId) => {
-      const stream = userVideo.current?.srcObject || null;
-      const peer = createPeer(userId, socketRef.current.id, stream);
-      peersRef.current.push({ peerID: userId, peer });
-      setPeers((prev) => [...prev, peer]);
-    });
-
-    socketRef.current.on("signal", (data) => {
-      const existingPeer = peersRef.current.find((p) => p.peerID === data.from);
-      const stream = userVideo.current?.srcObject || null;
-      if (existingPeer) {
-        existingPeer.peer.signal(data.signal);
-      } else {
-        const peer = addPeer(data.signal, data.from, stream);
-        peersRef.current.push({ peerID: data.from, peer });
-        setPeers((prev) => [...prev, peer]);
-      }
-    });
-
-    socketRef.current.on("user-left", (userId) => {
-      const peerObj = peersRef.current.find((p) => p.peerID === userId);
-      if (peerObj) peerObj.peer.destroy();
-      peersRef.current = peersRef.current.filter((p) => p.peerID !== userId);
-      setPeers(peersRef.current.map((p) => p.peer));
-    });
-
-    socketRef.current.on("receive-message", ({ id, name, message }) => {
-      setChatMessages((msgs) => [...msgs, { id, name, message }]);
-    });
-
-    socketRef.current.on("typing", ({ id, name }) => {
-      setTypingUsers((prev) =>
-        prev.find((user) => user.id === id) ? prev : [...prev, { id, name }]
-      );
-    });
-
-    socketRef.current.on("stop-typing", ({ id }) => {
-      setTypingUsers((prev) => prev.filter((user) => user.id !== id));
-    });
-
+    // Get user media first
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
       .then((stream) => {
         if (userVideo.current) userVideo.current.srcObject = stream;
-        socketRef.current.emit("join-room", roomname);
+
+        // Join room with name
+        socketRef.current.emit("join-room", { roomID: roomname, name: userName });
+
+        // Handle new user joined
+        socketRef.current.on("user-joined", (userId) => {
+          const peer = createPeer(userId, socketRef.current.id, stream);
+          peersRef.current.push({ peerID: userId, peer });
+          setPeers((prev) => [...prev, peer]);
+        });
+
+        // Handle receiving signal
+        socketRef.current.on("signal", (data) => {
+          const existingPeer = peersRef.current.find((p) => p.peerID === data.from);
+          if (existingPeer) {
+            existingPeer.peer.signal(data.signal);
+          } else {
+            const peer = addPeer(data.signal, data.from, stream);
+            peersRef.current.push({ peerID: data.from, peer });
+            setPeers((prev) => [...prev, peer]);
+          }
+        });
+
+        // User left room
+        socketRef.current.on("user-left", (userId) => {
+          const peerObj = peersRef.current.find((p) => p.peerID === userId);
+          if (peerObj) peerObj.peer.destroy();
+          peersRef.current = peersRef.current.filter((p) => p.peerID !== userId);
+          setPeers(peersRef.current.map((p) => p.peer));
+        });
+
+        // Chat message received
+        socketRef.current.on("receive-message", ({ id, name, message }) => {
+          setChatMessages((msgs) => [...msgs, { id, name, message }]);
+        });
+
+        // Typing indicators
+        socketRef.current.on("typing", ({ id, name }) => {
+          setTypingUsers((prev) =>
+            prev.find((user) => user.id === id) ? prev : [...prev, { id, name }]
+          );
+        });
+
+        socketRef.current.on("stop-typing", ({ id }) => {
+          setTypingUsers((prev) => prev.filter((user) => user.id !== id));
+        });
       })
       .catch((err) => {
         console.error("Error accessing media devices:", err);
@@ -90,15 +99,13 @@ function Room({ roomname, userName }) {
       });
 
     return () => {
-      // Cleanup socket events
       const socket = socketRef.current;
       if (socket) {
         socket.removeAllListeners();
         socket.disconnect();
       }
-
-      // Destroy peers
       peersRef.current.forEach(({ peer }) => peer.destroy());
+      setPeers([]);
     };
   }, [roomname]);
 
@@ -121,7 +128,7 @@ function Room({ roomname, userName }) {
 
   const sendMessage = (e) => {
     e.preventDefault();
-    if (!message.trim()) return;
+    if (!message.trim() || !socketRef.current?.connected) return;
     socketRef.current.emit("send-message", { name: userName, message });
     setMessage("");
     socketRef.current.emit("stop-typing");
@@ -157,8 +164,11 @@ function Room({ roomname, userName }) {
         screenTrackRef.current = screenTrack;
 
         peersRef.current.forEach(({ peer }) => {
-          const sender = peer._pc?.getSenders?.().find((s) => s.track?.kind === "video");
-          if (sender) sender.replaceTrack(screenTrack);
+          peer.replaceTrack(
+            userVideo.current.srcObject.getVideoTracks()[0],
+            screenTrack,
+            userVideo.current.srcObject
+          );
         });
 
         screenTrack.onended = stopScreenShare;
@@ -174,8 +184,11 @@ function Room({ roomname, userName }) {
   const stopScreenShare = () => {
     const originalTrack = userVideo.current?.srcObject?.getVideoTracks()[0];
     peersRef.current.forEach(({ peer }) => {
-      const sender = peer._pc?.getSenders?.().find((s) => s.track?.kind === "video");
-      if (sender && originalTrack) sender.replaceTrack(originalTrack);
+      peer.replaceTrack(
+        screenTrackRef.current,
+        originalTrack,
+        userVideo.current.srcObject
+      );
     });
 
     if (screenTrackRef.current) {
@@ -188,7 +201,7 @@ function Room({ roomname, userName }) {
   const endCall = () => {
     peersRef.current.forEach(({ peer }) => peer.destroy());
     socketRef.current?.disconnect();
-    window.location.href = "/dashboard";
+    navigate("/dashboard");
   };
 
   const handleInputChange = (e) => {
@@ -210,7 +223,13 @@ function Room({ roomname, userName }) {
     <div className="flex md:flex-row h-screen fixed">
       {/* Video section */}
       <div className="relative md:w-3/4 w-full bg-black flex flex-col">
-        <video muted ref={userVideo} autoPlay playsInline className="w-full h-full object-cover" />
+        <video
+          muted
+          ref={userVideo}
+          autoPlay
+          playsInline
+          className="w-full h-full object-cover"
+        />
 
         {peers.map((peer, index) => (
           <Video key={index} peer={peer} />
@@ -242,8 +261,8 @@ function Room({ roomname, userName }) {
       </div>
 
       {/* Chat section */}
-      <div className="md:w-1/4 hidden w-full border-t md:border-t-0 md:border-l border-gray-400 lg:flex md:h-full">
-        <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-gray-50">
+      <div className="md:w-1/4 hidden lg:flex md:h-full flex-col border-l border-gray-400 bg-gray-50">
+        <div className="flex-1 overflow-y-auto p-3 space-y-2">
           {chatMessages.map((msg, idx) => (
             <div
               key={`${msg.id}-${idx}`}
@@ -298,7 +317,14 @@ function Video({ peer }) {
     return () => peer.off("stream", handleStream);
   }, [peer]);
 
-  return <video playsInline autoPlay ref={ref} className="w-full h-48 md:h-auto bg-black rounded mt-2" />;
+  return (
+    <video
+      playsInline
+      autoPlay
+      ref={ref}
+      className="w-full h-48 md:h-auto bg-black rounded mt-2"
+    />
+  );
 }
 
 export default Room;
