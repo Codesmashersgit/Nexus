@@ -2,54 +2,54 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const passport = require("passport");
+const path = require("path");
 require("dotenv").config();
 require("./config/passport");
-const path = require("path");
-
 const { Server } = require("socket.io");
 const http = require("http");
+
 const authRoutes = require("./Routes/authRoute");
 
 const app = express();
-
-// Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL,
-  credentials: true
+  origin: process.env.CLIENT_URL || "http://localhost:5173",
+  credentials: true,
 }));
 app.use(express.json());
 app.use(passport.initialize());
 
-// API routes
 app.use("/api/auth", authRoutes);
 
-// Serve React frontend (after declaring app)
 app.use(express.static(path.join(__dirname, "../client/dist")));
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../client/dist/index.html"));
 });
 
-// Create HTTP server and Socket.IO
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL,
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
     methods: ["GET", "POST"],
-    credentials: true
+    credentials: true,
   },
 });
 
-// Socket.IO logic
 io.on("connection", (socket) => {
-  console.log("Socket connected:", socket.id);
+  console.log(`🟢 New socket connected: ${socket.id}`);
 
-  socket.on("join-room", (roomID) => {
+  socket.on("join-room", ({ roomID, name }) => {
     socket.join(roomID);
     socket.roomID = roomID;
+    socket.userName = name;
+    console.log(`👤 ${name} joined room: ${roomID}`);
+
     socket.to(roomID).emit("user-joined", socket.id);
   });
 
-  socket.on("signal", (data) => io.to(data.to).emit("signal", data));
+  socket.on("signal", (data) => {
+    io.to(data.to).emit("signal", data);
+  });
 
   socket.on("send-message", ({ name, message }) => {
     if (socket.roomID) {
@@ -62,23 +62,30 @@ io.on("connection", (socket) => {
   });
 
   socket.on("typing", (data) => {
-    if (socket.roomID) socket.to(socket.roomID).emit("typing", { id: socket.id, name: data.name });
+    if (socket.roomID) {
+      socket.to(socket.roomID).emit("typing", {
+        id: socket.id,
+        name: data.name,
+      });
+    }
   });
 
   socket.on("stop-typing", () => {
-    if (socket.roomID) socket.to(socket.roomID).emit("stop-typing", { id: socket.id });
+    if (socket.roomID) {
+      socket.to(socket.roomID).emit("stop-typing", { id: socket.id });
+    }
   });
 
   socket.on("disconnect", () => {
-    if (socket.roomID) socket.to(socket.roomID).emit("user-left", socket.id);
-    console.log(`Socket ${socket.id} disconnected`);
+    if (socket.roomID) {
+      socket.to(socket.roomID).emit("user-left", socket.id);
+      console.log(`${socket.userName || socket.id} left room ${socket.roomID}`);
+    }
   });
 });
-
-// MongoDB connect and server start
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
-    console.log("MongoDB connected");
+    console.log("✅ MongoDB connected");
     const PORT = process.env.PORT || 5000;
     server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
