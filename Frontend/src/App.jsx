@@ -1,6 +1,5 @@
 
 import React from "react";
-// import { useState } from "react";
 import './App.css';
 import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
@@ -15,12 +14,12 @@ import Room from "./user/Room";
 import Demo from './pages/Analytics';
 import Pricing from "./pages/Pricing";
 
+
 function Layout() {
   const location = useLocation();
 
   const hideNavbarRoutes = ["/room"];
 
-  // Check if current path includes any of those (support dynamic room ids)
   const shouldHideNavbar = hideNavbarRoutes.some((path) =>
     location.pathname.startsWith(path)
   );
