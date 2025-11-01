@@ -10,10 +10,11 @@ import Home from '../pages/Home';
 import { FaEdit } from "react-icons/fa";
 import { CiCalendarDate } from "react-icons/ci";
 import { MdEmail } from "react-icons/md";
-import { FaWhatsapp } from "react-icons/fa";
+import { FaWhatsapp} from "react-icons/fa";
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from 'react-router-dom';
 import { IoCloseSharp } from "react-icons/io5";
+import { MdDelete } from "react-icons/md";
 
 
 
@@ -37,6 +38,9 @@ const VITE_FRONTEND_URL="https://nexus1802.netlify.app"
   // Toggle mobile menu
   const toggleMenu = () => setIsMenuOpen(prev => !prev);
 
+  const handleDelete =() => {
+   setRoomList((prev) => prev.filter((r) => r.name !== roomName));
+  }
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -143,6 +147,11 @@ const whatsappURL = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
             Open Room
           </a>
         </div>
+         <MdDelete
+                  title="Delete Room"
+                  className="text-red-600 hover:text-red-800 cursor-pointer text-xl"
+                  onClick={() => handleDelete(room.name)}
+                />
         <a href={whatsappURL} target="_blank" rel="noopener noreferrer" className='text-green-600 text-xl hover:text-green-800'>
           <FaWhatsapp title="Share on WhatsApp" />
         </a>
