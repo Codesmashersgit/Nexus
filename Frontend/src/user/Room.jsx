@@ -41,23 +41,30 @@ function Room({ roomname, userName }) {
       setSocketId(socketRef.current.id);
     });
 
-    // Get user media first
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
       .then((stream) => {
         if (userVideo.current) userVideo.current.srcObject = stream;
 
-        // Join room with name
         socketRef.current.emit("join-room", { roomID: roomname, name: userName });
 
-        // Handle new user joined
+        // 🔹 When server sends all existing users (for the new user)
+        socketRef.current.on("all-users", (users) => {
+          users.forEach((userId) => {
+            const peer = createPeer(userId, socketRef.current.id, stream);
+            peersRef.current.push({ peerID: userId, peer });
+            setPeers((prev) => [...prev, peer]);
+          });
+        });
+
+        // 🔹 When a new user joins (for existing users)
         socketRef.current.on("user-joined", (userId) => {
-          const peer = createPeer(userId, socketRef.current.id, stream);
+          const peer = addPeer(null, userId, stream);
           peersRef.current.push({ peerID: userId, peer });
           setPeers((prev) => [...prev, peer]);
         });
 
-        // Handle receiving signal
+        // 🔹 When receiving a WebRTC signal
         socketRef.current.on("signal", (data) => {
           const existingPeer = peersRef.current.find((p) => p.peerID === data.from);
           if (existingPeer) {
@@ -69,7 +76,7 @@ function Room({ roomname, userName }) {
           }
         });
 
-        // User left room
+        // 🔹 User left
         socketRef.current.on("user-left", (userId) => {
           const peerObj = peersRef.current.find((p) => p.peerID === userId);
           if (peerObj) peerObj.peer.destroy();
@@ -77,12 +84,12 @@ function Room({ roomname, userName }) {
           setPeers(peersRef.current.map((p) => p.peer));
         });
 
-        // Chat message received
+        // 🔹 Chat messages
         socketRef.current.on("receive-message", ({ id, name, message }) => {
           setChatMessages((msgs) => [...msgs, { id, name, message }]);
         });
 
-        // Typing indicators
+        // 🔹 Typing events
         socketRef.current.on("typing", ({ id, name }) => {
           setTypingUsers((prev) =>
             prev.find((user) => user.id === id) ? prev : [...prev, { id, name }]
@@ -122,7 +129,7 @@ function Room({ roomname, userName }) {
     peer.on("signal", (signal) => {
       socketRef.current.emit("signal", { to: callerID, from: socketRef.current.id, signal });
     });
-    peer.signal(incomingSignal);
+    if (incomingSignal) peer.signal(incomingSignal);
     return peer;
   };
 
@@ -184,11 +191,7 @@ function Room({ roomname, userName }) {
   const stopScreenShare = () => {
     const originalTrack = userVideo.current?.srcObject?.getVideoTracks()[0];
     peersRef.current.forEach(({ peer }) => {
-      peer.replaceTrack(
-        screenTrackRef.current,
-        originalTrack,
-        userVideo.current.srcObject
-      );
+      peer.replaceTrack(screenTrackRef.current, originalTrack, userVideo.current.srcObject);
     });
 
     if (screenTrackRef.current) {
@@ -207,7 +210,6 @@ function Room({ roomname, userName }) {
   const handleInputChange = (e) => {
     setMessage(e.target.value);
     const now = Date.now();
-
     if (now - lastTypingTime.current > 300) {
       socketRef.current.emit("typing", { name: userName });
       lastTypingTime.current = now;
@@ -223,13 +225,7 @@ function Room({ roomname, userName }) {
     <div className="flex md:flex-row h-screen fixed">
       {/* Video section */}
       <div className="relative md:w-3/4 w-full bg-black flex flex-col">
-        <video
-          muted
-          ref={userVideo}
-          autoPlay
-          playsInline
-          className="w-full h-full object-cover"
-        />
+        <video muted ref={userVideo} autoPlay playsInline className="w-full h-full object-cover" />
 
         {peers.map((peer, index) => (
           <Video key={index} peer={peer} />
@@ -277,7 +273,6 @@ function Room({ roomname, userName }) {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Typing indicator */}
         <div className="p-2 italic text-sm text-gray-600 min-h-[24px]">
           {typingUsers.length > 0 && (
             <>
@@ -313,18 +308,10 @@ function Video({ peer }) {
       if (ref.current) ref.current.srcObject = stream;
     };
     peer.on("stream", handleStream);
-
     return () => peer.off("stream", handleStream);
   }, [peer]);
 
-  return (
-    <video
-      playsInline
-      autoPlay
-      ref={ref}
-      className="w-full h-48 md:h-auto bg-black rounded mt-2"
-    />
-  );
+  return <video playsInline autoPlay ref={ref} className="w-full h-48 md:h-auto bg-black rounded mt-2" />;
 }
 
 export default Room;
