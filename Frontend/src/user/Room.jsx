@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import Peer from "simple-peer";
@@ -27,44 +28,37 @@ function Room({ roomname, userName }) {
   const socketRef = useRef();
   const userVideo = useRef();
   const peersRef = useRef([]);
-  const messagesEndRef = useRef();
   const screenTrackRef = useRef();
+  const messagesEndRef = useRef();
   const typingTimeoutRef = useRef(null);
   const lastTypingTime = useRef(0);
-
   const navigate = useNavigate();
 
   useEffect(() => {
     socketRef.current = io(SERVER_URL, { transports: ["websocket"] });
 
-    socketRef.current.on("connect", () => {
-      setSocketId(socketRef.current.id);
-    });
+    socketRef.current.on("connect", () => setSocketId(socketRef.current.id));
 
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
       .then((stream) => {
-        if (userVideo.current) userVideo.current.srcObject = stream;
-
+        userVideo.current.srcObject = stream;
         socketRef.current.emit("join-room", { roomID: roomname, name: userName });
 
-        // 🔹 When server sends all existing users (for the new user)
         socketRef.current.on("all-users", (users) => {
           users.forEach((userId) => {
             const peer = createPeer(userId, socketRef.current.id, stream);
             peersRef.current.push({ peerID: userId, peer });
-            setPeers((prev) => [...prev, peer]);
+            setPeers((prev) => [...prev, { peerID: userId, peer }]);
           });
         });
 
-        // 🔹 When a new user joins (for existing users)
         socketRef.current.on("user-joined", (userId) => {
           const peer = addPeer(null, userId, stream);
           peersRef.current.push({ peerID: userId, peer });
-          setPeers((prev) => [...prev, peer]);
+          setPeers((prev) => [...prev, { peerID: userId, peer }]);
         });
 
-        // 🔹 When receiving a WebRTC signal
         socketRef.current.on("signal", (data) => {
           const existingPeer = peersRef.current.find((p) => p.peerID === data.from);
           if (existingPeer) {
@@ -72,24 +66,21 @@ function Room({ roomname, userName }) {
           } else {
             const peer = addPeer(data.signal, data.from, stream);
             peersRef.current.push({ peerID: data.from, peer });
-            setPeers((prev) => [...prev, peer]);
+            setPeers((prev) => [...prev, { peerID: data.from, peer }]);
           }
         });
 
-        // 🔹 User left
         socketRef.current.on("user-left", (userId) => {
           const peerObj = peersRef.current.find((p) => p.peerID === userId);
           if (peerObj) peerObj.peer.destroy();
           peersRef.current = peersRef.current.filter((p) => p.peerID !== userId);
-          setPeers(peersRef.current.map((p) => p.peer));
+          setPeers(peersRef.current.map((p) => ({ peerID: p.peerID, peer: p.peer })));
         });
 
-        // 🔹 Chat messages
         socketRef.current.on("receive-message", ({ id, name, message }) => {
           setChatMessages((msgs) => [...msgs, { id, name, message }]);
         });
 
-        // 🔹 Typing events
         socketRef.current.on("typing", ({ id, name }) => {
           setTypingUsers((prev) =>
             prev.find((user) => user.id === id) ? prev : [...prev, { id, name }]
@@ -99,22 +90,14 @@ function Room({ roomname, userName }) {
         socketRef.current.on("stop-typing", ({ id }) => {
           setTypingUsers((prev) => prev.filter((user) => user.id !== id));
         });
-      })
-      .catch((err) => {
-        console.error("Error accessing media devices:", err);
-        alert("Cannot access camera/microphone. Please allow permission.");
       });
 
     return () => {
-      const socket = socketRef.current;
-      if (socket) {
-        socket.removeAllListeners();
-        socket.disconnect();
-      }
+      socketRef.current?.disconnect();
       peersRef.current.forEach(({ peer }) => peer.destroy());
       setPeers([]);
     };
-  }, [roomname]);
+  }, [roomname, userName]);
 
   const createPeer = (userToSignal, callerID, stream) => {
     const peer = new Peer({ initiator: true, trickle: false, stream });
@@ -135,19 +118,14 @@ function Room({ roomname, userName }) {
 
   const sendMessage = (e) => {
     e.preventDefault();
-    if (!message.trim() || !socketRef.current?.connected) return;
+    if (!message.trim()) return;
     socketRef.current.emit("send-message", { name: userName, message });
     setMessage("");
     socketRef.current.emit("stop-typing");
   };
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatMessages]);
-
   const toggleMic = () => {
-    const stream = userVideo.current?.srcObject;
-    const audioTrack = stream?.getAudioTracks()[0];
+    const audioTrack = userVideo.current?.srcObject?.getAudioTracks()[0];
     if (audioTrack) {
       audioTrack.enabled = !audioTrack.enabled;
       setIsMicOn(audioTrack.enabled);
@@ -155,8 +133,7 @@ function Room({ roomname, userName }) {
   };
 
   const toggleCamera = () => {
-    const stream = userVideo.current?.srcObject;
-    const videoTrack = stream?.getVideoTracks()[0];
+    const videoTrack = userVideo.current?.srcObject?.getVideoTracks()[0];
     if (videoTrack) {
       videoTrack.enabled = !videoTrack.enabled;
       setIsCameraOn(videoTrack.enabled);
@@ -193,18 +170,9 @@ function Room({ roomname, userName }) {
     peersRef.current.forEach(({ peer }) => {
       peer.replaceTrack(screenTrackRef.current, originalTrack, userVideo.current.srcObject);
     });
-
-    if (screenTrackRef.current) {
-      screenTrackRef.current.stop();
-      screenTrackRef.current = null;
-    }
+    screenTrackRef.current?.stop();
+    screenTrackRef.current = null;
     setIsScreenSharing(false);
-  };
-
-  const endCall = () => {
-    peersRef.current.forEach(({ peer }) => peer.destroy());
-    socketRef.current?.disconnect();
-    navigate("/dashboard");
   };
 
   const handleInputChange = (e) => {
@@ -214,104 +182,113 @@ function Room({ roomname, userName }) {
       socketRef.current.emit("typing", { name: userName });
       lastTypingTime.current = now;
     }
-
     clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
       socketRef.current.emit("stop-typing");
     }, 1000);
   };
 
+  const endCall = () => {
+    peersRef.current.forEach(({ peer }) => peer.destroy());
+    socketRef.current?.disconnect();
+    navigate("/dashboard");
+  };
+
+  const PeerVideo = ({ peer }) => {
+    const ref = useRef();
+    useEffect(() => {
+      peer.on("stream", (stream) => {
+        if (ref.current) ref.current.srcObject = stream;
+      });
+    }, [peer]);
+    return (
+      <video
+        playsInline
+        autoPlay
+        ref={ref}
+        className="bg-black rounded h-48 w-full object-cover"
+      />
+    );
+  };
+
   return (
-    <div className="flex md:flex-row h-screen fixed">
-      {/* Video section */}
-      <div className="relative md:w-3/4 w-full bg-black flex flex-col">
-        <video muted ref={userVideo} autoPlay playsInline className="w-full h-full object-cover" />
-
-        {peers.map((peer, index) => (
-          <Video key={index} peer={peer} />
+    <div className="flex h-screen">
+      {/* -------- Video Grid -------- */}
+      <div className="w-3/4 bg-black p-2 grid grid-cols-2 md:grid-cols-3 gap-2 overflow-y-auto">
+        <video
+          muted
+          ref={userVideo}
+          autoPlay
+          playsInline
+          className="bg-black rounded h-48"
+        />
+        {peers.map(({ peerID, peer }) => (
+          <PeerVideo key={peerID} peer={peer} />
         ))}
-
-        {/* Controls */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-6 bg-black bg-opacity-60 rounded-full px-6 py-3 z-50">
-          <button onClick={toggleMic} title="Toggle Mic" className="text-white">
-            <FontAwesomeIcon
-              icon={isMicOn ? faMicrophone : faMicrophoneSlash}
-              className="p-3 rounded-full bg-black"
-              size="lg"
-            />
-          </button>
-          <button onClick={toggleCamera} title="Toggle Camera" className="text-white">
-            <FontAwesomeIcon
-              icon={isCameraOn ? faVideo : faVideoSlash}
-              className="p-3 rounded-full bg-black"
-              size="lg"
-            />
-          </button>
-          <button onClick={toggleScreenShare} title="Share Screen" className="text-white">
-            <FontAwesomeIcon icon={faDesktop} className="p-3 rounded-full bg-black" size="lg" />
-          </button>
-          <button onClick={endCall} title="End Call" className="text-red-500">
-            <FontAwesomeIcon icon={faPhoneSlash} className="p-3 rounded-full bg-black" size="lg" />
-          </button>
-        </div>
       </div>
 
-      {/* Chat section */}
-      <div className="md:w-1/4 hidden lg:flex md:h-full flex-col border-l border-gray-400 bg-gray-50">
+      {/* -------- Chat Section -------- */}
+      <div className="w-1/4 flex flex-col border-l border-gray-400 bg-gray-50">
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
           {chatMessages.map((msg, idx) => (
             <div
               key={`${msg.id}-${idx}`}
-              className={`rounded-full p-4 text-sm break-words ${
+              className={`rounded-full p-4 text-sm ${
                 msg.id === socketId ? "bg-gray-300 font-bold" : "bg-white"
               }`}
             >
-              <strong>{msg.name || (msg.id === socketId ? "You" : "Unknown")}:</strong>{" "}
-              {msg.message}
+              <strong>{msg.name || "Unknown"}:</strong> {msg.message}
             </div>
           ))}
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="p-2 italic text-sm text-gray-600 min-h-[24px]">
-          {typingUsers.length > 0 && (
-            <>
-              {typingUsers.map((user) => user.name).join(", ")}{" "}
-              {typingUsers.length === 1 ? "is" : "are"} typing...
-            </>
-          )}
-        </div>
+        {/* Typing indicator */}
+        {typingUsers.length > 0 && (
+          <div className="px-4 py-2 text-sm text-gray-500">
+            {typingUsers.map((u) => u.name).join(", ")} typing...
+          </div>
+        )}
 
-        <form onSubmit={sendMessage} className="p-2 border-t border-gray-300 bg-white">
+        {/* Message Input */}
+        <form onSubmit={sendMessage} className="flex p-2 border-t border-gray-300">
           <input
             type="text"
             value={message}
             onChange={handleInputChange}
-            onBlur={() => {
-              clearTimeout(typingTimeoutRef.current);
-              socketRef.current.emit("stop-typing");
-            }}
-            placeholder="Type message..."
-            className="w-full px-3 py-2 border border-gray-400 rounded outline-none"
+            placeholder="Type a message..."
+            className="flex-1 px-3 py-2 rounded border border-gray-300 focus:outline-none"
           />
+          <button
+            type="submit"
+            className="ml-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Send
+          </button>
         </form>
+
+        {/* Controls */}
+        <div className="flex justify-around items-center p-3 border-t bg-gray-100">
+          <button onClick={toggleMic} className="text-gray-700">
+            <FontAwesomeIcon icon={isMicOn ? faMicrophone : faMicrophoneSlash} size="lg" />
+          </button>
+          <button onClick={toggleCamera} className="text-gray-700">
+            <FontAwesomeIcon icon={isCameraOn ? faVideo : faVideoSlash} size="lg" />
+          </button>
+          <button onClick={toggleScreenShare} className="text-gray-700">
+            <FontAwesomeIcon icon={faDesktop} size="lg" />
+          </button>
+          <button
+            onClick={endCall}
+            className="text-red-600 hover:text-red-800"
+            title="End Call"
+          >
+            <FontAwesomeIcon icon={faPhoneSlash} size="lg" />
+          </button>
+        </div>
       </div>
     </div>
   );
-}
-
-function Video({ peer }) {
-  const ref = useRef();
-
-  useEffect(() => {
-    const handleStream = (stream) => {
-      if (ref.current) ref.current.srcObject = stream;
-    };
-    peer.on("stream", handleStream);
-    return () => peer.off("stream", handleStream);
-  }, [peer]);
-
-  return <video playsInline autoPlay ref={ref} className="w-full h-48 md:h-auto bg-black rounded mt-2" />;
 }
 
 export default Room;
