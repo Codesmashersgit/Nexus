@@ -38,9 +38,10 @@ const VITE_FRONTEND_URL="https://nexus1802.netlify.app"
   // Toggle mobile menu
   const toggleMenu = () => setIsMenuOpen(prev => !prev);
 
-  const handleDelete =() => {
-   setRoomList((prev) => prev.filter((r) => r.name !== roomName));
-  }
+  const handleDelete = (roomToDelete) => {
+  setRoomList((prev) => prev.filter((r) => r.name !== roomToDelete));
+};
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -147,6 +148,7 @@ const whatsappURL = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
             Open Room
           </a>
         </div>
+        <div>
          <MdDelete
                   title="Delete Room"
                   className="text-red-600 hover:text-red-800 cursor-pointer text-xl"
@@ -154,7 +156,9 @@ const whatsappURL = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
                 />
         <a href={whatsappURL} target="_blank" rel="noopener noreferrer" className='text-green-600 text-xl hover:text-green-800'>
           <FaWhatsapp title="Share on WhatsApp" />
+
         </a>
+        </div>
       </li>
     );
   })}
