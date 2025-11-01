@@ -29,7 +29,8 @@ const [roomName, setRoomName] = useState("");
 const [roomList, setRoomList] = useState([]);
 const [isLogged, setisLogged] = useState(false);
 const navigate= useNavigate();
- const CLIENT_URL = import.meta.env.CLIENT_URL || "http://localhost:5173";
+const VITE_FRONTEND_URL="https://nexus1802.netlify.app"
+
   // Toggle dropdown
   const toggleDropdown = () => setIsDropdownOpen(prev => !prev);
 
@@ -129,7 +130,7 @@ useEffect(() => {
       ) : (
        <ul className='list-disc pl-5 space-y-4'>
   {roomList.map((room, index) => {
-    const roomURL = `${CLIENT_URL}/room/${encodeURIComponent(room.name)}`;
+    const roomURL = `${VITE_FRONTEND_URL}/room/${encodeURIComponent(room.name)}`;
 const shareText = `Join my video room "${room.name}": ${roomURL}`;
 const whatsappURL = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
 
