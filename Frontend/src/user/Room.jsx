@@ -14,6 +14,30 @@ import { useNavigate } from "react-router-dom";
 
 const SERVER_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
+function Video({ peer }) {
+  const ref = useRef();
+
+  useEffect(() => {
+    const handleStream = (stream) => {
+      if (ref.current) ref.current.srcObject = stream;
+    };
+    peer.on("stream", handleStream);
+
+    return () => {
+      peer.off("stream", handleStream);
+    };
+  }, [peer]);
+
+  return (
+    <video
+      playsInline
+      autoPlay
+      ref={ref}
+      className="w-full h-48 md:h-auto bg-black rounded mt-2"
+    />
+  );
+}
+
 function Room({ roomname, userName }) {
   const [peers, setPeers] = useState([]);
   const [chatMessages, setChatMessages] = useState([]);
@@ -21,7 +45,6 @@ function Room({ roomname, userName }) {
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
-  const [typingUsers, setTypingUsers] = useState([]);
   const [socketId, setSocketId] = useState(null);
 
   const socketRef = useRef();
@@ -29,8 +52,6 @@ function Room({ roomname, userName }) {
   const peersRef = useRef([]);
   const messagesEndRef = useRef();
   const screenTrackRef = useRef();
-  const typingTimeoutRef = useRef(null);
-  const lastTypingTime = useRef(0);
 
   const navigate = useNavigate();
 
@@ -41,6 +62,16 @@ function Room({ roomname, userName }) {
       setSocketId(socketRef.current.id);
     });
 
+    const handleData = (data, peerID) => {
+      try {
+        if (peerID) console.debug("Received data from peer:", peerID);
+        const msg = JSON.parse(data.toString());
+        setChatMessages((msgs) => [...msgs, msg]);
+      } catch (error) {
+        console.error("Failed to parse chat data:", error);
+      }
+    };
+
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
       .then((stream) => {
@@ -48,56 +79,35 @@ function Room({ roomname, userName }) {
 
         socketRef.current.emit("join-room", { roomID: roomname, name: userName });
 
-        // 🔹 When server sends all existing users (for the new user)
         socketRef.current.on("all-users", (users) => {
           users.forEach((userId) => {
-            const peer = createPeer(userId, socketRef.current.id, stream);
+            const peer = createPeer(userId, socketRef.current.id, stream, handleData);
             peersRef.current.push({ peerID: userId, peer });
             setPeers((prev) => [...prev, peer]);
           });
         });
 
-        // 🔹 When a new user joins (for existing users)
         socketRef.current.on("user-joined", (userId) => {
-          const peer = addPeer(null, userId, stream);
-          peersRef.current.push({ peerID: userId, peer });
-          setPeers((prev) => [...prev, peer]);
+          console.log("New user joined:", userId);
         });
 
-        // 🔹 When receiving a WebRTC signal
         socketRef.current.on("signal", (data) => {
           const existingPeer = peersRef.current.find((p) => p.peerID === data.from);
+
           if (existingPeer) {
             existingPeer.peer.signal(data.signal);
           } else {
-            const peer = addPeer(data.signal, data.from, stream);
+            const peer = addPeer(data.signal, data.from, stream, handleData);
             peersRef.current.push({ peerID: data.from, peer });
             setPeers((prev) => [...prev, peer]);
           }
         });
 
-        // 🔹 User left
         socketRef.current.on("user-left", (userId) => {
           const peerObj = peersRef.current.find((p) => p.peerID === userId);
           if (peerObj) peerObj.peer.destroy();
           peersRef.current = peersRef.current.filter((p) => p.peerID !== userId);
           setPeers(peersRef.current.map((p) => p.peer));
-        });
-
-        // 🔹 Chat messages
-        socketRef.current.on("receive-message", ({ id, name, message }) => {
-          setChatMessages((msgs) => [...msgs, { id, name, message }]);
-        });
-
-        // 🔹 Typing events
-        socketRef.current.on("typing", ({ id, name }) => {
-          setTypingUsers((prev) =>
-            prev.find((user) => user.id === id) ? prev : [...prev, { id, name }]
-          );
-        });
-
-        socketRef.current.on("stop-typing", ({ id }) => {
-          setTypingUsers((prev) => prev.filter((user) => user.id !== id));
         });
       })
       .catch((err) => {
@@ -113,32 +123,59 @@ function Room({ roomname, userName }) {
       }
       peersRef.current.forEach(({ peer }) => peer.destroy());
       setPeers([]);
+      peersRef.current = [];
     };
   }, [roomname]);
 
-  const createPeer = (userToSignal, callerID, stream) => {
+  const createPeer = (userToSignal, callerID, stream, onData) => {
     const peer = new Peer({ initiator: true, trickle: false, stream });
+
     peer.on("signal", (signal) => {
       socketRef.current.emit("signal", { to: userToSignal, from: callerID, signal });
     });
+
+    peer.on("data", (data) => onData(data, userToSignal));
+    peer.on("error", (err) => console.error("Peer error:", err));
+
     return peer;
   };
 
-  const addPeer = (incomingSignal, callerID, stream) => {
+  const addPeer = (incomingSignal, callerID, stream, onData) => {
     const peer = new Peer({ initiator: false, trickle: false, stream });
+
     peer.on("signal", (signal) => {
       socketRef.current.emit("signal", { to: callerID, from: socketRef.current.id, signal });
     });
-    if (incomingSignal) peer.signal(incomingSignal);
+
+    peer.on("data", (data) => onData(data, callerID));
+    peer.on("error", (err) => console.error("Peer error:", err));
+
+    if (incomingSignal) {
+      peer.signal(incomingSignal);
+    }
+
     return peer;
   };
 
   const sendMessage = (e) => {
     e.preventDefault();
     if (!message.trim() || !socketRef.current?.connected) return;
-    socketRef.current.emit("send-message", { name: userName, message });
+
+    const msg = {
+      id: socketId,
+      name: userName,
+      message: message,
+    };
+
+    peersRef.current.forEach(({ peer }) => {
+      if (peer.connected) {
+        peer.send(JSON.stringify(msg));
+      }
+    });
+
+    setChatMessages((msgs) => [...msgs, msg]);
+
     setMessage("");
-    socketRef.current.emit("stop-typing");
   };
 
   useEffect(() => {
@@ -209,21 +246,10 @@ function Room({ roomname, userName }) {
 
   const handleInputChange = (e) => {
     setMessage(e.target.value);
-    const now = Date.now();
-    if (now - lastTypingTime.current > 300) {
-      socketRef.current.emit("typing", { name: userName });
-      lastTypingTime.current = now;
-    }
-
-    clearTimeout(typingTimeoutRef.current);
-    typingTimeoutRef.current = setTimeout(() => {
-      socketRef.current.emit("stop-typing");
-    }, 1000);
   };
 
   return (
     <div className="flex md:flex-row h-screen fixed">
-      {/* Video section */}
       <div className="relative md:w-3/4 w-full bg-black flex flex-col">
         <video muted ref={userVideo} autoPlay playsInline className="w-full h-full object-cover" />
 
@@ -231,7 +257,6 @@ function Room({ roomname, userName }) {
           <Video key={index} peer={peer} />
         ))}
 
-        {/* Controls */}
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-6 bg-black bg-opacity-60 rounded-full px-6 py-3 z-50">
           <button onClick={toggleMic} title="Toggle Mic" className="text-white">
             <FontAwesomeIcon
@@ -252,11 +277,10 @@ function Room({ roomname, userName }) {
           </button>
           <button onClick={endCall} title="End Call" className="text-red-500">
             <FontAwesomeIcon icon={faPhoneSlash} className="p-3 rounded-full bg-black" size="lg" />
-          </button>
+_          </button>
         </div>
       </div>
 
-      {/* Chat section */}
       <div className="md:w-1/4 hidden lg:flex md:h-full flex-col border-l border-gray-400 bg-gray-50">
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
           {chatMessages.map((msg, idx) => (
@@ -266,31 +290,19 @@ function Room({ roomname, userName }) {
                 msg.id === socketId ? "bg-gray-300 font-bold" : "bg-white"
               }`}
             >
-              <strong>{msg.name || (msg.id === socketId ? "You" : "Unknown")}:</strong>{" "}
-              {msg.message}
+              <strong>{msg.id === socketId ? "You" : msg.name || "Unknown"}:</strong> {msg.message}
             </div>
           ))}
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="p-2 italic text-sm text-gray-600 min-h-[24px]">
-          {typingUsers.length > 0 && (
-            <>
-              {typingUsers.map((user) => user.name).join(", ")}{" "}
-              {typingUsers.length === 1 ? "is" : "are"} typing...
-            </>
-          )}
-        </div>
+        <div className="p-2 italic text-sm text-gray-600 min-h-[24px]"></div>
 
         <form onSubmit={sendMessage} className="p-2 border-t border-gray-300 bg-white">
           <input
             type="text"
             value={message}
             onChange={handleInputChange}
-            onBlur={() => {
-              clearTimeout(typingTimeoutRef.current);
-              socketRef.current.emit("stop-typing");
-            }}
             placeholder="Type message..."
             className="w-full px-3 py-2 border border-gray-400 rounded outline-none"
           />
@@ -298,20 +310,6 @@ function Room({ roomname, userName }) {
       </div>
     </div>
   );
-}
-
-function Video({ peer }) {
-  const ref = useRef();
-
-  useEffect(() => {
-    const handleStream = (stream) => {
-      if (ref.current) ref.current.srcObject = stream;
-    };
-    peer.on("stream", handleStream);
-    return () => peer.off("stream", handleStream);
-  }, [peer]);
-
-  return <video playsInline autoPlay ref={ref} className="w-full h-48 md:h-auto bg-black rounded mt-2" />;
 }
 
 export default Room;
