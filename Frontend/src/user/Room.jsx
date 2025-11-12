@@ -1,6 +1,6 @@
 // Room.jsx
 import React, { useEffect, useRef, useState } from "react";
-import socket from "./socket"; // ✅ Yahan import kiya
+import socket from "../Socket"; 
 
 function Room({ roomName, userName }) {
   const localVideoRef = useRef();
