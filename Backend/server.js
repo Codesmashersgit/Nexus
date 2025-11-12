@@ -1,89 +1,153 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const passport = require("passport");
-const path = require("path");
 require("dotenv").config();
-require("./config/passport");
-const { Server } = require("socket.io");
+const express = require("express");
 const http = require("http");
-
-const authRoutes = require("./Routes/authRoute");
+const { Server } = require("socket.io");
+const mediasoup = require("mediasoup");
+const mongoose = require("mongoose");
+const path = require("path");
 
 const app = express();
-app.use(
-  cors({
-    origin: process.env.VITE_CLIENT_URL || "http://localhost:5173",
-    credentials: true,
-  })
-);
-app.use(express.json());
-app.use(passport.initialize());
-
-app.use("/api/auth", authRoutes);
-
-// For production deployment (serving client build)
-app.use(express.static(path.join(__dirname, "../client/dist")));
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
-});
-
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: process.env.VITE_CLIENT_URL || "http://localhost:5173",
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-});
+const io = new Server(server, { cors: { origin: "*", methods: ["GET","POST"] } });
+
+const PORT = process.env.PORT || 5000;
+
+let worker;
+let router;
+const rooms = {}; // roomId -> { router, peers }
+
+async function createWorker() {
+  worker = await mediasoup.createWorker({
+    rtcMinPort: 2000,
+    rtcMaxPort: 2020,
+  });
+
+  worker.on("died", () => {
+    console.error("mediasoup worker died!");
+    process.exit(1);
+  });
+
+  console.log("✅ Mediasoup worker created");
+}
+
+async function createRoom(roomId) {
+  const mediaCodecs = [
+    {
+      kind: "audio",
+      mimeType: "audio/opus",
+      clockRate: 48000,
+      channels: 2,
+    },
+    {
+      kind: "video",
+      mimeType: "video/VP8",
+      clockRate: 90000,
+      parameters: {},
+    },
+  ];
+
+  const router = await worker.createRouter({ mediaCodecs });
+  rooms[roomId] = { router, peers: {} };
+  return rooms[roomId];
+}
 
 io.on("connection", (socket) => {
-  console.log(`🟢 New socket connected: ${socket.id}`);
+  console.log(`🟢 New socket: ${socket.id}`);
 
-  // 🔹 When a user joins a room (Video Setup)
-  socket.on("join-room", ({ roomID, name }) => {
-    socket.join(roomID);
-    socket.roomID = roomID;
-    socket.userName = name;
+  socket.on("join-room", async ({ roomID, name }) => {
+    if (!rooms[roomID]) await createRoom(roomID);
+    const room = rooms[roomID];
 
-    // Get existing users already in the room
-    const existingUsers = Array.from(io.sockets.adapter.rooms.get(roomID) || []).filter(
-      (id) => id !== socket.id
-    );
+    room.peers[socket.id] = { socket, name, transports: {}, producers: {}, consumers: {} };
+    socket.join(roomID);
 
-    console.log(`👤 ${name} joined room: ${roomID}, existing users:`, existingUsers);
+    socket.emit("joined-room", { peers: Object.keys(room.peers).filter(id => id !== socket.id) });
+  });
 
-    // Send existing users to the new user to initiate connections (initiator: true)
-    socket.emit("all-users", existingUsers);
+  // create transport
+  socket.on("create-transport", async ({ roomID }, callback) => {
+    const room = rooms[roomID];
+    if (!room) return;
 
-    // Notify others that a new user has joined (they will receive the signal next)
-    socket.to(roomID).emit("user-joined", socket.id);
-  });
+    const transport = await room.router.createWebRtcTransport({
+      listenIps: [{ ip: "0.0.0.0", announcedIp: "127.0.0.1" }],
+      enableUdp: true,
+      enableTcp: true,
+      preferUdp: true,
+    });
 
-  // 🔹 WebRTC signaling (Offer/Answer/Candidate relay)
-  socket.on("signal", (data) => {
-    // Relay the signal data to the target user ID
-    io.to(data.to).emit("signal", data);
-  });
+    room.peers[socket.id].transports[transport.id] = transport;
 
-  // 🛑 Removed: P2P Chat uses WebRTC DataChannel, not Socket.io for messages.
+    callback({
+      id: transport.id,
+      iceParameters: transport.iceParameters,
+      iceCandidates: transport.iceCandidates,
+      dtlsParameters: transport.dtlsParameters,
+    });
+  });
 
-  // 🔹 User disconnect
-  socket.on("disconnect", () => {
-    if (socket.roomID) {
-      socket.to(socket.roomID).emit("user-left", socket.id);
-      console.log(`🔴 ${socket.userName || socket.id} left room ${socket.roomID}`);
-    } else {
-      console.log(`🔴 Socket disconnected: ${socket.id}`);
-    }
-  });
+  // connect transport
+  socket.on("connect-transport", async ({ roomID, transportId, dtlsParameters }, callback) => {
+    const room = rooms[roomID];
+    await room.peers[socket.id].transports[transportId].connect({ dtlsParameters });
+    callback({ connected: true });
+  });
+
+  // produce
+  socket.on("produce", async ({ roomID, transportId, kind, rtpParameters }, callback) => {
+    const room = rooms[roomID];
+    const transport = room.peers[socket.id].transports[transportId];
+    const producer = await transport.produce({ kind, rtpParameters });
+
+    room.peers[socket.id].producers[producer.id] = producer;
+
+    // notify other peers to consume
+    socket.to(roomID).emit("new-producer", { producerId: producer.id, producerSocketId: socket.id, kind });
+    callback({ id: producer.id });
+  });
+
+  // consume
+  socket.on("consume", async ({ roomID, producerId, transportId }, callback) => {
+    const room = rooms[roomID];
+    const transport = room.peers[socket.id].transports[transportId];
+    const producerPeerId = Object.keys(room.peers).find(id =>
+      Object.values(room.peers[id].producers).some(p => p.id === producerId)
+    );
+    if (!producerPeerId) return;
+
+    const producer = room.peers[producerPeerId].producers[producerId];
+    const consumer = await transport.consume({
+      producerId: producer.id,
+      rtpCapabilities: room.router.rtpCapabilities,
+      paused: false,
+    });
+
+    room.peers[socket.id].consumers[consumer.id] = consumer;
+
+    callback({
+      id: consumer.id,
+      producerId: producer.id,
+      kind: consumer.kind,
+      rtpParameters: consumer.rtpParameters,
+    });
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`🔴 Socket disconnected: ${socket.id}`);
+    // cleanup
+  });
 });
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "client/build")));
 
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("✅ MongoDB connected");
-    const PORT = process.env.PORT || 5000;
-    server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  })
-  .catch((err) => console.error("MongoDB connection error:", err));
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "client/build", "index.html"));
+  });
+}
+
+Promise.all([createWorker(), mongoose.connect(process.env.MONGO_URI)])
+  .then(() => {
+    console.log("✅ MongoDB connected & Worker ready");
+    server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  })
+  .catch((err) => console.error("Initialization error:", err));
