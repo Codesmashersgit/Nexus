@@ -1,11 +1,50 @@
-import React, { useState } from "react";
-import PhoneInput from "react-phone-input-2";
-import 'react-phone-input-2/lib/style.css';
+import React, { useState, useRef } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+
+// 🔥 Hotstar-style OTP COMPONENT
+function OtpInput({ otp, setOtp, length = 6 }) {
+  const inputsRef = useRef([]);
+
+  const handleChange = (value, index) => {
+    if (!/^[0-9]?$/.test(value)) return;
+
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    if (value && index < length - 1) {
+      inputsRef.current[index + 1].focus();
+    }
+  };
+
+  const handleBackspace = (e, index) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputsRef.current[index - 1].focus();
+    }
+  };
+
+  return (
+    <div className="flex gap-3 justify-center">
+      {Array.from({ length }).map((_, index) => (
+        <input
+          key={index}
+          ref={(el) => (inputsRef.current[index] = el)}
+          type="text"
+          maxLength={1}
+          value={otp[index] || ""}
+          onChange={(e) => handleChange(e.target.value, index)}
+          onKeyDown={(e) => handleBackspace(e, index)}
+          className="w-12 h-12 border border-gray-400 rounded-lg text-center text-xl"
+        />
+      ))}
+    </div>
+  );
+}
 
 function ForgotPassword() {
-  const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState(Array(6).fill(""));
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -14,17 +53,18 @@ function ForgotPassword() {
   const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const navigate = useNavigate();
+
   // Step 1: Send OTP
-  const handlePhoneSubmit = async (e) => {
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
     setError("");
     setLoading(true);
 
     try {
-      const fullPhone = "+" + phone;
-      const res = await axios.post("http://localhost:5000/api/auth/send-otp", { phone: fullPhone });
-      setMessage(res.data.message || "OTP sent to your phone.");
+      const res = await axios.post("http://localhost:5000/api/auth/send-otp", { email });
+      setMessage(res.data.message || "OTP sent to your email.");
       setShowOtp(true);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to send OTP.");
@@ -41,10 +81,9 @@ function ForgotPassword() {
     setLoading(true);
 
     try {
-      const fullPhone = "+" + phone;
       const res = await axios.post("http://localhost:5000/api/auth/check-otp", {
-        phone: fullPhone,
-        code: otp
+        email,
+        code: otp.join("")
       });
 
       if (res.data.status === "approved") {
@@ -52,11 +91,11 @@ function ForgotPassword() {
         setIsVerified(true);
         setShowOtp(false);
       } else {
-        setError("OTP is invalid or expired.");
+        setError("Invalid or expired OTP.");
       }
-      setOtp("");
+      setOtp(Array(6).fill(""));
     } catch (err) {
-      setError(err.response?.data?.error || "OTP verification failed.");
+      setError(err.response?.data?.message || "OTP verification failed.");
     } finally {
       setLoading(false);
     }
@@ -75,15 +114,19 @@ function ForgotPassword() {
 
     setLoading(true);
     try {
-      const fullPhone = "+" + phone;
       const res = await axios.post("http://localhost:5000/api/auth/reset-password", {
-        phone: fullPhone,
+        email,
         password: newPassword
       });
 
       setMessage(res.data.message || "Password reset successfully.");
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+
       setIsVerified(false);
-      setPhone("");
+      setEmail("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
@@ -96,30 +139,28 @@ function ForgotPassword() {
   return (
     <div className="pt-28 flex justify-center bg-gray-50">
       <div className="bg-white rounded-xl shadow-lg lg:p-10 p-5 max-w-md w-full mt-32">
-        <h2 className="text-2xl font-bold text-[#fa1239] mb-6 text-center">Forgot Password</h2>
+        <h2 className="text-2xl font-bold text-[#fa1239] mb-6 text-center">
+          Forgot Password
+        </h2>
 
         {message && <div className="text-green-600 text-sm text-center mb-4">{message}</div>}
         {error && <div className="text-red-500 text-sm text-center mb-4">{error}</div>}
 
-        {/* Step 1: Phone Input */}
+        {/* STEP 1: EMAIL INPUT */}
         {!showOtp && !isVerified && (
-          <form onSubmit={handlePhoneSubmit} className="flex flex-col gap-5">
-            <PhoneInput
-              country={'in'}
-              value={phone}
-              onChange={setPhone}
-              inputProps={{
-                name: 'phone',
-                required: true,
-                autoFocus: true
-              }}
-              inputStyle={{ width: '100%' }}
+          <form onSubmit={handleEmailSubmit} className="flex flex-col gap-5">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="border border-gray-300 text-sm rounded-lg py-3 px-4"
               disabled={loading}
-              disableFormatting={false}
             />
             <button
               type="submit"
-              disabled={loading || phone.length < 10}
+              disabled={loading}
               className={`bg-[#fa1239] text-white py-3 rounded-lg font-semibold transition ${
                 loading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#d1112b]"
               }`}
@@ -129,23 +170,15 @@ function ForgotPassword() {
           </form>
         )}
 
-        {/* Step 2: OTP Input */}
+        {/* STEP 2: OTP INPUT */}
         {showOtp && !isVerified && (
-          <form onSubmit={handleOtpVerify} className="flex flex-col gap-5">
-            <input
-              type="text"
-              placeholder="Enter OTP"
-              required
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              className="border border-gray-300 text-sm rounded-lg py-3 px-4"
-              disabled={loading}
-              maxLength={6}
-            />
+          <form onSubmit={handleOtpVerify} className="flex flex-col gap-5 items-center">
+            <OtpInput otp={otp} setOtp={setOtp} length={6} />
+
             <button
               type="submit"
               disabled={loading}
-              className={`bg-green-600 text-white py-3 rounded-lg font-semibold transition ${
+              className={`bg-green-600 w-full text-white py-3 rounded-lg font-semibold transition ${
                 loading ? "opacity-50 cursor-not-allowed" : "hover:bg-green-700"
               }`}
             >
@@ -154,7 +187,7 @@ function ForgotPassword() {
           </form>
         )}
 
-        {/* Step 3: Reset Password */}
+        {/* STEP 3: RESET PASSWORD */}
         {isVerified && (
           <form onSubmit={handlePasswordReset} className="flex flex-col gap-5">
             <input
