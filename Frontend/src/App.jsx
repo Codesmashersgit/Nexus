@@ -13,8 +13,9 @@ import ResetPassword from "./pages/ResetPassword";
 import Room from "./user/Room";
 import Demo from './pages/Analytics';
 import Pricing from "./pages/Pricing";
+import RoomAccess from "./user/RoomAccess";
 
-
+import { RTCProvider } from "./context/RTCContext";
 function Layout() {
   const location = useLocation();
 
@@ -27,6 +28,7 @@ function Layout() {
   return (
     <>
       {!shouldHideNavbar && <Navbar/>}
+      <RTCProvider>
       <Routes>
         <Route path="/" element={<Home/>} />
         <Route path="/analytics" element={<Demo/>}/>
@@ -37,9 +39,14 @@ function Layout() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/forgot-Password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/room/:id" element={<Room />} />
+      <Route path="/room/:roomId" element={<Room />} />
+      <Route path="/room-access/:roomId" element={<RoomAccess />} />
+
+
       </Routes>
+      </RTCProvider>
     </>
+
   );
 }
 
