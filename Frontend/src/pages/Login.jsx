@@ -9,7 +9,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const SERVER_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+  const SERVER_URL = "http://localhost:5000";
 
 
   const handleSubmit = async (e) => {
