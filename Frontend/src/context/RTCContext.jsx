@@ -33,8 +33,9 @@ export const RTCProvider = ({ children }) => {
     const localVideoRef = useRef(null);
     const remoteVideoRef = useRef(null);
 
+    let cameraStreamRef = useRef(null); // Store original camera stream for screen share revert
+
     const addMessage = (msg, sender = "R") => {
-        // "M" for our messages, "R" for remote messages
         setMessages((prev) => [...prev, { sender, msg }]);
     };
 
@@ -94,6 +95,7 @@ export const RTCProvider = ({ children }) => {
         });
 
         setLocalStream(stream);
+        cameraStreamRef.current = stream; // Store original camera stream
         await addLocalStream(stream);
 
         createDataChannel((msg) => addMessage(msg, "R"));
@@ -103,7 +105,7 @@ export const RTCProvider = ({ children }) => {
     };
 
     const sendChatMessage = (msg) => {
-        addMessage(msg, "M"); // humara message
+        addMessage(msg, "M");
         sendDataMessage(msg);
     };
 
@@ -122,6 +124,7 @@ export const RTCProvider = ({ children }) => {
     };
 
     const startScreenShare = async () => {
+        if (!localStream || !peerRef.current) return;
         try {
             const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
             const screenTrack = screenStream.getVideoTracks()[0];
@@ -129,14 +132,13 @@ export const RTCProvider = ({ children }) => {
             const sender = peerRef.current.getSenders().find(s => s.track.kind === "video");
             if (sender) sender.replaceTrack(screenTrack);
 
-            setLocalStream(screenStream);
             localVideoRef.current.srcObject = screenStream;
 
             screenTrack.onended = () => {
-                const camTrack = localStream.getVideoTracks()[0];
-                sender.replaceTrack(camTrack);
-                setLocalStream(new MediaStream([camTrack, localStream.getAudioTracks()[0]]));
-                localVideoRef.current.srcObject = localStream;
+                const camTrack = cameraStreamRef.current.getVideoTracks()[0];
+                if (sender) sender.replaceTrack(camTrack);
+                localVideoRef.current.srcObject = cameraStreamRef.current;
+                console.log("Screen sharing OFF, back to camera");
             };
 
             console.log("Screen sharing ON");
@@ -150,7 +152,7 @@ export const RTCProvider = ({ children }) => {
         if (localStream) localStream.getTracks().forEach(t => t.stop());
         if (remoteStream) remoteStream.getTracks().forEach(t => t.stop());
         console.log("CALL ENDED");
-        window.location.href = "/";
+        window.location.href = "/dashboard";
     };
 
     return (
@@ -175,4 +177,3 @@ export const RTCProvider = ({ children }) => {
         </RTCContext.Provider>
     );
 };
-
