@@ -34,7 +34,7 @@ function Dashboard() {
 
   const menuRef = useRef();
   const navigate = useNavigate();
-  const FRONTEND_URL = "http://localhost:5173";
+  const FRONTEND_URL = import.meta.env.VITE_CLIENT_URL;
 
   // Show current date/time
   useEffect(() => {
