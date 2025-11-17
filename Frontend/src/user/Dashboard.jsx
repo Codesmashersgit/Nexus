@@ -3,6 +3,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 
+import img from "../assets/Group.png";
+
 import { RxDashboard } from "react-icons/rx";
 import { RiVideoAddFill, RiMenuFoldFill } from "react-icons/ri";
 import { ImUser } from "react-icons/im";
@@ -10,7 +12,7 @@ import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import { IoHome } from "react-icons/io5";
 import { TiGroup } from "react-icons/ti";
 import { CiLogout } from "react-icons/ci";
-import { FaEdit, FaWhatsapp } from "react-icons/fa";
+import { FaWhatsapp } from "react-icons/fa";
 import { CiCalendarDate } from "react-icons/ci";
 import { MdEmail, MdDelete } from "react-icons/md";
 import { IoCloseSharp } from "react-icons/io5";
@@ -28,33 +30,48 @@ function Dashboard() {
   const [userNameDisplay, setUserNameDisplay] = useState("User");
   const [userEmail, setUserEmail] = useState("email@example.com");
 
+  const [currentDate, setCurrentDate] = useState("");
+
   const menuRef = useRef();
   const navigate = useNavigate();
   const FRONTEND_URL = "http://localhost:5173";
 
+  // Show current date/time
+  useEffect(() => {
+    const now = new Date();
+    const formatted = now.toLocaleString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true
+    });
+    setCurrentDate(formatted);
+  }, []);
+
   // Toggle dropdown
-  const toggleDropdown = () => setIsDropdownOpen((prev) => !prev);
+  const toggleDropdown = () => setIsDropdownOpen(prev => !prev);
 
   // Toggle mobile menu
-  const toggleMenu = () => setIsMenuOpen((prev) => !prev);
+  const toggleMenu = () => setIsMenuOpen(prev => !prev);
 
   // Delete room
   const handleDelete = (roomToDelete) =>
-    setRoomList((prev) => prev.filter((r) => r.name !== roomToDelete));
+    setRoomList(prev => prev.filter(r => r.name !== roomToDelete));
 
-  // Click outside to close menu
+  // Close menu on click outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
         setIsMenuOpen(false);
       }
     };
-
     if (isMenuOpen) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isMenuOpen]);
 
-  // Create room
+  // Create new room
   const handleCreateRoom = (e) => {
     e.preventDefault();
     if (!roomName.trim()) return;
@@ -65,12 +82,12 @@ function Dashboard() {
       createdAt: new Date().toLocaleString(),
     };
 
-    setRoomList((prev) => [...prev, newRoom]);
+    setRoomList(prev => [...prev, newRoom]);
     setRoomName("");
     setShowCreateRoomForm(false);
   };
 
-  // Load localStorage
+  // Load localStorage data on mount
   useEffect(() => {
     const storedRooms = localStorage.getItem("rooms");
     if (storedRooms) setRoomList(JSON.parse(storedRooms));
@@ -87,7 +104,6 @@ function Dashboard() {
     localStorage.setItem("rooms", JSON.stringify(roomList));
   }, [roomList]);
 
-  // Menu click
   const handleMenuClick = (sectionName) => {
     setActiveSection(sectionName);
     if (window.innerWidth < 1024) setIsMenuOpen(false);
@@ -106,7 +122,7 @@ function Dashboard() {
     }
   };
 
-  // Page Content Renderer
+  // Render page content
   const renderContent = () => {
     switch (activeSection) {
       case "Dashboard":
@@ -138,6 +154,7 @@ function Dashboard() {
         return (
           <div className="bg-slate-200 shadow-lg rounded-md p-5 flex flex-col gap-5">
             <p className="text-lg font-semibold">My Rooms</p>
+
             {roomList.length === 0 ? (
               <p className="text-gray-700">You haven't created any rooms yet.</p>
             ) : (
@@ -145,15 +162,10 @@ function Dashboard() {
                 {roomList.map((room, index) => {
                   const roomURL = `/room/${encodeURIComponent(room.name)}`;
                   const shareText = `Join my video room "${room.name}": ${FRONTEND_URL}${roomURL}`;
-                  const whatsappURL = `https://wa.me/?text=${encodeURIComponent(
-                    shareText
-                  )}`;
+                  const whatsappURL = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
 
                   return (
-                    <li
-                      key={index}
-                      className="flex items-center justify-between pr-4"
-                    >
+                    <li key={index} className="flex items-center justify-between pr-4">
                       <div>
                         <strong>{room.name}</strong> — Created at:{" "}
                         <em>{room.createdAt}</em>
@@ -161,14 +173,9 @@ function Dashboard() {
                         <span
                           className="text-blue-600 underline cursor-pointer"
                           onClick={() => {
-                            const storedUsername = localStorage.getItem(
-                              "username"
-                            )?.trim();
-                            if (storedUsername) {
-                              navigate(roomURL);
-                            } else {
-                              navigate(`/room-access/${encodeURIComponent(room.name)}`);
-                            }
+                            const storedUsername = localStorage.getItem("username")?.trim();
+                            if (storedUsername) navigate(roomURL);
+                            else navigate(`/room-access/${encodeURIComponent(room.name)}`);
                           }}
                         >
                           Open Room
@@ -196,10 +203,7 @@ function Dashboard() {
             )}
 
             {showCreateRoomForm ? (
-              <form
-                onSubmit={handleCreateRoom}
-                className="flex flex-col gap-4 mt-5"
-              >
+              <form onSubmit={handleCreateRoom} className="flex flex-col gap-4 mt-5">
                 <input
                   type="text"
                   placeholder="Enter room name"
@@ -209,10 +213,7 @@ function Dashboard() {
                   className="border px-4 py-2 rounded-md"
                 />
                 <div className="flex gap-3">
-                  <button
-                    type="submit"
-                    className="bg-green-500 text-white px-4 py-2 rounded-md"
-                  >
+                  <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded-md">
                     Save Room
                   </button>
                   <button
@@ -235,14 +236,6 @@ function Dashboard() {
           </div>
         );
 
-      case "Meeting History":
-        return (
-          <div className="bg-slate-200 shadow-lg p-6 rounded-md flex flex-col gap-7">
-            <h2 className="font-bold">My Meetings</h2>
-            <p>No meetings were found!</p>
-          </div>
-        );
-
       case "Profile":
         return (
           <div className="shadow-lg p-6 lg:w-1/2 bg-slate-200 rounded-md flex flex-col gap-5 text-center lg:text-start">
@@ -251,17 +244,17 @@ function Dashboard() {
                 {userNameDisplay.charAt(0).toUpperCase()}
               </h2>
             </div>
+
             <p className="flex items-center gap-5">
               <MdEmail /> {userEmail}
             </p>
+
             <p className="flex items-center gap-5">
               <ImUser /> {userNameDisplay}
             </p>
+
             <p className="flex items-center gap-5">
-              <CiCalendarDate /> May 27th 2025, 10:44 AM
-            </p>
-            <p className="flex items-center gap-5 cursor-pointer">
-              <FaEdit /> Edit Profile
+              <CiCalendarDate /> {currentDate}
             </p>
           </div>
         );
@@ -271,7 +264,7 @@ function Dashboard() {
     }
   };
 
-  // Sidebar menu items
+  // Sidebar Menu Items
   const MenuItems = (
     <>
       <div
@@ -322,10 +315,7 @@ function Dashboard() {
       </div>
 
       <div className="absolute bottom-0 left-0 flex items-center text-xs text-gray-500 p-4">
-        <img
-          src="https://png.pngtree.com/template/20190530/ourmid/pngtree-letter-c-logo-vector-image_204408.jpg"
-          className="w-[32px] mr-2"
-        />
+        <img src={img} className="w-[32px] mr-2" />
         © {new Date().getFullYear()} Chromameet. All rights reserved.
       </div>
     </>
