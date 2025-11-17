@@ -2,7 +2,6 @@ import React, { useState, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-// 🔥 Hotstar-style OTP COMPONENT
 function OtpInput({ otp, setOtp, length = 6 }) {
   const inputsRef = useRef([]);
 
@@ -23,6 +22,7 @@ function OtpInput({ otp, setOtp, length = 6 }) {
       inputsRef.current[index - 1].focus();
     }
   };
+
 
   return (
     <div className="flex gap-3 justify-center">
@@ -54,6 +54,7 @@ function ForgotPassword() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+    const SERVER_URL = import.meta.env.VITE_BACKEND_URL;
 
   // Step 1: Send OTP
   const handleEmailSubmit = async (e) => {
@@ -63,7 +64,7 @@ function ForgotPassword() {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/send-otp", { email });
+      const res = await axios.post(`${SERVER_URL}/api/auth/send-otp`, { email });
       setMessage(res.data.message || "OTP sent to your email.");
       setShowOtp(true);
     } catch (err) {
@@ -81,7 +82,7 @@ function ForgotPassword() {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/check-otp", {
+      const res = await axios.post(`${SERVER_URL}/api/auth/api/auth/check-otp`, {
         email,
         code: otp.join("")
       });
@@ -114,7 +115,7 @@ function ForgotPassword() {
 
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/reset-password", {
+      const res = await axios.post(`${SERVER_URL}/api/auth/reset-password`, {
         email,
         password: newPassword
       });
