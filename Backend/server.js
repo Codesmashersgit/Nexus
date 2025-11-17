@@ -68,7 +68,7 @@ if (process.env.NODE_ENV === "production") {
   const distPath = path.join(__dirname, "client/dist"); // adjust if CRA -> build
   app.use(express.static(distPath));
 
-  app.get("*", (req, res) => {
+  app.get("/:wildcard(.*)", (req, res) => {
     res.sendFile(path.join(distPath, "index.html"));
   });
 }
