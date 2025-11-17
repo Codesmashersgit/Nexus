@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useRef } from "react";
 
 import {
@@ -32,7 +33,8 @@ export const RTCProvider = ({ children }) => {
     const localVideoRef = useRef(null);
     const remoteVideoRef = useRef(null);
 
-    const addMessage = (msg, sender = "remote") => {
+    const addMessage = (msg, sender = "R") => {
+        // "M" for our messages, "R" for remote messages
         setMessages((prev) => [...prev, { sender, msg }]);
     };
 
@@ -53,7 +55,7 @@ export const RTCProvider = ({ children }) => {
                 setConnectedUser(fromUser);
 
                 peerRef.current = createPeerConnection(
-                    (msg) => addMessage(msg),
+                    (msg) => addMessage(msg, "R"),
                     (stream) => setRemoteStream(stream),
                     (candidate) => sendIceCandidate(candidate, fromUser)
                 );
@@ -81,7 +83,7 @@ export const RTCProvider = ({ children }) => {
 
     const startCall = async (userId) => {
         peerRef.current = createPeerConnection(
-            (msg) => addMessage(msg),
+            (msg) => addMessage(msg, "R"),
             (stream) => setRemoteStream(stream),
             (candidate) => sendIceCandidate(candidate, userId)
         );
@@ -94,15 +96,15 @@ export const RTCProvider = ({ children }) => {
         setLocalStream(stream);
         await addLocalStream(stream);
 
-        createDataChannel((msg) => addMessage(msg));
+        createDataChannel((msg) => addMessage(msg, "R"));
 
         const offer = await createOffer();
         sendOffer(offer, userId);
     };
 
     const sendChatMessage = (msg) => {
-        addMessage(msg, "me");
-        sendDataMessage(msg);   // ✅ This now works
+        addMessage(msg, "M"); // humara message
+        sendDataMessage(msg);
     };
 
     const toggleMic = () => {
@@ -121,23 +123,15 @@ export const RTCProvider = ({ children }) => {
 
     const startScreenShare = async () => {
         try {
-            const screenStream = await navigator.mediaDevices.getDisplayMedia({
-                video: true,
-            });
-
+            const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
             const screenTrack = screenStream.getVideoTracks()[0];
 
-            // Replace the local video track with the screen share track
             const sender = peerRef.current.getSenders().find(s => s.track.kind === "video");
-            if (sender) {
-                sender.replaceTrack(screenTrack);
-            }
+            if (sender) sender.replaceTrack(screenTrack);
 
-            // Update local video
             setLocalStream(screenStream);
             localVideoRef.current.srcObject = screenStream;
 
-            // When screen sharing ends, revert to the original camera track
             screenTrack.onended = () => {
                 const camTrack = localStream.getVideoTracks()[0];
                 sender.replaceTrack(camTrack);
@@ -152,18 +146,9 @@ export const RTCProvider = ({ children }) => {
     };
 
     const endCall = () => {
-        if (peerRef.current) {
-            peerRef.current.close();
-        }
-
-        if (localStream) {
-            localStream.getTracks().forEach((t) => t.stop());
-        }
-
-        if (remoteStream) {
-            remoteStream.getTracks().forEach((t) => t.stop());
-        }
-
+        if (peerRef.current) peerRef.current.close();
+        if (localStream) localStream.getTracks().forEach(t => t.stop());
+        if (remoteStream) remoteStream.getTracks().forEach(t => t.stop());
         console.log("CALL ENDED");
         window.location.href = "/";
     };
@@ -190,3 +175,4 @@ export const RTCProvider = ({ children }) => {
         </RTCContext.Provider>
     );
 };
+
