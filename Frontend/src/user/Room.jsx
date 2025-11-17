@@ -137,10 +137,10 @@ const Room = () => {
           <button
             onClick={handleToggleMic}
             className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors duration-200 ${
-              isMicOn ? "bg-red-600 hover:bg-red-500" : "bg-gray-700 hover:bg-gray-600"
+              isMicOn ? "bg-gray-700 hover:bg-gray-600": "bg-red-600 hover:bg-red-500"
             }`}
           >
-            {isMicOn ? <FaMicrophoneSlash className="w-5 h-5" /> : <FaMicrophone className="w-5 h-5" />}
+            {isMicOn ? <FaMicrophone className="w-5 h-5" /> : <FaMicrophoneSlash className="w-5 h-5" />}
           </button>
 
           <button
