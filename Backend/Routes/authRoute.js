@@ -35,12 +35,13 @@ router.get(
     // JWT generate
     const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
     const username = encodeURIComponent(req.user.username || req.user.email);
+    const email = encodeURIComponent(req.user.email); // ✅ add email
 
     // Safe client URL
     const clientUrl = process.env.CLIENT_URL ? process.env.CLIENT_URL.replace(/\/$/, '') : "http://localhost:5173";
 
-    // Redirect
-    res.redirect(`${clientUrl}/oauth-success?token=${token}&username=${username}`);
+    // Redirect with email
+    res.redirect(`${clientUrl}/oauth-success?token=${token}&username=${username}&email=${email}`);
   }
 );
 
