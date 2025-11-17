@@ -22,6 +22,7 @@ import {
 
 const RTCContext = createContext();
 export const useRTC = () => useContext(RTCContext);
+const SERVER_URL= import.meta.env.VITE_BACKEND_URL
 
 export const RTCProvider = ({ children }) => {
     const [localStream, setLocalStream] = useState(null);
@@ -40,7 +41,7 @@ export const RTCProvider = ({ children }) => {
     };
 
     const connectSocket = () => {
-        initSocket("http://localhost:5000");
+        initSocket(`${SERVER_URL}`);
     };
 
     const startRoom = async (roomId) => {
