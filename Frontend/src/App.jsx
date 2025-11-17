@@ -41,6 +41,7 @@ function Layout() {
         <Route path="/reset-password/:token" element={<ResetPassword />} />
       <Route path="/room/:roomId" element={<Room />} />
       <Route path="/room-access/:roomId" element={<RoomAccess />} />
+      
 
 
       </Routes>
