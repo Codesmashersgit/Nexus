@@ -38,7 +38,7 @@ router.get(
     const email = encodeURIComponent(req.user.email); // ✅ add email
 
     // Safe client URL
-    const clientUrl = process.env.CLIENT_URL ? process.env.CLIENT_URL.replace(/\/$/, '') : "http://localhost:5173";
+    const clientUrl = process.env.VITE_CLIENT_URL ? process.env.VITE_CLIENT_URL.replace(/\/$/, '') : "https://nexus1802.netlify.app";
 
     // Redirect with email
     res.redirect(`${clientUrl}/oauth-success?token=${token}&username=${username}&email=${email}`);
