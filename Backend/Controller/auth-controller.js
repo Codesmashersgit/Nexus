@@ -4,9 +4,8 @@ const nodemailer = require("nodemailer");
 const path = require("path");
 const User = require("../Model/User");
 
-let otpStore = {}; // temporary OTP storage
+let otpStore = {}; 
 
-// ==================== REGISTER ====================
 exports.register = async (req, res) => {
   try {
     const { email, password, username} = req.body;
@@ -46,7 +45,9 @@ exports.register = async (req, res) => {
   }
 };
 
-// ==================== LOGIN ====================
+
+
+
 exports.login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -77,7 +78,8 @@ exports.login = async (req, res) => {
   }
 };
 
-// ==================== SEND OTP ====================
+
+
 exports.sendOtp = async (req, res) => {
   const { email } = req.body;
 
@@ -151,7 +153,7 @@ exports.sendOtp = async (req, res) => {
   }
 };
 
-// ==================== CHECK OTP ====================
+
 exports.checkOtp = async (req, res) => {
   const { email, code } = req.body;
 
@@ -163,7 +165,8 @@ exports.checkOtp = async (req, res) => {
   return res.status(400).json({ message: "Invalid or expired OTP" });
 };
 
-// ==================== RESET PASSWORD ====================
+
+
 exports.resetPassword = async (req, res) => {
   const { email, password } = req.body;
 
