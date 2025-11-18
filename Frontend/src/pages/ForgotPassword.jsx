@@ -82,7 +82,7 @@ function ForgotPassword() {
     setLoading(true);
 
     try {
-      const res = await axios.post(`${SERVER_URL}/api/auth/api/auth/check-otp`, {
+      const res = await axios.post(`${SERVER_URL}/api/auth/check-otp`, {
         email,
         code: otp.join("")
       });
