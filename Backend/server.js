@@ -59,8 +59,11 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-    io.emit("user-left", socket.id);
+  socket.rooms.forEach(room => {
+    socket.to(room).emit("user-left", socket.id);
+  });
+
+
   });
 });
 
