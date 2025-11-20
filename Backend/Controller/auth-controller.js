@@ -116,7 +116,7 @@ exports.sendOtp = async (req, res) => {
     <h2 style="color: #fa1239; text-align: center;">Nexus</h2>
   </div>
   <h2 style="color: #4B0082; text-align: center;">Your OTP Code</h2>
-  <p style="font-size: 16px; color: #333 text-align: center;">
+  <p style="font-size: 16px; color: #333; text-align: center;">
     Hello <strong>${user.username || email}</strong>,<br/>
     Welcome to <strong>Our Peer-to-Peer Platform</strong>! <br/>
     Please use the following OTP to verify your email:
