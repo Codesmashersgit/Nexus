@@ -69,67 +69,72 @@
 
 
 // src/rtc/peer.js
-let peerConnection = null;
-let dataChannel = null;
-
+// peer.js
 export const createPeerConnection = (onMessage, onStream, onIceCandidate) => {
-    peerConnection = new RTCPeerConnection({
+    const peerConnection = new RTCPeerConnection({
         iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
     });
 
+    let dataChannel = null;
+
+    // ICE candidate
     peerConnection.onicecandidate = (event) => {
         if (event.candidate) onIceCandidate(event.candidate);
     };
 
+    // Remote stream
     peerConnection.ontrack = (event) => {
         onStream(event.streams[0]);
     };
 
+    // Data channel for answerer
     peerConnection.ondatachannel = (event) => {
         dataChannel = event.channel;
         dataChannel.onmessage = (e) => onMessage(e.data);
     };
 
-    return peerConnection;
+    return { peerConnection, getDataChannel: () => dataChannel };
 };
 
-export const createDataChannel = (onMessage) => {
-    if (!peerConnection) return;
-    dataChannel = peerConnection.createDataChannel("chat");
+// Only offerer creates data channel
+export const createDataChannel = (peerConnection, onMessage) => {
+    const dataChannel = peerConnection.createDataChannel("chat");
     dataChannel.onmessage = (e) => onMessage(e.data);
+    return dataChannel;
 };
 
-export const sendMessage = (msg) => {
+// Send message
+export const sendMessage = (dataChannel, msg) => {
     if (dataChannel && dataChannel.readyState === "open") {
         dataChannel.send(msg);
     }
 };
 
-export const addLocalStream = async (stream) => {
-    if (!peerConnection) return;
+// Add local media stream
+export const addLocalStream = (peerConnection, stream) => {
     stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
 };
 
-export const createOffer = async () => {
-    if (!peerConnection) return;
+// Create offer
+export const createOffer = async (peerConnection) => {
     const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
     return offer;
 };
 
-export const createAnswer = async () => {
-    if (!peerConnection) return;
+// Create answer
+export const createAnswer = async (peerConnection) => {
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);
     return answer;
 };
 
-export const setRemoteDescription = async (desc) => {
-    if (!peerConnection) return;
+// Set remote description
+export const setRemoteDescription = async (peerConnection, desc) => {
     await peerConnection.setRemoteDescription(new RTCSessionDescription(desc));
 };
 
-export const addIceCandidate = async (candidate) => {
-    if (!peerConnection) return;
+// Add ICE candidate
+export const addIceCandidate = async (peerConnection, candidate) => {
     await peerConnection.addIceCandidate(candidate);
 };
