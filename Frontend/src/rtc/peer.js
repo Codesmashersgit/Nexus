@@ -68,72 +68,56 @@
 // };
 
 
-let peerConnection;
-let dataChannel;
-
+// src/rtc/peer.js
 export const createPeerConnection = (onMessage, onStream, onIceCandidate) => {
-    peerConnection = new RTCPeerConnection({
-        iceServers: [
-            { urls: "stun:stun.l.google.com:19302" }
-        ]
-    });
+  const pc = new RTCPeerConnection({
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+  });
 
-    peerConnection.onicecandidate = (event) => {
-        if (event.candidate) onIceCandidate(event.candidate);
-    };
+  let dataChannel = null;
 
-    peerConnection.ontrack = (event) => {
-        onStream(event.streams[0]);
-    };
+  pc.onicecandidate = (event) => {
+    if (event.candidate) onIceCandidate(event.candidate);
+  };
 
-    peerConnection.ondatachannel = (event) => {
-        dataChannel = event.channel;
-        dataChannel.onmessage = (e) => onMessage(e.data);
-    };
+  pc.ontrack = (event) => {
+    onStream(event.streams[0]);
+  };
 
-    return peerConnection;
-};
-
-// Offer side only
-export const createDataChannel = (onMessage) => {
-    dataChannel = peerConnection.createDataChannel("chat");
+  pc.ondatachannel = (event) => {
+    dataChannel = event.channel;
     dataChannel.onmessage = (e) => onMessage(e.data);
-};
+  };
 
-// Send chat messages
-export const sendMessage = (msg) => {
-    if (dataChannel && dataChannel.readyState === "open") {
+  return {
+    pc,
+    createDataChannel: (onMessageCb) => {
+      dataChannel = pc.createDataChannel("chat");
+      dataChannel.onmessage = (e) => onMessageCb(e.data);
+    },
+    sendMessage: (msg) => {
+      if (dataChannel && dataChannel.readyState === "open") {
         dataChannel.send(msg);
+      }
+    },
+    addLocalStream: async (stream) => {
+      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+    },
+    createOffer: async () => {
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      return offer;
+    },
+    createAnswer: async () => {
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      return answer;
+    },
+    setRemoteDescription: async (desc) => {
+      await pc.setRemoteDescription(new RTCSessionDescription(desc));
+    },
+    addIceCandidate: async (candidate) => {
+      await pc.addIceCandidate(candidate);
     }
-};
-
-// Add local video stream
-export const addLocalStream = async (stream) => {
-    stream.getTracks().forEach((track) => {
-        peerConnection.addTrack(track, stream);
-    });
-};
-
-// Create Offer (sender)
-export const createOffer = async () => {
-    const offer = await peerConnection.createOffer();
-    await peerConnection.setLocalDescription(offer);
-    return offer;
-};
-
-// Create Answer (receiver)
-export const createAnswer = async () => {
-    const answer = await peerConnection.createAnswer();
-    await peerConnection.setLocalDescription(answer);
-    return answer;
-};
-
-// Remote Description
-export const setRemoteDescription = async (desc) => {
-    await peerConnection.setRemoteDescription(desc);
-};
-
-// Add candidate
-export const addIceCandidate = async (candidate) => {
-    await peerConnection.addIceCandidate(candidate);
+  };
 };
