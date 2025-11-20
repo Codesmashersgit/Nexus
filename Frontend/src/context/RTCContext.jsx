@@ -183,7 +183,14 @@
 // src/context/RTCContext.jsx
 import React, { createContext, useContext, useState, useRef } from "react";
 import {
-  createPeerConnection
+  createPeerConnection,
+  createDataChannel,
+  sendMessage,   // import sendMessage from peer.js
+  addLocalStream,
+  createOffer,
+  createAnswer,
+  setRemoteDescription,
+  addIceCandidate
 } from "../rtc/peer";
 import {
   initSocket,
@@ -231,28 +238,28 @@ export const RTCProvider = ({ children }) => {
           (candidate) => sendIceCandidate(candidate, fromUser)
         );
 
-        await peerRef.current.setRemoteDescription(offer);
+        await setRemoteDescription(offer);
 
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         setLocalStream(stream);
         cameraStreamRef.current = stream;
-        await peerRef.current.addLocalStream(stream);
+        await addLocalStream(stream);
 
-        peerRef.current.createDataChannel((msg) => addMessage(msg, "R"));
+        createDataChannel((msg) => addMessage(msg, "R"));
 
-        const answer = await peerRef.current.createAnswer();
+        const answer = await createAnswer();
         sendAnswer(answer, fromUser);
       },
       async (answer) => { // Offer side receives answer
-        await peerRef.current.setRemoteDescription(answer);
+        await setRemoteDescription(answer);
       },
       async (candidate) => {
-        await peerRef.current.addIceCandidate(candidate);
+        await addIceCandidate(candidate);
       },
-      () => {
+      () => { // User left
         setConnectedUser(null);
         setRemoteStream(null);
-        if (peerRef.current) peerRef.current.pc.close();
+        if (peerRef.current) peerRef.current.close();
         peerRef.current = null;
       }
     );
@@ -268,17 +275,18 @@ export const RTCProvider = ({ children }) => {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     setLocalStream(stream);
     cameraStreamRef.current = stream;
-    await peerRef.current.addLocalStream(stream);
+    await addLocalStream(stream);
 
-    peerRef.current.createDataChannel((msg) => addMessage(msg, "R"));
+    createDataChannel((msg) => addMessage(msg, "R"));
 
-    const offer = await peerRef.current.createOffer();
+    const offer = await createOffer();
     sendOffer(offer, userId);
   };
 
   const sendChatMessage = (msg) => {
+    if (!msg.trim()) return;
     addMessage(msg, "M");
-    peerRef.current?.sendMessage(msg);
+    sendMessage(msg); // fixed: now uses peer.js sendMessage
   };
 
   const toggleMic = () => {
@@ -298,7 +306,7 @@ export const RTCProvider = ({ children }) => {
     try {
       const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
       const screenTrack = screenStream.getVideoTracks()[0];
-      const sender = peerRef.current.pc.getSenders().find(s => s.track.kind === "video");
+      const sender = peerRef.current.getSenders().find(s => s.track.kind === "video");
       if (sender) sender.replaceTrack(screenTrack);
       localVideoRef.current.srcObject = screenStream;
       screenTrack.onended = () => {
@@ -306,11 +314,13 @@ export const RTCProvider = ({ children }) => {
         if (sender) sender.replaceTrack(camTrack);
         localVideoRef.current.srcObject = cameraStreamRef.current;
       };
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error("Screen share error:", err);
+    }
   };
 
   const endCall = () => {
-    if (peerRef.current) peerRef.current.pc.close();
+    if (peerRef.current) peerRef.current.close();
     localStream?.getTracks().forEach(t => t.stop());
     remoteStream?.getTracks().forEach(t => t.stop());
     window.location.href = "/dashboard";
@@ -338,3 +348,4 @@ export const RTCProvider = ({ children }) => {
     </RTCContext.Provider>
   );
 };
+
