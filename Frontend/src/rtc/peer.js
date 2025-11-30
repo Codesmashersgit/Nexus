@@ -69,194 +69,50 @@
 
 
 // Remove global variables - each peer connection should be isolated
+let peer;
 
-export const createPeerConnection = (onMessage, onStream, onIceCandidate) => {
-    const peerConnection = new RTCPeerConnection({
-        iceServers: [
-            { urls: "stun:stun.l.google.com:19302" },
-            { urls: "stun:stun1.l.google.com:19302" }
-        ]
+export function createPeerConnection(onMessage, onRemoteStream, onIce) {
+    peer = new RTCPeerConnection({
+        iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
     });
 
-    let dataChannel = null;
+    peer.ontrack = (e) => onRemoteStream(e.streams[0]);
 
-    // ICE candidate handling
-    peerConnection.onicecandidate = (event) => {
-        if (event.candidate) {
-            try {
-                onIceCandidate(event.candidate);
-            } catch (err) {
-                console.error("Error handling ICE candidate:", err);
-            }
-        }
+    peer.onicecandidate = (e) => {
+        if (e.candidate) onIce(e.candidate);
     };
 
-    // Remote stream handling
-    peerConnection.ontrack = (event) => {
-        try {
-            if (event.streams && event.streams[0]) {
-                onStream(event.streams[0]);
-            }
-        } catch (err) {
-            console.error("Error handling remote track:", err);
-        }
+    peer.ondatachannel = (e) => {
+        const channel = e.channel;
+        channel.onmessage = (m) => onMessage(m.data);
     };
 
-    // Incoming data channel
-    peerConnection.ondatachannel = (event) => {
-        try {
-            dataChannel = event.channel;
-            setupDataChannel(dataChannel, onMessage);
-        } catch (err) {
-            console.error("Error handling data channel:", err);
-        }
-    };
+    return peer;
+}
 
-    // Connection state monitoring
-    peerConnection.onconnectionstatechange = () => {
-        console.log("Connection state:", peerConnection.connectionState);
-    };
+export const addLocalStream = (stream) =>
+    stream.getTracks().forEach((t) => peer.addTrack(t, stream));
 
-    peerConnection.oniceconnectionstatechange = () => {
-        console.log("ICE connection state:", peerConnection.iceConnectionState);
-    };
-
-    // Return both peer connection and data channel manager
-    return {
-        peerConnection,
-        createDataChannel: (onMessage) => createDataChannel(peerConnection, onMessage),
-        sendMessage: (msg) => sendMessage(dataChannel, msg),
-        addLocalStream: (stream) => addLocalStream(peerConnection, stream),
-        createOffer: () => createOffer(peerConnection),
-        createAnswer: () => createAnswer(peerConnection),
-        setRemoteDescription: (desc) => setRemoteDescription(peerConnection, desc),
-        addIceCandidate: (candidate) => addIceCandidate(peerConnection, candidate),
-        close: () => closePeerConnection(peerConnection, dataChannel)
-    };
+export const createOffer = async () => {
+    const offer = await peer.createOffer();
+    await peer.setLocalDescription(offer);
+    return offer;
 };
 
-const setupDataChannel = (dataChannel, onMessage) => {
-    dataChannel.onopen = () => {
-        console.log("Data channel opened");
-    };
-
-    dataChannel.onmessage = (e) => {
-        try {
-            onMessage(e.data);
-        } catch (err) {
-            console.error("Error handling data channel message:", err);
-        }
-    };
-
-    dataChannel.onclose = () => {
-        console.log("Data channel closed");
-    };
-
-    dataChannel.onerror = (error) => {
-        console.error("Data channel error:", error);
-    };
+export const createAnswer = async () => {
+    const answer = await peer.createAnswer();
+    await peer.setLocalDescription(answer);
+    return answer;
 };
 
-export const createDataChannel = (peerConnection, onMessage) => {
-    try {
-        const dataChannel = peerConnection.createDataChannel("chat", {
-            ordered: true
-        });
-        setupDataChannel(dataChannel, onMessage);
-        return dataChannel;
-    } catch (err) {
-        console.error("Error creating data channel:", err);
-        throw err;
-    }
-};
+export const setRemoteDescription = async (desc) =>
+    await peer.setRemoteDescription(desc);
 
-export const sendMessage = (dataChannel, msg) => {
-    if (!dataChannel) {
-        console.error("Data channel not initialized");
-        return false;
-    }
+export const addIceCandidate = async (candidate) =>
+    await peer.addIceCandidate(candidate);
 
-    if (dataChannel.readyState !== "open") {
-        console.error("Data channel not open. State:", dataChannel.readyState);
-        return false;
-    }
-
-    try {
-        dataChannel.send(msg);
-        return true;
-    } catch (err) {
-        console.error("Error sending message:", err);
-        return false;
-    }
-};
-
-export const addLocalStream = async (peerConnection, stream) => {
-    try {
-        stream.getTracks().forEach((track) => {
-            peerConnection.addTrack(track, stream);
-        });
-    } catch (err) {
-        console.error("Error adding local stream:", err);
-        throw err;
-    }
-};
-
-export const createOffer = async (peerConnection) => {
-    try {
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        return offer;
-    } catch (err) {
-        console.error("Error creating offer:", err);
-        throw err;
-    }
-};
-
-export const createAnswer = async (peerConnection) => {
-    try {
-        const answer = await peerConnection.createAnswer();
-        await peerConnection.setLocalDescription(answer);
-        return answer;
-    } catch (err) {
-        console.error("Error creating answer:", err);
-        throw err;
-    }
-};
-
-export const setRemoteDescription = async (peerConnection, desc) => {
-    try {
-        await peerConnection.setRemoteDescription(new RTCSessionDescription(desc));
-    } catch (err) {
-        console.error("Error setting remote description:", err);
-        throw err;
-    }
-};
-
-export const addIceCandidate = async (peerConnection, candidate) => {
-    try {
-        if (candidate) {
-            await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-        }
-    } catch (err) {
-        console.error("Error adding ICE candidate:", err);
-        throw err;
-    }
-};
-
-export const closePeerConnection = (peerConnection, dataChannel) => {
-    try {
-        // Close data channel
-        if (dataChannel) {
-            dataChannel.close();
-        }
-
-        // Close peer connection
-        if (peerConnection) {
-            peerConnection.close();
-        }
-
-        console.log("Peer connection closed");
-    } catch (err) {
-        console.error("Error closing peer connection:", err);
-    }
+export const createDataChannel = (onMsg) => {
+    const channel = peer.createDataChannel("chat");
+    channel.onmessage = (e) => onMsg(e.data);
+    return channel;
 };
