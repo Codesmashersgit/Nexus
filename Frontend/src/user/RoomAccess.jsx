@@ -58,7 +58,7 @@
 
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { AuthContext } from "../authContext";
+import { AuthContext } from "../AuthContext";
 
 const RoomAccess = () => {
   const navigate = useNavigate();
