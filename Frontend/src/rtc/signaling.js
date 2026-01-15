@@ -127,129 +127,209 @@
 // export const getSocket = () => socket;
 
 
+
+
+
+// import { io } from "socket.io-client";
+
+// let socket = null;
+// let currentRoomId = null;
+
+// export function initSocket(serverUrl) {
+//     // Disconnect existing socket if any
+//     if (socket) {
+//         socket.disconnect();
+//     }
+
+//     socket = io(serverUrl, {
+//         transports: ["websocket", "polling"],
+//         reconnection: true,
+//         reconnectionAttempts: 5,
+//         reconnectionDelay: 1000
+//     });
+
+//     socket.on("connect", () => {
+//         console.log("Socket connected:", socket.id);
+//     });
+
+//     socket.on("disconnect", (reason) => {
+//         console.log("Socket disconnected:", reason);
+//     });
+
+//     socket.on("connect_error", (error) => {
+//         console.error("Socket connection error:", error);
+//     });
+
+//     return socket;
+// }
+
+// export function joinRoom(roomId, onJoin, onOffer, onAnswer, onIce, onLeave) {
+//     if (!socket || !socket.connected) {
+//         console.error("Socket not connected");
+//         return;
+//     }
+
+//     currentRoomId = roomId;
+
+//     // Remove existing listeners to prevent duplicates
+//     socket.off("user-joined");
+//     socket.off("offer");
+//     socket.off("answer");
+//     socket.off("ice-candidate");
+//     socket.off("user-left");
+
+//     // Join the room
+//     socket.emit("join-room", roomId);
+//     console.log("Joining room:", roomId);
+
+//     // Set up event listeners
+//     socket.on("user-joined", (userId) => {
+//         console.log("User joined:", userId);
+//         onJoin(userId);
+//     });
+
+//     socket.on("offer", ({ offer, from }) => {
+//         console.log("Offer received from:", from);
+//         onOffer(offer, from);
+//     });
+
+//     socket.on("answer", ({ answer, from }) => {
+//         console.log("Answer received from:", from);
+//         onAnswer(answer, from); // Pass 'from' parameter for future use
+//     });
+
+//     socket.on("ice-candidate", ({ candidate, from }) => {
+//         console.log("ICE candidate received from:", from);
+//         onIce(candidate, from); // Pass 'from' parameter for future use
+//     });
+
+//     socket.on("user-left", (userId) => {
+//         console.log("User left:", userId);
+//         onLeave(userId); // Pass userId for better tracking
+//     });
+// }
+
+// export const sendOffer = (offer, to) => {
+//     if (!socket || !socket.connected) {
+//         console.error("Socket not connected");
+//         return;
+//     }
+//     console.log("Sending offer to:", to);
+//     socket.emit("offer", { offer, to });
+// };
+
+// export const sendAnswer = (answer, to) => {
+//     if (!socket || !socket.connected) {
+//         console.error("Socket not connected");
+//         return;
+//     }
+//     console.log("Sending answer to:", to);
+//     socket.emit("answer", { answer, to });
+// };
+
+// export const sendIceCandidate = (candidate, to) => {
+//     if (!socket || !socket.connected) {
+//         console.error("Socket not connected");
+//         return;
+//     }
+//     console.log("Sending ICE candidate to:", to);
+//     socket.emit("ice-candidate", { candidate, to });
+// };
+
+// export const disconnectSocket = () => {
+//     if (socket) {
+//         if (currentRoomId) {
+//             socket.emit("leave-room", currentRoomId);
+//         }
+
+//         socket.off("user-joined");
+//         socket.off("offer");
+//         socket.off("answer");
+//         socket.off("ice-candidate");
+//         socket.off("user-left");
+
+//         socket.disconnect();
+//         socket = null;
+//         currentRoomId = null;
+//         console.log("Socket disconnected");
+//     }
+// };
+
+// export const getSocket = () => socket;
+
+
+
+
 import { io } from "socket.io-client";
 
 let socket = null;
 let currentRoomId = null;
 
-export function initSocket(serverUrl) {
-    // Disconnect existing socket if any
-    if (socket) {
-        socket.disconnect();
-    }
+export const initSocket = (serverUrl) => {
+  if (socket) {
+    socket.disconnect();
+  }
 
-    socket = io(serverUrl, {
-        transports: ["websocket", "polling"],
-        reconnection: true,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000
-    });
+  socket = io(serverUrl, {
+    transports: ["websocket", "polling"],
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+  });
 
-    socket.on("connect", () => {
-        console.log("Socket connected:", socket.id);
-    });
+  socket.on("connect", () => console.log("Socket connected:", socket.id));
+  socket.on("disconnect", (reason) => console.log("Socket disconnected:", reason));
+  socket.on("connect_error", (err) => console.error("Socket connection error:", err));
 
-    socket.on("disconnect", (reason) => {
-        console.log("Socket disconnected:", reason);
-    });
+  return socket;
+};
 
-    socket.on("connect_error", (error) => {
-        console.error("Socket connection error:", error);
-    });
+export const joinRoom = (roomId, onJoin, onOffer, onAnswer, onIce, onLeave) => {
+  if (!socket || !socket.connected) return console.error("Socket not connected");
 
-    return socket;
-}
+  currentRoomId = roomId;
 
-export function joinRoom(roomId, onJoin, onOffer, onAnswer, onIce, onLeave) {
-    if (!socket || !socket.connected) {
-        console.error("Socket not connected");
-        return;
-    }
+  socket.off("user-joined");
+  socket.off("offer");
+  socket.off("answer");
+  socket.off("ice-candidate");
+  socket.off("user-left");
 
-    currentRoomId = roomId;
+  socket.emit("join-room", roomId);
 
-    // Remove existing listeners to prevent duplicates
-    socket.off("user-joined");
-    socket.off("offer");
-    socket.off("answer");
-    socket.off("ice-candidate");
-    socket.off("user-left");
-
-    // Join the room
-    socket.emit("join-room", roomId);
-    console.log("Joining room:", roomId);
-
-    // Set up event listeners
-    socket.on("user-joined", (userId) => {
-        console.log("User joined:", userId);
-        onJoin(userId);
-    });
-
-    socket.on("offer", ({ offer, from }) => {
-        console.log("Offer received from:", from);
-        onOffer(offer, from);
-    });
-
-    socket.on("answer", ({ answer, from }) => {
-        console.log("Answer received from:", from);
-        onAnswer(answer, from); // Pass 'from' parameter for future use
-    });
-
-    socket.on("ice-candidate", ({ candidate, from }) => {
-        console.log("ICE candidate received from:", from);
-        onIce(candidate, from); // Pass 'from' parameter for future use
-    });
-
-    socket.on("user-left", (userId) => {
-        console.log("User left:", userId);
-        onLeave(userId); // Pass userId for better tracking
-    });
-}
+  socket.on("user-joined", (userId) => onJoin(userId));
+  socket.on("offer", ({ offer, from }) => onOffer(offer, from));
+  socket.on("answer", ({ answer, from }) => onAnswer(answer, from));
+  socket.on("ice-candidate", ({ candidate, from }) => onIce(candidate, from));
+  socket.on("user-left", (userId) => onLeave(userId));
+};
 
 export const sendOffer = (offer, to) => {
-    if (!socket || !socket.connected) {
-        console.error("Socket not connected");
-        return;
-    }
-    console.log("Sending offer to:", to);
-    socket.emit("offer", { offer, to });
+  if (!socket?.connected) return console.error("Socket not connected");
+  socket.emit("offer", { offer, to });
 };
 
 export const sendAnswer = (answer, to) => {
-    if (!socket || !socket.connected) {
-        console.error("Socket not connected");
-        return;
-    }
-    console.log("Sending answer to:", to);
-    socket.emit("answer", { answer, to });
+  if (!socket?.connected) return console.error("Socket not connected");
+  socket.emit("answer", { answer, to });
 };
 
 export const sendIceCandidate = (candidate, to) => {
-    if (!socket || !socket.connected) {
-        console.error("Socket not connected");
-        return;
-    }
-    console.log("Sending ICE candidate to:", to);
-    socket.emit("ice-candidate", { candidate, to });
+  if (!socket?.connected) return console.error("Socket not connected");
+  socket.emit("ice-candidate", { candidate, to });
 };
 
 export const disconnectSocket = () => {
-    if (socket) {
-        if (currentRoomId) {
-            socket.emit("leave-room", currentRoomId);
-        }
+  if (!socket) return;
+  if (currentRoomId) socket.emit("leave-room", currentRoomId);
 
-        socket.off("user-joined");
-        socket.off("offer");
-        socket.off("answer");
-        socket.off("ice-candidate");
-        socket.off("user-left");
+  socket.off("user-joined");
+  socket.off("offer");
+  socket.off("answer");
+  socket.off("ice-candidate");
+  socket.off("user-left");
 
-        socket.disconnect();
-        socket = null;
-        currentRoomId = null;
-        console.log("Socket disconnected");
-    }
+  socket.disconnect();
+  socket = null;
+  currentRoomId = null;
 };
-
-export const getSocket = () => socket;
