@@ -166,9 +166,121 @@
 
 
 
+// let peerConnection = null;
+// let dataChannel = null;
+
+// export const createPeerConnection = (onMessage, onStream, onIceCandidate) => {
+//     if (peerConnection) peerConnection.close();
+
+//     peerConnection = new RTCPeerConnection({
+//         iceServers: [
+//             { urls: "stun:stun.l.google.com:19302" },
+//             { urls: "stun:stun1.l.google.com:19302" }
+//         ]
+//     });
+
+//     peerConnection.onicecandidate = (event) => {
+//         if (event.candidate) onIceCandidate(event.candidate);
+//     };
+
+//     peerConnection.ontrack = (event) => {
+//         console.log("Remote track received:", event.streams[0]);
+//         onStream(event.streams[0]);
+//     };
+
+//     peerConnection.ondatachannel = (event) => {
+//         dataChannel = event.channel;
+//         setupDataChannelListeners(dataChannel, onMessage);
+//     };
+
+//     return peerConnection;
+// };
+
+// const setupDataChannelListeners = (channel, onMessage) => {
+//     channel.onopen = () => console.log("Data channel opened");
+//     channel.onclose = () => console.log("Data channel closed");
+//     channel.onmessage = (e) => onMessage(e.data);
+// };
+
+// export const createDataChannel = (onMessage) => {
+//     if (!peerConnection) return null;
+
+//     dataChannel = peerConnection.createDataChannel("chat");
+//     setupDataChannelListeners(dataChannel, onMessage);
+//     return dataChannel;
+// };
+
+// export const sendMessage = (msg) => {
+//     if (dataChannel && dataChannel.readyState === "open") {
+//         dataChannel.send(msg);
+//         return true;
+//     }
+//     console.warn("Data channel not ready");
+//     return false;
+// };
+
+// export const addLocalStream = async (stream) => {
+//     if (!peerConnection) return;
+
+//     // DO NOT REMOVE EXISTING SENDERS — THIS WAS BREAKING YOUR SETUP
+//     stream.getTracks().forEach((track) => {
+//         console.log("Adding track:", track.kind);
+//         peerConnection.addTrack(track, stream);
+//     });
+// };
+
+// export const createOffer = async () => {
+//     if (!peerConnection) throw new Error("Peer connection not initialized");
+
+//     const offer = await peerConnection.createOffer();
+//     await peerConnection.setLocalDescription(offer);
+
+//     return offer;
+// };
+
+// export const createAnswer = async () => {
+//     if (!peerConnection) throw new Error("Peer connection not initialized");
+
+//     const answer = await peerConnection.createAnswer();
+//     await peerConnection.setLocalDescription(answer);
+
+//     return answer;
+// };
+
+// export const setRemoteDescription = async (desc) => {
+//     if (!peerConnection) throw new Error("Peer connection not initialized");
+
+//     await peerConnection.setRemoteDescription(desc);
+// };
+
+// export const addIceCandidate = async (candidate) => {
+//     if (!peerConnection) return;
+
+//     try {
+//         await peerConnection.addIceCandidate(candidate);
+//     } catch (err) {
+//         console.error("Error adding ICE candidate:", err);
+//     }
+// };
+
+// export const closePeerConnection = () => {
+//     if (dataChannel) dataChannel.close();
+//     if (peerConnection) peerConnection.close();
+
+//     dataChannel = null;
+//     peerConnection = null;
+// };
+
+// export const getPeerConnection = () => peerConnection;
+
+
 let peerConnection = null;
 let dataChannel = null;
+let pendingIceCandidates = [];
 
+/* ================================
+   CREATE PEER CONNECTION
+================================ */
 export const createPeerConnection = (onMessage, onStream, onIceCandidate) => {
     if (peerConnection) peerConnection.close();
 
@@ -179,23 +291,53 @@ export const createPeerConnection = (onMessage, onStream, onIceCandidate) => {
         ]
     });
 
+    /* ICE CANDIDATES */
     peerConnection.onicecandidate = (event) => {
-        if (event.candidate) onIceCandidate(event.candidate);
+        if (event.candidate) {
+            onIceCandidate(event.candidate);
+        }
     };
 
+    /* REMOTE MEDIA */
     peerConnection.ontrack = (event) => {
-        console.log("Remote track received:", event.streams[0]);
+        console.log("Remote stream received");
         onStream(event.streams[0]);
     };
 
+    /* DATA CHANNEL (ANSWER SIDE) */
     peerConnection.ondatachannel = (event) => {
         dataChannel = event.channel;
         setupDataChannelListeners(dataChannel, onMessage);
     };
 
+    /* DEBUG STATES */
+    peerConnection.onconnectionstatechange = () =>
+        console.log("Connection:", peerConnection.connectionState);
+
+    peerConnection.oniceconnectionstatechange = () =>
+        console.log("ICE:", peerConnection.iceConnectionState);
+
+    peerConnection.onsignalingstatechange = () =>
+        console.log("Signaling:", peerConnection.signalingState);
+
+    /* RENEGOTIATION SUPPORT */
+    peerConnection.onnegotiationneeded = async () => {
+        try {
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+            console.log("Renegotiation offer created");
+            // 👉 yahan offer signaling server ko bhejna
+        } catch (err) {
+            console.error("Negotiation error:", err);
+        }
+    };
+
     return peerConnection;
 };
 
+/* ================================
+   DATA CHANNEL
+================================ */
 const setupDataChannelListeners = (channel, onMessage) => {
     channel.onopen = () => console.log("Data channel opened");
     channel.onclose = () => console.log("Data channel closed");
@@ -211,7 +353,7 @@ export const createDataChannel = (onMessage) => {
 };
 
 export const sendMessage = (msg) => {
-    if (dataChannel && dataChannel.readyState === "open") {
+    if (dataChannel?.readyState === "open") {
         dataChannel.send(msg);
         return true;
     }
@@ -219,22 +361,32 @@ export const sendMessage = (msg) => {
     return false;
 };
 
+/* ================================
+   MEDIA
+================================ */
 export const addLocalStream = async (stream) => {
     if (!peerConnection) return;
 
-    // DO NOT REMOVE EXISTING SENDERS — THIS WAS BREAKING YOUR SETUP
-    stream.getTracks().forEach((track) => {
-        console.log("Adding track:", track.kind);
-        peerConnection.addTrack(track, stream);
+    const existingTracks = peerConnection
+        .getSenders()
+        .map(sender => sender.track?.id);
+
+    stream.getTracks().forEach(track => {
+        if (!existingTracks.includes(track.id)) {
+            console.log("Adding track:", track.kind);
+            peerConnection.addTrack(track, stream);
+        }
     });
 };
 
+/* ================================
+   SDP
+================================ */
 export const createOffer = async () => {
     if (!peerConnection) throw new Error("Peer connection not initialized");
 
     const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
-
     return offer;
 };
 
@@ -243,34 +395,55 @@ export const createAnswer = async () => {
 
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);
-
     return answer;
 };
 
 export const setRemoteDescription = async (desc) => {
     if (!peerConnection) throw new Error("Peer connection not initialized");
 
-    await peerConnection.setRemoteDescription(desc);
+    const sessionDesc =
+        desc instanceof RTCSessionDescription
+            ? desc
+            : new RTCSessionDescription(desc);
+
+    await peerConnection.setRemoteDescription(sessionDesc);
+
+    /* APPLY BUFFERED ICE */
+    for (const candidate of pendingIceCandidates) {
+        await peerConnection.addIceCandidate(candidate);
+    }
+    pendingIceCandidates = [];
 };
 
+/* ================================
+   ICE
+================================ */
 export const addIceCandidate = async (candidate) => {
     if (!peerConnection) return;
 
     try {
-        await peerConnection.addIceCandidate(candidate);
+        if (peerConnection.remoteDescription) {
+            await peerConnection.addIceCandidate(candidate);
+        } else {
+            pendingIceCandidates.push(candidate);
+        }
     } catch (err) {
-        console.error("Error adding ICE candidate:", err);
+        console.error("ICE error:", err);
     }
 };
 
+/* ================================
+   CLEANUP
+================================ */
 export const closePeerConnection = () => {
     if (dataChannel) dataChannel.close();
     if (peerConnection) peerConnection.close();
 
     dataChannel = null;
     peerConnection = null;
+    pendingIceCandidates = [];
+
+    console.log("Peer connection closed");
 };
 
 export const getPeerConnection = () => peerConnection;
-
-
