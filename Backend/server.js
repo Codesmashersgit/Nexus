@@ -5,7 +5,7 @@ const cors = require("cors");
 const passport = require("passport");
 const mongoose = require("mongoose");
 
-const authRoutes = require("./Routes/authRoutes");
+const authRoutes = require("./Routes/authRoute");
 require("./config/passport"); 
 
 const app = express();
