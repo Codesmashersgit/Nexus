@@ -6,7 +6,7 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 const passport = require("passport");
 
-const authRoutes = require("./Routes/auth-routes");
+const authRoutes = require("./Routes/authRoute");
 require("./Config/passport");
 
 const app = express();
