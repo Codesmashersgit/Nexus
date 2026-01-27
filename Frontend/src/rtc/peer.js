@@ -274,6 +274,182 @@
 // export const getPeerConnection = () => peerConnection;
 
 
+// let peerConnection = null;
+// let dataChannel = null;
+// let pendingIceCandidates = [];
+
+// /* ================================
+//    CREATE PEER CONNECTION
+// ================================ */
+// export const createPeerConnection = (onMessage, onStream, onIceCandidate) => {
+//     if (peerConnection) peerConnection.close();
+
+//     peerConnection = new RTCPeerConnection({
+//         iceServers: [
+//             { urls: "stun:stun.l.google.com:19302" },
+//             { urls: "stun:stun1.l.google.com:19302" }
+//         ]
+//     });
+
+//     /* ICE CANDIDATES */
+//     peerConnection.onicecandidate = (event) => {
+//         if (event.candidate) {
+//             onIceCandidate(event.candidate);
+//         }
+//     };
+
+//     /* REMOTE MEDIA */
+//     peerConnection.ontrack = (event) => {
+//         console.log("Remote stream received");
+//         onStream(event.streams[0]);
+//     };
+
+//     /* DATA CHANNEL (ANSWER SIDE) */
+//     peerConnection.ondatachannel = (event) => {
+//         dataChannel = event.channel;
+//         setupDataChannelListeners(dataChannel, onMessage);
+//     };
+
+//     /* DEBUG STATES */
+//     peerConnection.onconnectionstatechange = () =>
+//         console.log("Connection:", peerConnection.connectionState);
+
+//     peerConnection.oniceconnectionstatechange = () =>
+//         console.log("ICE:", peerConnection.iceConnectionState);
+
+//     peerConnection.onsignalingstatechange = () =>
+//         console.log("Signaling:", peerConnection.signalingState);
+
+//     /* RENEGOTIATION SUPPORT */
+//     peerConnection.onnegotiationneeded = async () => {
+//         try {
+//             const offer = await peerConnection.createOffer();
+//             await peerConnection.setLocalDescription(offer);
+//             console.log("Renegotiation offer created");
+//             // 👉 yahan offer signaling server ko bhejna
+//         } catch (err) {
+//             console.error("Negotiation error:", err);
+//         }
+//     };
+
+//     return peerConnection;
+// };
+
+// /* ================================
+//    DATA CHANNEL
+// ================================ */
+// const setupDataChannelListeners = (channel, onMessage) => {
+//     channel.onopen = () => console.log("Data channel opened");
+//     channel.onclose = () => console.log("Data channel closed");
+//     channel.onmessage = (e) => onMessage(e.data);
+// };
+
+// export const createDataChannel = (onMessage) => {
+//     if (!peerConnection) return null;
+
+//     dataChannel = peerConnection.createDataChannel("chat");
+//     setupDataChannelListeners(dataChannel, onMessage);
+//     return dataChannel;
+// };
+
+// export const sendMessage = (msg) => {
+//     if (dataChannel?.readyState === "open") {
+//         dataChannel.send(msg);
+//         return true;
+//     }
+//     console.warn("Data channel not ready");
+//     return false;
+// };
+
+// /* ================================
+//    MEDIA
+// ================================ */
+// export const addLocalStream = async (stream) => {
+//     if (!peerConnection) return;
+
+//     const existingTracks = peerConnection
+//         .getSenders()
+//         .map(sender => sender.track?.id);
+
+//     stream.getTracks().forEach(track => {
+//         if (!existingTracks.includes(track.id)) {
+//             console.log("Adding track:", track.kind);
+//             peerConnection.addTrack(track, stream);
+//         }
+//     });
+// };
+
+// /* ================================
+//    SDP
+// ================================ */
+// export const createOffer = async () => {
+//     if (!peerConnection) throw new Error("Peer connection not initialized");
+
+//     const offer = await peerConnection.createOffer();
+//     await peerConnection.setLocalDescription(offer);
+//     return offer;
+// };
+
+// export const createAnswer = async () => {
+//     if (!peerConnection) throw new Error("Peer connection not initialized");
+
+//     const answer = await peerConnection.createAnswer();
+//     await peerConnection.setLocalDescription(answer);
+//     return answer;
+// };
+
+// export const setRemoteDescription = async (desc) => {
+//     if (!peerConnection) throw new Error("Peer connection not initialized");
+
+//     const sessionDesc =
+//         desc instanceof RTCSessionDescription
+//             ? desc
+//             : new RTCSessionDescription(desc);
+
+//     await peerConnection.setRemoteDescription(sessionDesc);
+
+//     /* APPLY BUFFERED ICE */
+//     for (const candidate of pendingIceCandidates) {
+//         await peerConnection.addIceCandidate(candidate);
+//     }
+//     pendingIceCandidates = [];
+// };
+
+// /* ================================
+//    ICE
+// ================================ */
+// export const addIceCandidate = async (candidate) => {
+//     if (!peerConnection) return;
+
+//     try {
+//         if (peerConnection.remoteDescription) {
+//             await peerConnection.addIceCandidate(candidate);
+//         } else {
+//             pendingIceCandidates.push(candidate);
+//         }
+//     } catch (err) {
+//         console.error("ICE error:", err);
+//     }
+// };
+
+// /* ================================
+//    CLEANUP
+// ================================ */
+// export const closePeerConnection = () => {
+//     if (dataChannel) dataChannel.close();
+//     if (peerConnection) peerConnection.close();
+
+//     dataChannel = null;
+//     peerConnection = null;
+//     pendingIceCandidates = [];
+
+//     console.log("Peer connection closed");
+// };
+
+// export const getPeerConnection = () => peerConnection;
+
+
+
 let peerConnection = null;
 let dataChannel = null;
 let pendingIceCandidates = [];
@@ -291,26 +467,24 @@ export const createPeerConnection = (onMessage, onStream, onIceCandidate) => {
         ]
     });
 
-    /* ICE CANDIDATES */
+    // ICE candidates
     peerConnection.onicecandidate = (event) => {
-        if (event.candidate) {
-            onIceCandidate(event.candidate);
-        }
+        if (event.candidate) onIceCandidate(event.candidate);
     };
 
-    /* REMOTE MEDIA */
+    // Remote media
     peerConnection.ontrack = (event) => {
         console.log("Remote stream received");
         onStream(event.streams[0]);
     };
 
-    /* DATA CHANNEL (ANSWER SIDE) */
+    // Data channel (answer side)
     peerConnection.ondatachannel = (event) => {
         dataChannel = event.channel;
         setupDataChannelListeners(dataChannel, onMessage);
     };
 
-    /* DEBUG STATES */
+    // Debug
     peerConnection.onconnectionstatechange = () =>
         console.log("Connection:", peerConnection.connectionState);
 
@@ -319,18 +493,6 @@ export const createPeerConnection = (onMessage, onStream, onIceCandidate) => {
 
     peerConnection.onsignalingstatechange = () =>
         console.log("Signaling:", peerConnection.signalingState);
-
-    /* RENEGOTIATION SUPPORT */
-    peerConnection.onnegotiationneeded = async () => {
-        try {
-            const offer = await peerConnection.createOffer();
-            await peerConnection.setLocalDescription(offer);
-            console.log("Renegotiation offer created");
-            // 👉 yahan offer signaling server ko bhejna
-        } catch (err) {
-            console.error("Negotiation error:", err);
-        }
-    };
 
     return peerConnection;
 };
@@ -373,7 +535,6 @@ export const addLocalStream = async (stream) => {
 
     stream.getTracks().forEach(track => {
         if (!existingTracks.includes(track.id)) {
-            console.log("Adding track:", track.kind);
             peerConnection.addTrack(track, stream);
         }
     });
@@ -384,7 +545,6 @@ export const addLocalStream = async (stream) => {
 ================================ */
 export const createOffer = async () => {
     if (!peerConnection) throw new Error("Peer connection not initialized");
-
     const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
     return offer;
@@ -392,7 +552,6 @@ export const createOffer = async () => {
 
 export const createAnswer = async () => {
     if (!peerConnection) throw new Error("Peer connection not initialized");
-
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);
     return answer;
@@ -408,7 +567,7 @@ export const setRemoteDescription = async (desc) => {
 
     await peerConnection.setRemoteDescription(sessionDesc);
 
-    /* APPLY BUFFERED ICE */
+    // Apply buffered ICE
     for (const candidate of pendingIceCandidates) {
         await peerConnection.addIceCandidate(candidate);
     }
@@ -445,5 +604,3 @@ export const closePeerConnection = () => {
 
     console.log("Peer connection closed");
 };
-
-export const getPeerConnection = () => peerConnection;
