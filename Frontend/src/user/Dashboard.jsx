@@ -525,7 +525,7 @@ function Dashboard() {
         )}
 
         {/* Dynamic Content Area */}
-        <main className="flex-1 p-6 lg:p-12 max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-6 lg:py-20 max-w-7xl mx-auto w-full">
           <div className="mb-8 hidden lg:flex justify-between items-center">
             <div>
               <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest">{activeSection}</h2>
