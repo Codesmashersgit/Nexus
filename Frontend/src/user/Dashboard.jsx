@@ -225,7 +225,7 @@ function Dashboard() {
               <div className="grid grid-cols-1 gap-4">
                 {roomList.map((room) => {
                   const roomURL = `${FRONTEND_URL}/room/${room.id}`;
-                  const shareText = `Join my meeting on Chromameet: ${roomURL}`;
+                  const shareText = `Join my meeting on Nexus: ${roomURL}`;
                   const whatsappURL = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
 
                   return (
@@ -525,13 +525,13 @@ function Dashboard() {
         )}
 
         {/* Dynamic Content Area */}
-        <main className="flex-1 p-6 lg:p-10 max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-6 lg:p-12 max-w-7xl mx-auto w-full">
           <div className="mb-8 hidden lg:flex justify-between items-center">
             <div>
               <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest">{activeSection}</h2>
               <p className="text-gray-400 text-xs">Today is {currentDate.split(',')[0]}</p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 ">
               <div className="text-right">
                 <p className="text-sm font-bold text-gray-800">{userNameDisplay}</p>
                 <p className="text-xs text-green-500 font-medium">Online</p>
