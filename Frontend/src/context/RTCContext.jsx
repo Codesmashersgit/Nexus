@@ -11,6 +11,7 @@ export const RTCProvider = ({ children }) => {
   const navigate = useNavigate();
   const [localStream, setLocalStream] = useState(null);
   const [remoteStreams, setRemoteStreams] = useState({}); // key: userId, value: MediaStream
+  const [remoteUsers, setRemoteUsers] = useState({}); // key: userId, value: { name }
   const [messages, setMessages] = useState([]);
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(true);
@@ -30,8 +31,14 @@ export const RTCProvider = ({ children }) => {
     ]
   };
 
-  const addMsg = useCallback((msg, sender) => {
-    setMessages(prev => [...prev, { sender, msg, timestamp: new Date().toLocaleTimeString() }]);
+  const addMsg = useCallback((msg, sender, type = "text", metadata = {}) => {
+    setMessages(prev => [...prev, {
+      sender,
+      msg,
+      type,
+      metadata,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }]);
   }, []);
 
   const createPeer = useCallback((userId, stream, isInitiator = false) => {
@@ -57,7 +64,14 @@ export const RTCProvider = ({ children }) => {
     let dataChannel;
     const setupDataChannel = (dc) => {
       dc.onopen = () => console.log("Data channel open for", userId);
-      dc.onmessage = e => addMsg(e.data, userId);
+      dc.onmessage = e => {
+        try {
+          const data = JSON.parse(e.data);
+          addMsg(data.msg, data.sender || userId, data.type, data.metadata);
+        } catch (err) {
+          addMsg(e.data, userId);
+        }
+      };
       dc.onclose = () => console.log("Data channel closed for", userId);
     };
 
@@ -88,18 +102,30 @@ export const RTCProvider = ({ children }) => {
 
       socketRef.current.on("connect", () => {
         console.log("Socket connected:", socketRef.current.id);
-        socketRef.current.emit("join-room", roomId);
+        const name = localStorage.getItem("username") || localStorage.getItem("guestName") || "Anonymous";
+        socketRef.current.emit("join-room", { roomId, name });
       });
 
       // When we join, the server tells us who is already there
       socketRef.current.on("all-users", async (users) => {
         console.log("Existing users in room:", users);
-        for (let userId of users) {
-          const pc = createPeer(userId, stream, true);
+        setRemoteUsers(prev => {
+          const next = { ...prev };
+          users.forEach(u => { next[u.id] = { name: u.name }; });
+          return next;
+        });
+        for (let user of users) {
+          const pc = createPeer(user.id, stream, true);
           const offer = await pc.createOffer();
           await pc.setLocalDescription(offer);
-          socketRef.current.emit("offer", { offer, to: userId });
+          socketRef.current.emit("offer", { offer, to: user.id });
         }
+      });
+
+      // When someone else joins after us
+      socketRef.current.on("user-joined", (user) => {
+        console.log("User joined:", user);
+        setRemoteUsers(prev => ({ ...prev, [user.id]: { name: user.name } }));
       });
 
       // When someone else joins after us and sends an offer
@@ -148,16 +174,49 @@ export const RTCProvider = ({ children }) => {
   }, [createPeer]);
 
   const sendChatMessage = useCallback((text) => {
+    const name = localStorage.getItem("username") || localStorage.getItem("guestName") || "Me";
+    const payload = JSON.stringify({ msg: text, sender: name, type: "text" });
+
     let sent = false;
     Object.values(peersRef.current).forEach(({ dataChannel }) => {
       if (dataChannel?.readyState === "open") {
-        dataChannel.send(text);
+        dataChannel.send(payload);
         sent = true;
       }
     });
-    if (sent || Object.keys(peersRef.current).length === 0) {
-      addMsg(text, "Me");
-    }
+    addMsg(text, "Me", "text");
+  }, [addMsg]);
+
+  const sendMedia = useCallback(async (file) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result;
+      const name = localStorage.getItem("username") || localStorage.getItem("guestName") || "Me";
+
+      let type = "file";
+      if (file.type.startsWith("image/")) type = "image";
+      else if (file.type.startsWith("video/")) type = "video";
+
+      const payload = JSON.stringify({
+        msg: file.name,
+        sender: name,
+        type,
+        metadata: {
+          name: file.name,
+          size: file.size,
+          mimeType: file.type,
+          data: base64
+        }
+      });
+
+      Object.values(peersRef.current).forEach(({ dataChannel }) => {
+        if (dataChannel?.readyState === "open") {
+          dataChannel.send(payload);
+        }
+      });
+      addMsg(file.name, "Me", type, { data: base64, name: file.name });
+    };
+    reader.readAsDataURL(file);
   }, [addMsg]);
 
   const toggleMic = useCallback(() => {
@@ -198,12 +257,14 @@ export const RTCProvider = ({ children }) => {
     <RTCContext.Provider value={{
       localStream,
       remoteStreams,
+      remoteUsers,
       messages,
       isMicOn,
       isCameraOn,
       error,
       startRoom,
       sendChatMessage,
+      sendMedia,
       toggleMic,
       toggleCamera,
       endCall
