@@ -9,7 +9,19 @@ const ProtectedRoute = ({ children }) => {
     // Check if token exists in localStorage as an extra precaution or if the context hasn't loaded yet
     const token = localStorage.getItem("authToken");
 
-    if (!isLoggedIn && !token) {
+    // Guest Auth Logic
+    const guestName = localStorage.getItem("guestName");
+    const guestRoom = localStorage.getItem("guestRoom");
+    const currentPath = window.location.pathname;
+    const isRoomPath = currentPath.startsWith("/room/");
+    const pathRoomId = isRoomPath ? currentPath.split("/").pop() : null;
+
+    const isGuestAuthorized = guestName && guestRoom && pathRoomId === guestRoom;
+
+    if (!isLoggedIn && !token && !isGuestAuthorized) {
+        if (isRoomPath && pathRoomId) {
+            return <Navigate to={`/room-access/${pathRoomId}`} replace />;
+        }
         return <Navigate to="/login" replace />;
     }
 
