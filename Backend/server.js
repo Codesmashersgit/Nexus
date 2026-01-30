@@ -6,7 +6,7 @@ const passport = require("passport");
 const mongoose = require("mongoose");
 
 const authRoutes = require("./Routes/authRoute");
-require("./config/passport"); 
+require("./config/passport");
 
 const app = express();
 const server = http.createServer(app);
@@ -47,13 +47,19 @@ const rooms = {};
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  socket.on("join-room", (roomId) => {
+  socket.on("join-room", ({ roomId, name }) => {
     if (!rooms[roomId]) rooms[roomId] = [];
-    const otherUsers = rooms[roomId].filter(id => id !== socket.id);
-    socket.emit("all-users", otherUsers);
 
-    rooms[roomId].push(socket.id);
+    // Existing users data
+    const existingUsers = rooms[roomId].map(u => ({ id: u.id, name: u.name }));
+    socket.emit("all-users", existingUsers);
+
+    const newUser = { id: socket.id, name };
+    rooms[roomId].push(newUser);
     socket.join(roomId);
+
+    // Notify others
+    socket.to(roomId).emit("user-joined", newUser);
 
     socket.on("offer", ({ offer, to }) => {
       io.to(to).emit("offer", { offer, from: socket.id });
@@ -69,9 +75,11 @@ io.on("connection", (socket) => {
 
     socket.on("disconnect", () => {
       console.log("User disconnected:", socket.id);
-      rooms[roomId] = rooms[roomId].filter(id => id !== socket.id);
-      socket.to(roomId).emit("user-left", socket.id);
-      if (rooms[roomId].length === 0) delete rooms[roomId];
+      if (rooms[roomId]) {
+        rooms[roomId] = rooms[roomId].filter(u => u.id !== socket.id);
+        socket.to(roomId).emit("user-left", socket.id);
+        if (rooms[roomId].length === 0) delete rooms[roomId];
+      }
     });
   });
 });
