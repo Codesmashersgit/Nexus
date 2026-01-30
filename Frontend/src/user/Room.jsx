@@ -10,8 +10,11 @@ import {
   FaPhoneSlash,
   FaComments,
   FaTimes,
-  FaBell
+  FaBell,
+  FaFileAlt,
+  FaImage
 } from "react-icons/fa";
+import Avatar from "../components/Avatar";
 
 // Stable Video Component to prevent freezing/re-renders
 const VideoPlayer = memo(({ stream, isLocal = false, label = "" }) => {
@@ -32,8 +35,11 @@ const VideoPlayer = memo(({ stream, isLocal = false, label = "" }) => {
         playsInline
         className={`w-full h-full object-cover ${isLocal ? "transform scale-x-[-1]" : ""}`}
       />
-      <div className="absolute bottom-4 left-4 bg-black/50 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border border-white/10 z-10">
-        {label}
+      <div className="absolute bottom-4 left-4 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-lg flex items-center gap-2 border border-white/10 z-10">
+        <Avatar name={label} size="sm" />
+        <span className="text-[10px] font-bold uppercase tracking-widest text-white/90">
+          {label}
+        </span>
       </div>
     </div>
   );
@@ -45,9 +51,11 @@ const Room = () => {
   const {
     localStream,
     remoteStreams,
+    remoteUsers,
     startRoom,
     messages,
     sendChatMessage,
+    sendMedia,
     isMicOn,
     isCameraOn,
     toggleMic,
@@ -89,6 +97,17 @@ const Room = () => {
     setChatInput("");
   };
 
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File size too large (max 5MB)");
+        return;
+      }
+      sendMedia(file);
+    }
+  };
+
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-slate-950 text-white p-6">
@@ -103,8 +122,8 @@ const Room = () => {
     );
   }
 
-  const remoteUsers = Object.entries(remoteStreams);
-  const isPeerConnected = remoteUsers.length > 0;
+  const remoteUsersList = Object.entries(remoteStreams);
+  const isPeerConnected = remoteUsersList.length > 0;
 
   return (
     <div className="fixed inset-0 bg-black text-slate-100 overflow-hidden font-sans flex flex-col items-stretch">
@@ -140,8 +159,8 @@ const Room = () => {
 
             {/* Remote Video (Swapped to Left side) */}
             {isPeerConnected ? (
-              remoteUsers.map(([userId, stream]) => (
-                <VideoPlayer key={userId} stream={stream} label="Guest User" />
+              remoteUsersList.map(([userId, stream]) => (
+                <VideoPlayer key={userId} stream={stream} label={remoteUsers[userId]?.name || "Guest User"} />
               ))
             ) : (
               <div className="hidden md:flex flex-col items-center justify-center bg-slate-900 border border-white/5 rounded-3xl opacity-10">
@@ -150,7 +169,7 @@ const Room = () => {
             )}
 
             {/* Local Video (Stay next to chat) */}
-            <VideoPlayer stream={localStream} isLocal={true} label="You" />
+            <VideoPlayer stream={localStream} isLocal={true} label={localStorage.getItem("username") || localStorage.getItem("guestName") || "You"} />
 
           </div>
         </div>
@@ -171,32 +190,65 @@ const Room = () => {
 
           <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
             {messages.map((m, i) => (
-              <div key={i} className={`flex flex-col ${m.sender === "Me" ? "items-end" : "items-start"}`}>
-                <div className={`
-                  max-w-[85%] px-4 py-3 rounded-2xl text-[13px] leading-relaxed
-                  ${m.sender === "Me"
-                    ? "bg-blue-600 text-white rounded-tr-none shadow-lg shadow-blue-500/10"
-                    : "bg-slate-800 text-slate-200 rounded-tl-none border border-white/5 shadow-md"}
-                `}>
-                  {m.sender !== "Me" && <span className="block text-[8px] font-black uppercase text-blue-400 mb-1">{m.sender.slice(0, 10)}</span>}
-                  <p className="break-words">{m.msg}</p>
+              <div key={i} className={`flex gap-3 ${m.sender === "Me" ? "flex-row-reverse" : "flex-row"}`}>
+                <Avatar name={m.sender} size="sm" />
+                <div className={`flex flex-col ${m.sender === "Me" ? "items-end" : "items-start"}`}>
+                  <div className={`
+                    max-w-[200px] md:max-w-xs px-4 py-3 rounded-2xl text-[13px] leading-relaxed
+                    ${m.sender === "Me"
+                      ? "bg-blue-600 text-white rounded-tr-none shadow-lg shadow-blue-500/10"
+                      : "bg-slate-800 text-slate-200 rounded-tl-none border border-white/5 shadow-md"}
+                  `}>
+                    {m.sender !== "Me" && <span className="block text-[8px] font-black uppercase text-blue-400 mb-1">{m.sender.slice(0, 15)}</span>}
+
+                    {m.type === "image" ? (
+                      <div className="space-y-2">
+                        <img src={m.metadata.data} alt="uploaded" className="rounded-lg max-w-full cursor-pointer hover:opacity-90" onClick={() => window.open(m.metadata.data)} />
+                        <span className="text-[10px] opacity-70 underline block">{m.msg}</span>
+                      </div>
+                    ) : m.type === "video" ? (
+                      <video src={m.metadata.data} controls className="rounded-lg max-w-full" />
+                    ) : m.type === "file" ? (
+                      <a href={m.metadata.data} download={m.metadata.name} className="flex items-center gap-2 bg-white/5 p-2 rounded-xl hover:bg-white/10 transition-all">
+                        <FaFileAlt className="text-blue-400" />
+                        <div className="flex flex-col overflow-hidden">
+                          <span className="truncate font-bold text-[11px]">{m.metadata.name}</span>
+                          <span className="text-[9px] opacity-50">{(m.metadata.size / 1024).toFixed(1)} KB</span>
+                        </div>
+                      </a>
+                    ) : (
+                      <p className="break-words">{m.msg}</p>
+                    )}
+                  </div>
+                  <span className="text-[9px] text-slate-600 mt-2 px-1 font-bold">{m.timestamp}</span>
                 </div>
-                <span className="text-[9px] text-slate-600 mt-2 px-1 font-bold">{m.timestamp}</span>
               </div>
             ))}
             <div ref={chatEndRef} />
           </div>
 
-          <div className="p-6 bg-slate-950/40">
-            <form onSubmit={handleSend} className="relative group">
-              <input
-                type="text" value={chatInput} onChange={e => setChatInput(e.target.value)}
-                placeholder="Send a message..."
-                className="w-full bg-slate-800/80 border-none rounded-2xl py-4 pl-5 pr-14 text-sm focus:ring-1 focus:ring-blue-500/50 transition-all font-medium"
-              />
-              <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-500 w-10 h-10 flex items-center justify-center rounded-xl transition-transform active:scale-95 shadow-xl shadow-blue-500/20">
-                <FaPaperPlane size={14} />
-              </button>
+          <div className="p-4 bg-slate-950/40 border-t border-white/5">
+            <form onSubmit={handleSend} className="flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <label className="cursor-pointer p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all" title="Share Image">
+                  <FaImage size={16} className="text-slate-400" />
+                  <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                </label>
+                <label className="cursor-pointer p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all" title="Share Documents">
+                  <FaFileAlt size={16} className="text-slate-400" />
+                  <input type="file" className="hidden" onChange={handleFileUpload} />
+                </label>
+              </div>
+              <div className="relative group">
+                <input
+                  type="text" value={chatInput} onChange={e => setChatInput(e.target.value)}
+                  placeholder="Send a message..."
+                  className="w-full bg-slate-800/80 border-none rounded-2xl py-4 pl-5 pr-14 text-sm focus:ring-1 focus:ring-blue-500/50 transition-all font-medium"
+                />
+                <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-500 w-10 h-10 flex items-center justify-center rounded-xl transition-transform active:scale-95 shadow-xl shadow-blue-500/20">
+                  <FaPaperPlane size={14} />
+                </button>
+              </div>
             </form>
           </div>
         </div>
