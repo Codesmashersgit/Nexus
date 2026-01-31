@@ -4,10 +4,10 @@ const Avatar = ({ name, size = "md" }) => {
     const firstLetter = name ? name.charAt(0).toUpperCase() : "?";
 
     const sizeClasses = {
-        sm: "w-6 h-6 text-[10px]",
-        md: "w-8 h-8 text-[12px]",
-        lg: "w-10 h-10 text-[14px]",
-        xl: "w-12 h-12 text-[16px]"
+        sm: "w-8 h-8 text-[12px]",
+        md: "w-10 h-10 text-[14px]",
+        lg: "w-12 h-12 text-[16px]",
+        xl: "w-14 h-14 text-[18px]"
     };
 
     const colors = [
@@ -25,7 +25,7 @@ const Avatar = ({ name, size = "md" }) => {
     const bgColor = colors[colorIndex];
 
     return (
-        <div className={`${sizeClasses[size]} ${bgColor} rounded-full flex items-center justify-center font-black text-white shadow-lg border border-white/10 shrink-0`}>
+        <div className={`${sizeClasses[size]} ${bgColor} rounded-full flex items-center justify-center font-semibold text-white shadow-lg border border-white/10 shrink-0`}>
             {firstLetter}
         </div>
     );
