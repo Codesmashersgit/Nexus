@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
 function Login() {
@@ -10,6 +10,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
   const SERVER_URL = import.meta.env.VITE_BACKEND_URL;
 
   // Email/password login
@@ -30,7 +31,8 @@ function Login() {
       localStorage.setItem("username", user.username || user.email);
       localStorage.setItem("email", user.email);
 
-      navigate("/dashboard");
+      const from = location.state?.from?.pathname || "/dashboard";
+      navigate(from, { replace: true });
       window.location.reload();
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
@@ -111,6 +113,7 @@ function Login() {
           Don't have an account?{" "}
           <Link
             to="/signup"
+            state={{ from: location.state?.from }}
             className="text-[#fa1239] font-medium hover:underline"
           >
             Sign Up
