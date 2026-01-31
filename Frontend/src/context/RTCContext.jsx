@@ -135,6 +135,16 @@ export const RTCProvider = ({ children }) => {
         console.log("Received offer from", payload.from);
         const pc = createPeer(payload.from, stream, false);
         await pc.setRemoteDescription(new RTCSessionDescription(payload.offer));
+
+        // Process queued candidates that might have arrived before offer processing finished
+        const peerObj = peersRef.current[payload.from];
+        if (peerObj && peerObj.candidateQueue) {
+          peerObj.candidateQueue.forEach(candidate => {
+            peerObj.peer.addIceCandidate(new RTCIceCandidate(candidate));
+          });
+          peerObj.candidateQueue = [];
+        }
+
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         socketRef.current.emit("answer", { answer, to: payload.from });
@@ -145,13 +155,26 @@ export const RTCProvider = ({ children }) => {
         const peerObj = peersRef.current[payload.from];
         if (peerObj) {
           await peerObj.peer.setRemoteDescription(new RTCSessionDescription(payload.answer));
+          // Process queued candidates
+          if (peerObj.candidateQueue) {
+            peerObj.candidateQueue.forEach(candidate => {
+              peerObj.peer.addIceCandidate(new RTCIceCandidate(candidate));
+            });
+            peerObj.candidateQueue = [];
+          }
         }
       });
 
       socketRef.current.on("ice-candidate", async (payload) => {
         const peerObj = peersRef.current[payload.from];
         if (peerObj) {
-          await peerObj.peer.addIceCandidate(new RTCIceCandidate(payload.candidate));
+          if (peerObj.peer.remoteDescription) {
+            await peerObj.peer.addIceCandidate(new RTCIceCandidate(payload.candidate));
+          } else {
+            // Queue candidate if remote description is not set yet
+            if (!peerObj.candidateQueue) peerObj.candidateQueue = [];
+            peerObj.candidateQueue.push(payload.candidate);
+          }
         }
       });
 
