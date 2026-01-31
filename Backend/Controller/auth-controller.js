@@ -4,11 +4,11 @@ const nodemailer = require("nodemailer");
 const path = require("path");
 const User = require("../Model/User");
 
-let otpStore = {}; 
+let otpStore = {};
 
 exports.register = async (req, res) => {
   try {
-    const { email, password, username} = req.body;
+    const { email, password, username } = req.body;
 
     if (!email || !password || !username) {
       return res.status(400).json({ message: "All fields are required." });
@@ -18,7 +18,7 @@ exports.register = async (req, res) => {
 
     if (existingEmail)
       return res.status(400).json({ message: "Email already registered." });
-   
+
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
@@ -91,6 +91,11 @@ exports.sendOtp = async (req, res) => {
     otpStore[email] = otp;
 
     console.log("Generated OTP:", otp);
+
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.error("Missing EMAIL_USER or EMAIL_PASS environment variables.");
+      return res.status(500).json({ message: "Server configuration error: Missing email credentials." });
+    }
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
