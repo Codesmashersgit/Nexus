@@ -243,7 +243,24 @@ const Room = () => {
 
   return (
     <div className="fixed inset-0 bg-black text-slate-100 overflow-hidden font-sans flex flex-col items-stretch">
-      {/* ... Toast ... (unchanged) */}
+      {/* Toast Notification */}
+      {showNotification && (
+        <div
+          className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] bg-slate-900/90 backdrop-blur-3xl text-white px-6 py-4 rounded-3xl shadow-[0_20px_50px_rgba(37,99,235,0.4)] flex items-center gap-4 animate-slideDown cursor-pointer border border-white/10 max-w-[90vw] md:max-w-md"
+          onClick={() => { setIsChatOpen(true); setShowNotification(false); }}
+        >
+          <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+            <FaComments className="text-sm animate-pulse" />
+          </div>
+          <div className="flex flex-col flex-1 min-w-0">
+            <span className="font-black text-[10px] uppercase tracking-[0.2em] text-blue-500 mb-0.5">New Message Received</span>
+            <div className="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
+              <span className="font-bold text-sm text-slate-100 italic">{messages[messages.length - 1]?.sender?.slice(0, 10)}:</span>
+              <span className="text-sm text-slate-300 font-medium truncate">"{messages[messages.length - 1]?.msg}"</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Container */}
       <div className="flex-1 flex flex-row relative overflow-hidden">
@@ -291,7 +308,7 @@ const Room = () => {
           )}
         </div>
 
-        {/* ... Chat Sidebar (unchanged) ... */}
+        {/* Chat Sidebar - Collapses the video area on PC */}
 
         {/* Chat Sidebar - Collapses the video area on PC */}
         <div className={`
