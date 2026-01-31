@@ -39,7 +39,7 @@ const VideoPlayer = memo(({ stream, isLocal = false, label = "" }) => {
         playsInline
         className={`w-full h-full object-cover ${isLocal ? "transform scale-x-[-1]" : ""}`}
       />
-      <div className="absolute bottom-20 md:bottom-4 left-4 px-3 py-1.5 flex items-center gap-2 z-10">
+      <div className="absolute bottom-20 md:bottom-auto md:top-4 left-4 px-3 py-1.5 flex items-center gap-2 z-10">
         <Avatar name={label} size="sm" />
         <span className="text-[10px] font-bold uppercase tracking-widest text-white/90 shadow-sm">
           {label}
