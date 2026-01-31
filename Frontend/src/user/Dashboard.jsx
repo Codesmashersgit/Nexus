@@ -152,7 +152,7 @@ function Dashboard() {
               <p className="opacity-90">Manage your meetings and analytics from your personalized dashboard.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5 hover:shadow-md transition-shadow">
                 <div className="bg-blue-100 p-4 rounded-xl text-blue-600">
                   <RiVideoAddFill className="text-2xl" />
@@ -173,29 +173,20 @@ function Dashboard() {
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5 hover:shadow-md transition-shadow">
-                <div className="bg-purple-100 p-4 rounded-xl text-purple-600">
-                  <TiGroup className="text-2xl" />
-                </div>
-                <div>
-                  <p className="text-gray-500 text-sm font-medium">Active Users</p>
-                  <p className="text-2xl font-bold text-gray-800">1</p>
-                </div>
-              </div>
             </div>
 
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <h3 className="text-xl font-bold mb-4 text-gray-800">Quick Actions</h3>
-              <div className="flex gap-4">
+              <div className="flex flex-col md:flex-row gap-4">
                 <button
                   onClick={() => handleMenuClick("Room")}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors flex items-center gap-2"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 w-full md:w-auto"
                 >
                   <RiVideoAddFill /> Create / Join Room
                 </button>
                 <button
                   onClick={() => handleMenuClick("Analytics")}
-                  className="bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 px-6 py-3 rounded-xl font-semibold transition-colors flex items-center gap-2"
+                  className="bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 px-6 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 w-full md:w-auto"
                 >
                   <IoStatsChart /> View Analytics
                 </button>
@@ -278,39 +269,6 @@ function Dashboard() {
               </div>
             )}
 
-            {showCreateRoomForm && (
-              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200">
-                  <h3 className="text-2xl font-bold mb-6 text-gray-800">Create New Room</h3>
-                  <form onSubmit={handleCreateRoom} className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-600 px-1">Room Name</label>
-                      <input
-                        type="text"
-                        placeholder="Enter a descriptive room name"
-                        value={roomName}
-                        onChange={(e) => setRoomName(e.target.value)}
-                        required
-                        autoFocus
-                        className="w-full border-2 border-gray-100 focus:border-indigo-500 outline-none px-4 py-3 rounded-2xl transition-all"
-                      />
-                    </div>
-                    <div className="flex gap-3 pt-2">
-                      <button type="submit" className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-2xl hover:bg-indigo-700 transition-colors">
-                        Create Room
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowCreateRoomForm(false)}
-                        className="px-6 py-3 rounded-2xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
           </div>
         );
 
@@ -359,7 +317,7 @@ function Dashboard() {
 
       case "Profile":
         return (
-          <div className="max-w-2xl mx-auto bg-white shadow-sm border border-gray-100 rounded-3xl overflow-hidden mt-10">
+          <div className="max-w-2xl mx-auto bg-white shadow-sm border border-gray-100 rounded-3xl overflow-hidden">
             <div className="bg-indigo-600 h-32 relative">
               <div className="absolute -bottom-12 left-10">
                 <div className="bg-white p-2 rounded-full shadow-lg">
@@ -408,11 +366,7 @@ function Dashboard() {
 
   // Sidebar Menu Items
   const MenuItems = (
-    <div className="flex flex-col h-full py-8">
-      <div className="px-7 mb-10 flex items-center gap-3">
-        <img src={img} className="w-[40px]" alt="Logo" />
-        <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent italic">Chromameet</h1>
-      </div>
+    <div className="flex flex-col h-full pt-20 pb-8">
 
       <div className="flex-1 space-y-2 px-3">
         <div
@@ -489,27 +443,25 @@ function Dashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="h-screen bg-gray-50 flex overflow-hidden">
       {/* Sidebar - Desktop */}
-      <aside className="hidden lg:block w-72 bg-white h-screen sticky top-0 border-r border-gray-100 z-30">
+      <aside className="hidden lg:block w-72 bg-white border-r border-gray-100 z-30 fixed top-16 bottom-0 left-0 overflow-y-auto custom-scrollbar">
         {MenuItems}
       </aside>
 
       {/* Main Layout Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header - Mobile */}
-        <header className="lg:hidden h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 sticky top-0 z-40">
-          <div className="flex items-center gap-2">
-            <img src={img} className="w-8" alt="Logo" />
-            <span className="font-bold text-indigo-600 italic">Chromameet</span>
-          </div>
+      <div className="flex-1 flex flex-col min-w-0 lg:ml-72 h-screen overflow-y-auto pt-16 scroll-smooth">
+        {/* Removed redundant mobile header as global Navbar is used */}
+
+        {/* Mobile menu trigger (Floating button since header is gone) */}
+        {!isMenuOpen && (
           <button
-            className="text-2xl text-gray-500 hover:text-indigo-600 transition-colors"
+            className="lg:hidden fixed bottom-6 right-6 z-50 bg-indigo-600 text-white p-4 rounded-full shadow-2xl"
             onClick={toggleMenu}
           >
-            {isMenuOpen ? <IoCloseSharp /> : <RiMenuFoldFill />}
+            <RiMenuFoldFill size={24} />
           </button>
-        </header>
+        )}
 
         {/* Mobile menu overlay */}
         {isMenuOpen && (
@@ -525,29 +477,72 @@ function Dashboard() {
         )}
 
         {/* Dynamic Content Area */}
-        <main className="flex-1 p-6 lg:py-20 max-w-7xl mx-auto w-full">
-          <div className="mb-8 hidden lg:flex justify-between items-center">
+        <main className="flex-1 px-4 md:px-6 lg:px-10 pt-4 md:pt-16 pb-16 max-w-7xl mx-auto w-full">
+          <div className="mb-6 hidden lg:flex justify-between items-center h-16 border-b border-gray-100 pb-4">
             <div>
-              <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest">{activeSection}</h2>
-              <p className="text-gray-400 text-xs">Today is {currentDate.split(',')[0]}</p>
+              <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                {activeSection === "Dashboard" && <RxDashboard className="text-indigo-600" />}
+                {activeSection === "Analytics" && <IoStatsChart className="text-indigo-600" />}
+                {activeSection === "Profile" && <ImUser className="text-indigo-600" />}
+                {activeSection === "Room" && <RiVideoAddFill className="text-indigo-600" />}
+                {activeSection === "Meeting History" && <MdHistory className="text-indigo-600" />}
+                {activeSection}
+              </h2>
+              <p className="text-gray-400 text-xs mt-1">Today is {currentDate}</p>
             </div>
-            <div className="flex items-center gap-4 ">
+            <div className="flex items-center gap-4">
               <div className="text-right">
                 <p className="text-sm font-bold text-gray-800">{userNameDisplay}</p>
                 <p className="text-xs text-green-500 font-medium">Online</p>
               </div>
-              <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold border-2 border-white shadow-sm">
+              <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold border-2 border-white shadow-sm hover:scale-110 transition-transform cursor-pointer">
                 {userNameDisplay.charAt(0).toUpperCase()}
               </div>
             </div>
           </div>
-          {renderContent()}
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {renderContent()}
+          </div>
         </main>
 
         <footer className="py-6 px-10 text-center text-gray-400 text-xs mt-auto">
-          © {new Date().getFullYear()} Chromameet. Premium Virtual Meetings.
+          © {new Date().getFullYear()} Nexus. Premium Virtual Meetings.
         </footer>
       </div>
+
+      {showCreateRoomForm && (
+        <div className="fixed inset-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200">
+            <h3 className="text-2xl font-bold mb-6 text-gray-800">Create New Room</h3>
+            <form onSubmit={handleCreateRoom} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-600 px-1">Room Name</label>
+                <input
+                  type="text"
+                  placeholder="Enter a descriptive room name"
+                  value={roomName}
+                  onChange={(e) => setRoomName(e.target.value)}
+                  required
+                  autoFocus
+                  className="w-full border-2 border-gray-100 focus:border-indigo-500 outline-none px-4 py-3 rounded-2xl transition-all"
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="submit" className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-2xl hover:bg-indigo-700 transition-colors">
+                  Create Room
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateRoomForm(false)}
+                  className="px-6 py-3 rounded-2xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
