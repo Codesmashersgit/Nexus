@@ -246,7 +246,7 @@ const Room = () => {
       {/* Toast Notification */}
       {showNotification && (
         <div
-          className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] bg-slate-900/90 backdrop-blur-3xl text-white px-6 py-4 rounded-3xl shadow-[0_20px_50px_rgba(37,99,235,0.4)] flex items-center gap-4 animate-slideDown cursor-pointer border border-white/10 max-w-[90vw] md:max-w-md"
+          className="fixed top-12 md:top-8 left-1/2 -translate-x-1/2 z-[9999] bg-slate-900/95 backdrop-blur-xl text-white px-6 py-4 rounded-3xl shadow-[0_20px_50px_rgba(37,99,235,0.5)] flex items-center gap-4 animate-slideDown cursor-pointer border border-white/15 max-w-[92vw] md:max-w-md w-full md:w-auto"
           onClick={() => { setIsChatOpen(true); setShowNotification(false); }}
         >
           <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
@@ -424,7 +424,7 @@ const Room = () => {
 
       {/* Control Bar - Optimized Bottom Positioning */}
       <div className={`
-        fixed bottom-3 md:bottom-8 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 md:gap-4
+        fixed bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 md:gap-4
         bg-slate-900/80 backdrop-blur-2xl px-4 py-2.5 md:px-7 md:py-3.5 rounded-full border border-white/10 shadow-[0_15px_40px_rgba(0,0,0,0.6)]
         transition-all duration-500
         ${isChatOpen ? "max-md:opacity-0 max-md:pointer-events-none max-md:scale-90" : "opacity-100 scale-100"}
