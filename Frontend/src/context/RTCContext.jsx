@@ -22,6 +22,7 @@ export const RTCProvider = ({ children }) => {
   const peersRef = useRef({}); // { [userId]: { peer, dataChannel } }
   const streamRef = useRef(null);
   const screenStreamRef = useRef(null);
+  const pendingCandidates = useRef({});
 
   const ICE_SERVERS = {
     iceServers: [
@@ -108,7 +109,6 @@ export const RTCProvider = ({ children }) => {
         socketRef.current.emit("join-room", { roomId, name });
       });
 
-      // When we join, the server tells us who is already there
       socketRef.current.on("all-users", async (users) => {
         console.log("Existing users in room:", users);
         setRemoteUsers(prev => {
@@ -124,20 +124,27 @@ export const RTCProvider = ({ children }) => {
         }
       });
 
-      // When someone else joins after us
       socketRef.current.on("user-joined", (user) => {
         console.log("User joined:", user);
         setRemoteUsers(prev => ({ ...prev, [user.id]: { name: user.name } }));
       });
 
-      // When someone else joins after us and sends an offer
       socketRef.current.on("offer", async (payload) => {
         console.log("Received offer from", payload.from);
         const pc = createPeer(payload.from, stream, false);
+
+        // 1. Check for pending candidates (arrived before offer)
+        if (pendingCandidates.current[payload.from]) {
+          pendingCandidates.current[payload.from].forEach(candidate => {
+            pc.addIceCandidate(new RTCIceCandidate(candidate));
+          });
+          delete pendingCandidates.current[payload.from];
+        }
+
         await pc.setRemoteDescription(new RTCSessionDescription(payload.offer));
 
-        // Process queued candidates that might have arrived before offer processing finished
         const peerObj = peersRef.current[payload.from];
+        // 2. Check for candidates queued on the peer object (arrived during setRemoteDescription)
         if (peerObj && peerObj.candidateQueue) {
           peerObj.candidateQueue.forEach(candidate => {
             peerObj.peer.addIceCandidate(new RTCIceCandidate(candidate));
@@ -155,7 +162,6 @@ export const RTCProvider = ({ children }) => {
         const peerObj = peersRef.current[payload.from];
         if (peerObj) {
           await peerObj.peer.setRemoteDescription(new RTCSessionDescription(payload.answer));
-          // Process queued candidates
           if (peerObj.candidateQueue) {
             peerObj.candidateQueue.forEach(candidate => {
               peerObj.peer.addIceCandidate(new RTCIceCandidate(candidate));
@@ -171,10 +177,15 @@ export const RTCProvider = ({ children }) => {
           if (peerObj.peer.remoteDescription) {
             await peerObj.peer.addIceCandidate(new RTCIceCandidate(payload.candidate));
           } else {
-            // Queue candidate if remote description is not set yet
             if (!peerObj.candidateQueue) peerObj.candidateQueue = [];
             peerObj.candidateQueue.push(payload.candidate);
           }
+        } else {
+          // Peer doesn't exist yet (Offer hasn't arrived) - queue globally
+          if (!pendingCandidates.current[payload.from]) {
+            pendingCandidates.current[payload.from] = [];
+          }
+          pendingCandidates.current[payload.from].push(payload.candidate);
         }
       });
 
@@ -184,6 +195,9 @@ export const RTCProvider = ({ children }) => {
         if (peerObj) {
           peerObj.peer.close();
           delete peersRef.current[userId];
+        }
+        if (pendingCandidates.current[userId]) {
+          delete pendingCandidates.current[userId];
         }
         setRemoteStreams(prev => {
           const copy = { ...prev };
