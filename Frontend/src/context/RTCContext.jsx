@@ -23,6 +23,7 @@ export const RTCProvider = ({ children }) => {
   const streamRef = useRef(null);
   const screenStreamRef = useRef(null);
   const pendingCandidates = useRef({});
+  const incomingFiles = useRef({}); // { [fileId]: { chunks: [], meta: {} } }
 
   const ICE_SERVERS = {
     iceServers: [
@@ -70,9 +71,35 @@ export const RTCProvider = ({ children }) => {
       dc.onmessage = e => {
         try {
           const data = JSON.parse(e.data);
-          addMsg(data.msg, data.sender || userId, data.type, data.metadata);
+
+          // Handle File Chunking Protocol
+          if (data.type === "file-meta") {
+            incomingFiles.current[data.fileId] = {
+              chunks: [],
+              meta: data.metadata,
+              sender: data.sender || userId
+            };
+          }
+          else if (data.type === "file-chunk") {
+            const file = incomingFiles.current[data.fileId];
+            if (file) {
+              file.chunks.push(data.chunk);
+            }
+          }
+          else if (data.type === "file-end") {
+            const file = incomingFiles.current[data.fileId];
+            if (file) {
+              const fullData = file.chunks.join("");
+              addMsg(file.meta.name, file.sender, file.meta.type, { ...file.meta, data: fullData });
+              delete incomingFiles.current[data.fileId];
+            }
+          }
+          // Handle Normal Text Messages
+          else {
+            addMsg(data.msg, data.sender || userId, data.type, data.metadata);
+          }
         } catch (err) {
-          addMsg(e.data, userId);
+          console.error("Data channel message error:", err);
         }
       };
       dc.onclose = () => console.log("Data channel closed for", userId);
@@ -231,30 +258,60 @@ export const RTCProvider = ({ children }) => {
     reader.onload = () => {
       const base64 = reader.result;
       const name = localStorage.getItem("username") || "Me";
+      const fileId = crypto.randomUUID();
+      const CHUNK_SIZE = 16 * 1024; // 16KB
 
       let type = "file";
       if (file.type.startsWith("image/")) type = "image";
       else if (file.type.startsWith("video/")) type = "video";
       else if (file.type.startsWith("audio/")) type = "audio";
 
-      const payload = JSON.stringify({
-        msg: file.name,
+      const metadata = {
+        name: file.name,
+        size: file.size,
+        mimeType: file.type,
+        type: type
+      };
+
+      // 1. Send Metadata
+      const metaMsg = JSON.stringify({
+        type: "file-meta",
+        fileId,
         sender: name,
-        type,
-        metadata: {
-          name: file.name,
-          size: file.size,
-          mimeType: file.type,
-          data: base64
-        }
+        metadata
       });
 
       Object.values(peersRef.current).forEach(({ dataChannel }) => {
-        if (dataChannel?.readyState === "open") {
-          dataChannel.send(payload);
-        }
+        if (dataChannel?.readyState === "open") dataChannel.send(metaMsg);
       });
-      addMsg(file.name, "Me", type, { data: base64, name: file.name });
+
+      // 2. Send Chunks
+      const totalChunks = Math.ceil(base64.length / CHUNK_SIZE);
+      for (let i = 0; i < totalChunks; i++) {
+        const chunk = base64.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+        const chunkMsg = JSON.stringify({
+          type: "file-chunk",
+          fileId,
+          chunk
+        });
+
+        Object.values(peersRef.current).forEach(({ dataChannel }) => {
+          if (dataChannel?.readyState === "open") dataChannel.send(chunkMsg);
+        });
+      }
+
+      // 3. Send End Signal
+      const endMsg = JSON.stringify({
+        type: "file-end",
+        fileId
+      });
+
+      Object.values(peersRef.current).forEach(({ dataChannel }) => {
+        if (dataChannel?.readyState === "open") dataChannel.send(endMsg);
+      });
+
+      // Add to local chat immediately
+      addMsg(file.name, "Me", type, { ...metadata, data: base64 });
     };
     reader.readAsDataURL(file);
   }, [addMsg]);
