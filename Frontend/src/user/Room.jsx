@@ -89,13 +89,132 @@ const Room = () => {
     error
   } = useRTC();
 
-  // ... (rest of simple states like isChatOpen)
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatInput, setChatInput] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [previewMedia, setPreviewMedia] = useState(null); // { data, name, type }
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const recordingIntervalRef = useRef(null);
 
-  // ... (useEffects)
+  const [showNotification, setShowNotification] = useState(false);
+  const chatEndRef = useRef(null);
+  const prevMessagesCount = useRef(0);
 
-  // ... (handlers)
+  useEffect(() => {
+    startRoom(roomId);
+    return () => {
+      if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
+    };
+  }, [roomId, startRoom]);
 
-  // ... (render)
+  // Notification Logic
+  useEffect(() => {
+    if (messages.length > prevMessagesCount.current) {
+      const lastMsg = messages[messages.length - 1];
+      if (lastMsg.sender !== "Me") {
+        if (!isChatOpen) {
+          setShowNotification(true);
+          // Play a subtle sound or just show toast
+          setTimeout(() => setShowNotification(false), 5000);
+        }
+      }
+      prevMessagesCount.current = messages.length;
+    }
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isChatOpen]);
+
+  const handleSend = (e) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+    sendChatMessage(chatInput);
+    setChatInput("");
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File size too large (max 5MB)");
+        return;
+      }
+      sendMedia(file);
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const file = new File([audioBlob], `voice_${Date.now()}.webm`, { type: "audio/webm" });
+        sendMedia(file);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    } catch (err) {
+      console.error("Microphone access denied:", err);
+      alert("Mic access is required for voice messages.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      clearInterval(recordingIntervalRef.current);
+    }
+  };
+
+  const cancelRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.onstop = null; // Prevent sending
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      clearInterval(recordingIntervalRef.current);
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleMediaOpen = (data, name, type, mimeType) => {
+    // Check if it's a PDF by mimeType or file extension
+    const isPDF = mimeType?.includes("pdf") || name?.toLowerCase().endsWith(".pdf");
+
+    if (type === "image" || isPDF) {
+      setPreviewMedia({ data, name, type: type === "image" ? "image" : "pdf" });
+    } else {
+      // Fallback to download for other file types
+      const link = document.createElement("a");
+      link.href = data;
+      link.download = name || "download";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 
   const remoteUsersList = Object.entries(remoteStreams);
   const isPeerConnected = remoteUsersList.length > 0;
