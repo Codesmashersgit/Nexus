@@ -15,11 +15,13 @@ export const RTCProvider = ({ children }) => {
   const [messages, setMessages] = useState([]);
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(true);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [error, setError] = useState(null);
 
   const socketRef = useRef(null);
   const peersRef = useRef({}); // { [userId]: { peer, dataChannel } }
   const streamRef = useRef(null);
+  const screenStreamRef = useRef(null);
 
   const ICE_SERVERS = {
     iceServers: [
@@ -102,7 +104,7 @@ export const RTCProvider = ({ children }) => {
 
       socketRef.current.on("connect", () => {
         console.log("Socket connected:", socketRef.current.id);
-        const name = localStorage.getItem("username") || localStorage.getItem("guestName") || "Anonymous";
+        const name = localStorage.getItem("username") || "Anonymous";
         socketRef.current.emit("join-room", { roomId, name });
       });
 
@@ -174,7 +176,7 @@ export const RTCProvider = ({ children }) => {
   }, [createPeer]);
 
   const sendChatMessage = useCallback((text) => {
-    const name = localStorage.getItem("username") || localStorage.getItem("guestName") || "Me";
+    const name = localStorage.getItem("username") || "Me";
     const payload = JSON.stringify({ msg: text, sender: name, type: "text" });
 
     let sent = false;
@@ -191,11 +193,12 @@ export const RTCProvider = ({ children }) => {
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = reader.result;
-      const name = localStorage.getItem("username") || localStorage.getItem("guestName") || "Me";
+      const name = localStorage.getItem("username") || "Me";
 
       let type = "file";
       if (file.type.startsWith("image/")) type = "image";
       else if (file.type.startsWith("video/")) type = "video";
+      else if (file.type.startsWith("audio/")) type = "audio";
 
       const payload = JSON.stringify({
         msg: file.name,
@@ -239,6 +242,51 @@ export const RTCProvider = ({ children }) => {
     }
   }, []);
 
+  const toggleScreenShare = useCallback(async () => {
+    try {
+      if (isScreenSharing) {
+        // Stop screen sharing and revert to camera
+        const videoTrack = screenStreamRef.current?.getVideoTracks()[0];
+        if (videoTrack) videoTrack.stop();
+        screenStreamRef.current = null;
+
+        // Re-enable camera stream
+        const cameraTrack = streamRef.current.getVideoTracks()[0];
+        if (cameraTrack) {
+          Object.values(peersRef.current).forEach(({ peer }) => {
+            const sender = peer.getSenders().find(s => s.track?.kind === "video");
+            if (sender && cameraTrack) sender.replaceTrack(cameraTrack);
+          });
+        }
+        setIsScreenSharing(false);
+      } else {
+        // Start screen sharing
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({
+          video: { cursor: "always" },
+          audio: false
+        });
+        screenStreamRef.current = screenStream;
+
+        const screenTrack = screenStream.getVideoTracks()[0];
+
+        Object.values(peersRef.current).forEach(({ peer }) => {
+          const sender = peer.getSenders().find(s => s.track?.kind === "video");
+          if (sender && screenTrack) sender.replaceTrack(screenTrack);
+        });
+
+        screenTrack.onended = () => {
+          setIsScreenSharing(false);
+          screenStreamRef.current = null;
+        };
+
+        setIsScreenSharing(true);
+      }
+    } catch (err) {
+      console.error("Screen share error:", err);
+      setIsScreenSharing(false);
+    }
+  }, [isScreenSharing]);
+
   const endCall = useCallback(() => {
     Object.values(peersRef.current).forEach(({ peer, dataChannel }) => {
       peer.close();
@@ -261,12 +309,14 @@ export const RTCProvider = ({ children }) => {
       messages,
       isMicOn,
       isCameraOn,
+      isScreenSharing,
       error,
       startRoom,
       sendChatMessage,
       sendMedia,
       toggleMic,
       toggleCamera,
+      toggleScreenShare,
       endCall
     }}>
       {children}
