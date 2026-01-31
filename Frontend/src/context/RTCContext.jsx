@@ -16,6 +16,7 @@ export const RTCProvider = ({ children }) => {
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [screenSharingId, setScreenSharingId] = useState(null); // 'me' or userId or null
   const [error, setError] = useState(null);
 
   const socketRef = useRef(null);
@@ -72,8 +73,15 @@ export const RTCProvider = ({ children }) => {
         try {
           const data = JSON.parse(e.data);
 
+          if (data.type === "system") {
+            if (data.action === "screen-share-start") {
+              setScreenSharingId(userId);
+            } else if (data.action === "screen-share-stop") {
+              setScreenSharingId(null);
+            }
+          }
           // Handle File Chunking Protocol
-          if (data.type === "file-meta") {
+          else if (data.type === "file-meta") {
             incomingFiles.current[data.fileId] = {
               chunks: [],
               meta: data.metadata,
@@ -231,6 +239,8 @@ export const RTCProvider = ({ children }) => {
           delete copy[userId];
           return copy;
         });
+        // If the sharing user left, reset state
+        setScreenSharingId(prev => (prev === userId ? null : prev));
       });
 
     } catch (err) {
@@ -352,7 +362,18 @@ export const RTCProvider = ({ children }) => {
             if (sender && cameraTrack) sender.replaceTrack(cameraTrack);
           });
         }
+
+        // Notify peers
+        const sysMsg = JSON.stringify({ type: "system", action: "screen-share-stop" });
+        Object.values(peersRef.current).forEach(({ dataChannel }) => {
+          if (dataChannel?.readyState === "open") dataChannel.send(sysMsg);
+        });
+
+        // Revert local preview to Camera
+        setLocalStream(streamRef.current);
+        setScreenSharingId(null);
         setIsScreenSharing(false);
+
       } else {
         // Start screen sharing
         const screenStream = await navigator.mediaDevices.getDisplayMedia({
@@ -369,15 +390,44 @@ export const RTCProvider = ({ children }) => {
         });
 
         screenTrack.onended = () => {
-          setIsScreenSharing(false);
-          screenStreamRef.current = null;
+          // If user clicks "Stop Sharing" in browser UI
+          if (screenStreamRef.current) {
+            // We need to manually invoke the stop logic logic here
+            const cameraTrack = streamRef.current.getVideoTracks()[0];
+            if (cameraTrack) {
+              Object.values(peersRef.current).forEach(({ peer }) => {
+                const sender = peer.getSenders().find(s => s.track?.kind === "video");
+                if (sender && cameraTrack) sender.replaceTrack(cameraTrack);
+              });
+            }
+            // Notify peers
+            const sysMsg = JSON.stringify({ type: "system", action: "screen-share-stop" });
+            Object.values(peersRef.current).forEach(({ dataChannel }) => {
+              if (dataChannel?.readyState === "open") dataChannel.send(sysMsg);
+            });
+
+            setLocalStream(streamRef.current);
+            setScreenSharingId(null);
+            setIsScreenSharing(false);
+            screenStreamRef.current = null;
+          }
         };
 
+        // Notify peers
+        const sysMsg = JSON.stringify({ type: "system", action: "screen-share-start" });
+        Object.values(peersRef.current).forEach(({ dataChannel }) => {
+          if (dataChannel?.readyState === "open") dataChannel.send(sysMsg);
+        });
+
+        // Set local preview to ScreenShare
+        setLocalStream(screenStream);
+        setScreenSharingId("me");
         setIsScreenSharing(true);
       }
     } catch (err) {
       console.error("Screen share error:", err);
       setIsScreenSharing(false);
+      setScreenSharingId(null);
     }
   }, [isScreenSharing]);
 
@@ -391,6 +441,8 @@ export const RTCProvider = ({ children }) => {
     setLocalStream(null);
     setRemoteStreams({});
     setMessages([]);
+    setScreenSharingId(null);
+    setIsScreenSharing(false);
     if (socketRef.current) socketRef.current.disconnect();
     navigate("/dashboard");
   }, [navigate]);
@@ -400,6 +452,7 @@ export const RTCProvider = ({ children }) => {
       localStream,
       remoteStreams,
       remoteUsers,
+      screenSharingId, // Exported
       messages,
       isMicOn,
       isCameraOn,
