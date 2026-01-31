@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
 function Signup() {
@@ -9,6 +9,7 @@ function Signup() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
   const SERVER_URL = import.meta.env.VITE_BACKEND_URL;
 
   const handleSubmit = async (e) => {
@@ -32,7 +33,8 @@ function Signup() {
       localStorage.setItem("authToken", token);
       localStorage.setItem("username", user.username);
 
-      navigate("/dashboard");
+      const from = location.state?.from?.pathname || "/dashboard";
+      navigate(from, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "Sign up failed");
     }
@@ -101,7 +103,11 @@ function Signup() {
 
         <p className="mt-6 text-center text-gray-600">
           Already have an account?{" "}
-          <Link to="/login" className="text-[#fa1239] font-normal hover:underline">
+          <Link
+            to="/login"
+            state={{ from: location.state?.from }}
+            className="text-[#fa1239] font-normal hover:underline"
+          >
             Login
           </Link>
         </p>
