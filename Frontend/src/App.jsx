@@ -13,7 +13,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Room from "./user/Room";
 import Demo from './pages/Analytics';
 import Pricing from "./pages/Pricing";
-import RoomAccess from "./user/RoomAccess";
+// import RoomAccess from "./user/RoomAccess";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import { RTCProvider } from "./context/RTCContext";
@@ -38,10 +38,9 @@ function Layout() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/oauth-success" element={<OAuthSuccess />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/forgot-Password" element={<ForgotPassword />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/room/:roomId" element={<ProtectedRoute><Room /></ProtectedRoute>} />
-          <Route path="/room-access/:roomId" element={<RoomAccess />} />
 
 
 
