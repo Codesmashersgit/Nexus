@@ -21,14 +21,45 @@ import {
 import Avatar from "../components/Avatar";
 
 // Stable Video Component to prevent freezing/re-renders
-const VideoPlayer = memo(({ stream, isLocal = false, label = "", mode = "grid", isCameraOn = true }) => { // Added isCameraOn
+const VideoPlayer = memo(({ stream, isLocal = false, label = "", mode = "grid", isCameraOn = true }) => {
   const videoRef = useRef(null);
-  const isMobile = window.innerWidth < 768; // Mobile check
+  const audioContextRef = useRef(null);
+  const analyserRef = useRef(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const isMobile = window.innerWidth < 768;
 
   useEffect(() => {
     if (videoRef.current && stream) {
       videoRef.current.srcObject = stream;
     }
+  }, [stream, isCameraOn]); // Added isCameraOn to re-set srcObject on toggle
+
+  // Audio level detection for speaking
+  useEffect(() => {
+    if (stream && stream.getAudioTracks().length > 0) {
+      const audioTrack = stream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+        const analyser = audioContextRef.current.createAnalyser();
+        analyser.fftSize = 256;
+        const source = audioContextRef.current.createMediaStreamSource(new MediaStream([audioTrack]));
+        source.connect(analyser);
+        analyserRef.current = analyser;
+
+        const checkVolume = () => {
+          const bufferLength = analyser.frequencyBinCount;
+          const dataArray = new Uint8Array(bufferLength);
+          analyser.getByteFrequencyData(dataArray);
+          const average = dataArray.reduce((a, b) => a + b) / bufferLength;
+          setIsSpeaking(average > 30); // Threshold for speaking
+          requestAnimationFrame(checkVolume);
+        };
+        checkVolume();
+      }
+    }
+    return () => {
+      if (audioContextRef.current) audioContextRef.current.close();
+    };
   }, [stream]);
 
   const containerClasses = {
@@ -38,13 +69,13 @@ const VideoPlayer = memo(({ stream, isLocal = false, label = "", mode = "grid", 
   };
 
   const labelClasses = {
-    grid: isMobile ? (isLocal ? "absolute bottom-4 left-4" : "absolute top-4 left-4") : "absolute bottom-20 md:bottom-auto md:top-4 left-4 px-3 py-1.5", // Mobile positioning
+    grid: isMobile ? (isLocal ? "absolute bottom-4 left-4" : "absolute top-4 left-4") : "absolute bottom-20 md:bottom-auto md:top-4 left-4 px-3 py-1.5",
     full: "absolute bottom-24 md:bottom-auto md:top-6 left-6 px-4 py-2",
     pip: "absolute bottom-2 left-2 px-2 py-1"
   };
 
   const textClasses = {
-    grid: isMobile ? "hidden" : "text-[10px] font-bold uppercase tracking-widest", // Hide text on mobile
+    grid: isMobile ? "hidden" : "text-[10px] font-bold uppercase tracking-widest",
     full: "text-xs font-bold uppercase tracking-widest",
     pip: "text-[8px] font-bold uppercase tracking-wider"
   };
@@ -53,6 +84,7 @@ const VideoPlayer = memo(({ stream, isLocal = false, label = "", mode = "grid", 
     <div className={containerClasses[mode] || containerClasses.grid}>
       {isCameraOn ? (
         <video
+          key={isCameraOn ? 'video-on' : 'video-off'} // Force re-mount on toggle
           ref={videoRef}
           autoPlay
           muted={isLocal}
@@ -60,12 +92,17 @@ const VideoPlayer = memo(({ stream, isLocal = false, label = "", mode = "grid", 
           className={`w-full h-full object-cover ${isLocal ? "transform scale-x-[-1]" : ""}`}
         />
       ) : (
-        // Center avatar when video off
-        <div className="flex items-center justify-center w-full h-full">
-          <Avatar name={label} size="lg" />
+        // Center avatar when video off, bigger font
+        <div className="flex items-center justify-center w-full h-full relative">
+          <div className={`relative ${isSpeaking ? "animate-pulse" : ""}`}>
+            <Avatar name={label} size="xl" /> {/* Bigger size */}
+            {isSpeaking && (
+              <div className="absolute inset-0 rounded-full border-4 border-blue-500 animate-ping opacity-75"></div> // Wave effect
+            )}
+          </div>
         </div>
       )}
-      {isCameraOn && ( // Only show label if video on
+      {isCameraOn && (
         <div className={`flex items-center gap-2 z-10 ${labelClasses[mode] || labelClasses.grid}`}>
           <Avatar name={label} size={mode === "pip" ? "xs" : "sm"} />
           <span className={`${textClasses[mode] || textClasses.grid} text-white/90 shadow-sm`}>
