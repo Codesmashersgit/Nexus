@@ -33,6 +33,8 @@ export const RTCProvider = ({ children }) => {
       { urls: "stun:stun2.l.google.com:19302" },
       { urls: "stun:stun3.l.google.com:19302" },
       { urls: "stun:stun4.l.google.com:19302" },
+      // Add TURN for strict firewalls/NAT
+      { urls: "turn:turn.anyfirewall.com:443?transport=tcp", username: "webrtc", credential: "webrtc" }
     ]
   };
 
