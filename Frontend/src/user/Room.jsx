@@ -97,7 +97,11 @@ const VideoPlayer = memo(({ stream, isLocal = false, label = "", mode = "grid", 
           <div className={`relative ${isSpeaking ? "animate-pulse" : ""}`}>
             <Avatar name={label} size="xl" /> {/* Bigger size */}
             {isSpeaking && (
-              <div className="absolute inset-0 rounded-full border-4 border-blue-500 animate-ping opacity-75"></div> // Wave effect
+              <>
+                <div className="absolute inset-0 rounded-full border-4 border-blue-500 animate-ping opacity-75"></div>
+                <div className="absolute inset-0 rounded-full border-4 border-blue-400 animate-ping opacity-50 animation-delay-200"></div>
+                <div className="absolute inset-0 rounded-full border-4 border-blue-300 animate-ping opacity-25 animation-delay-400"></div>
+              </>
             )}
           </div>
         </div>
@@ -322,7 +326,7 @@ const Room = () => {
               {/* Remote Video (Swapped to Left side) */}
               {isPeerConnected ? (
                 remoteUsersList.map(([userId, stream]) => (
-                  <VideoPlayer key={userId} stream={stream} label={remoteUsers[userId]?.name || "Guest User"} mode="grid" isCameraOn={true} />
+                  <VideoPlayer key={userId} stream={stream} label={remoteUsers[userId]?.name || "Guest User"} mode="grid" isCameraOn={stream.getVideoTracks()[0]?.enabled || false} />
                 ))
               ) : (
                 <div className="hidden md:flex flex-col items-center justify-center bg-slate-900 border border-white/5 rounded-3xl opacity-10">
