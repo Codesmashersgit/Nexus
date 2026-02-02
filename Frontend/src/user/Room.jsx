@@ -102,12 +102,30 @@ const Room = () => {
   const chatEndRef = useRef(null);
   const prevMessagesCount = useRef(0);
 
+  const [connectionStatus, setConnectionStatus] = useState("Connecting"); // New state: "Connecting" | "Connected" | "Error"
+  const [showError, setShowError] = useState(false); // New state to toggle error display
+
   useEffect(() => {
     startRoom(roomId);
+    setConnectionStatus("Connecting");
+    // Remove timer; status updates via context
     return () => {
       if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
     };
   }, [roomId, startRoom]);
+
+  // New effect for accurate status based on streams and error
+  useEffect(() => {
+    if (error) {
+      setConnectionStatus("Error");
+      setShowError(true);
+    } else if (Object.keys(remoteStreams).length > 0) {
+      setConnectionStatus("Connected");
+      setShowError(false);
+    } else {
+      setConnectionStatus("Connecting");
+    }
+  }, [remoteStreams, error]);
 
   // Notification Logic
   useEffect(() => {
@@ -241,26 +259,33 @@ const Room = () => {
     }
   }
 
+  const handleReconnect = () => {
+    setConnectionStatus("Connecting");
+    setShowError(false);
+    startRoom(roomId); // Retry room connection
+  };
+
   return (
     <div className="fixed inset-0 bg-black text-slate-100 overflow-hidden font-sans flex flex-col items-stretch">
-      {/* Toast Notification */}
-      {showNotification && (
-        <div
-          className="fixed top-12 md:top-8 left-1/2 -translate-x-1/2 z-[9999] bg-slate-900/95 backdrop-blur-xl text-white px-6 py-4 rounded-3xl shadow-[0_20px_50px_rgba(37,99,235,0.5)] flex items-center gap-4 animate-slideDown cursor-pointer border border-white/15 max-w-[92vw] md:max-w-md w-full md:w-auto"
-          onClick={() => { setIsChatOpen(true); setShowNotification(false); }}
-        >
-          <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-            <FaComments className="text-sm animate-pulse" />
+      {/* Error Toast */}
+      {showError && error && (
+        <div className="fixed top-20 md:top-16 left-1/2 -translate-x-1/2 z-[9999] bg-red-900/95 backdrop-blur-xl text-white px-6 py-4 rounded-3xl shadow-[0_20px_50px_rgba(239,68,68,0.5)] flex items-center gap-4 animate-slideDown cursor-pointer border border-red-500/20 max-w-[92vw] md:max-w-md w-full md:w-auto" onClick={() => setShowError(false)}>
+          <div className="w-10 h-10 bg-red-600 rounded-2xl flex items-center justify-center shadow-lg shadow-red-500/30">
+            <FaBell className="text-sm animate-pulse" />
           </div>
           <div className="flex flex-col flex-1 min-w-0">
-            <span className="font-black text-[10px] uppercase tracking-[0.2em] text-blue-500 mb-0.5">New Message Received</span>
-            <div className="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
-              <span className="font-bold text-sm text-slate-100 italic">{messages[messages.length - 1]?.sender?.slice(0, 10)}:</span>
-              <span className="text-sm text-slate-300 font-medium truncate">"{messages[messages.length - 1]?.msg}"</span>
-            </div>
+            <span className="font-black text-[10px] uppercase tracking-[0.2em] text-red-400 mb-0.5">Connection Error</span>
+            <span className="text-sm text-slate-200 font-medium">{error}</span>
           </div>
         </div>
       )}
+
+      {/* Connection Status Indicator */}
+      <div className="fixed top-6 left-6 z-[9999] bg-slate-900/80 backdrop-blur-xl text-white px-4 py-2 rounded-2xl shadow-lg border border-white/10">
+        <span className={`text-xs font-bold uppercase tracking-wider ${connectionStatus === "Connected" ? "text-green-400" : connectionStatus === "Error" ? "text-red-400" : "text-yellow-400"}`}>
+          {connectionStatus}
+        </span>
+      </div>
 
       {/* Main Container */}
       <div className="flex-1 flex flex-row relative overflow-hidden">
@@ -454,6 +479,10 @@ const Room = () => {
           title="End Call"
         >
           <FaPhoneSlash className="text-sm md:text-xl group-hover:scale-110 transition-transform" />
+        </button>
+
+        <button onClick={handleReconnect} className="w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border bg-yellow-600 border-yellow-400 shadow-[0_0_25px_rgba(245,158,11,0.4)] hover:bg-yellow-500" title="Reconnect">
+          <FaBell size={14} className="md:size-lg" />
         </button>
       </div>
 
