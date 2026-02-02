@@ -1,4 +1,3 @@
-
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
@@ -10,6 +9,8 @@ const userSchema = new mongoose.Schema(
     googleId: { type: String },
     resetPasswordToken: String,
     resetPasswordExpires: Date,
+    otp: String, // New: OTP code
+    otpExpires: Date // New: OTP expiry
   },
   { timestamps: true }
 );
