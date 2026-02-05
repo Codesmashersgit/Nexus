@@ -32,7 +32,7 @@ const VideoPlayer = memo(({ stream, isLocal = false, label = "", mode = "grid", 
     if (videoRef.current && stream) {
       videoRef.current.srcObject = stream;
     }
-  }, [stream, isCameraOn]); // Added isCameraOn to re-set srcObject on toggle
+  }, [stream, isCameraOn]);
 
   // Audio level detection for speaking
   useEffect(() => {
@@ -51,7 +51,7 @@ const VideoPlayer = memo(({ stream, isLocal = false, label = "", mode = "grid", 
           const dataArray = new Uint8Array(bufferLength);
           analyser.getByteFrequencyData(dataArray);
           const average = dataArray.reduce((a, b) => a + b) / bufferLength;
-          setIsSpeaking(average > 30); // Threshold for speaking
+          setIsSpeaking(average > 30);
           requestAnimationFrame(checkVolume);
         };
         checkVolume();
@@ -123,11 +123,12 @@ const Room = () => {
     localStream,
     remoteStreams,
     remoteUsers,
-    screenSharingId, // New State
+    screenSharingId,
     startRoom,
     messages,
     sendChatMessage,
     sendMedia,
+    clearMessages,
     isMicOn,
     isCameraOn,
     remoteCameraStatus,
@@ -150,7 +151,6 @@ const Room = () => {
   const audioChunksRef = useRef([]);
   const recordingIntervalRef = useRef(null);
 
-  const [showNotification, setShowNotification] = useState(false);
   const chatEndRef = useRef(null);
   const prevMessagesCount = useRef(0);
 
@@ -176,7 +176,6 @@ const Room = () => {
       const lastMsg = messages[messages.length - 1];
       if (lastMsg.sender !== "Me") {
         if (!isChatOpen) {
-          // Show toast notification with content
           setCurrentNotification({ sender: lastMsg.sender, msg: lastMsg.msg, type: lastMsg.type });
           setTimeout(() => setCurrentNotification(null), 6000);
         }
@@ -212,9 +211,7 @@ const Room = () => {
       audioChunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
       };
 
       mediaRecorder.onstop = () => {
@@ -246,7 +243,7 @@ const Room = () => {
 
   const cancelRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.onstop = null; // Prevent sending
+      mediaRecorderRef.current.onstop = null;
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       clearInterval(recordingIntervalRef.current);
@@ -261,13 +258,10 @@ const Room = () => {
   };
 
   const handleMediaOpen = (data, name, type, mimeType) => {
-    // Check if it's a PDF by mimeType or file extension
     const isPDF = mimeType?.includes("pdf") || name?.toLowerCase().endsWith(".pdf");
-
     if (type === "image" || isPDF) {
       setPreviewMedia({ data, name, type: type === "image" ? "image" : "pdf" });
     } else {
-      // Fallback to download for other file types
       const link = document.createElement("a");
       link.href = data;
       link.download = name || "download";
@@ -280,52 +274,38 @@ const Room = () => {
   const remoteUsersList = Object.entries(remoteStreams);
   const isPeerConnected = remoteUsersList.length > 0;
 
-  // Screen Share Layout Logic
   const isSharing = !!screenSharingId;
   let MainVideo = null;
   let PipVideo = null;
 
   if (isSharing) {
     if (screenSharingId === "me") {
-      // I am sharing. Main = Me (Screen), Pip = Remote (Face)
       MainVideo = <VideoPlayer stream={localStream} isLocal={true} label="You (Screen)" mode="full" />;
       if (isPeerConnected) {
         const [rId, rStream] = remoteUsersList[0];
         PipVideo = <VideoPlayer stream={rStream} label={remoteUsers[rId]?.name} mode="pip" isCameraOn={remoteCameraStatus[rId] !== false} />;
       }
     } else {
-      // Remote is sharing. Main = Remote (Screen), Pip = Me (Face)
       const rStream = remoteStreams[screenSharingId];
       const rName = remoteUsers[screenSharingId]?.name || "Presenter";
-      MainVideo = <VideoPlayer stream={rStream} label={`${rName} (Screen)`} mode="full" isCameraOn={true} />; // Screen share is always "on" for the screen track
+      MainVideo = <VideoPlayer stream={rStream} label={`${rName} (Screen)`} mode="full" isCameraOn={true} />;
       PipVideo = <VideoPlayer stream={localStream} isLocal={true} label="You" mode="pip" isCameraOn={isCameraOn} />;
     }
   }
 
   return (
-    <div className="fixed inset-0 bg-black text-slate-100 overflow-hidden font-sans flex flex-col items-stretch">
-      {/* Main Container */}
+    <div className="fixed inset-0 bg-black text-slate-100 overflow-hidden font-sans flex flex-col items-stretch text-sm md:text-base">
       <div className="flex-1 flex flex-row relative overflow-hidden">
-
         {/* Videos Area */}
         <div className="flex-1 relative flex flex-col bg-slate-950 transition-all duration-500 ease-in-out">
-
           {isSharing ? (
-            // SPOTLIGHT LAYOUT
             <div className="relative w-full h-full">
-              {/* Main Screen */}
-              <div className="absolute inset-0 z-0">
-                {MainVideo}
-              </div>
-
-              {/* PiP */}
+              <div className="absolute inset-0 z-0">{MainVideo}</div>
               {PipVideo && (
                 <div className="absolute top-4 right-4 w-20 h-28 md:w-40 md:h-56 z-20 transition-all rounded-xl overflow-hidden shadow-2xl border border-white/10">
                   {PipVideo}
                 </div>
               )}
-
-              {/* Sharer Avatar Overlay (Bottom Left) */}
               <div className="absolute bottom-6 left-6 z-30 flex items-center gap-3 bg-black/20 backdrop-blur-md p-2 rounded-2xl border border-white/5">
                 <Avatar
                   name={screenSharingId === "me" ? localStorage.getItem("username") : remoteUsers[screenSharingId]?.name}
@@ -334,13 +314,7 @@ const Room = () => {
               </div>
             </div>
           ) : (
-            // GRID LAYOUT (Existing)
-            <div className={`
-              flex-1 w-full h-full p-2 md:p-4 grid gap-2 md:gap-3
-              ${isPeerConnected ? "grid-cols-1 grid-rows-2 md:grid-cols-2 md:grid-rows-1" : "grid-cols-1 grid-rows-1"}
-            `}>
-
-              {/* Remote Video (Swapped to Left side) */}
+            <div className={`flex-1 w-full h-full p-2 md:p-4 grid gap-2 md:gap-3 ${isPeerConnected ? "grid-cols-1 grid-rows-2 md:grid-cols-2 md:grid-rows-1" : "grid-cols-1 grid-rows-1"}`}>
               {isPeerConnected ? (
                 remoteUsersList.map(([userId, stream]) => (
                   <VideoPlayer key={userId} stream={stream} label={remoteUsers[userId]?.name || "Guest User"} mode="grid" isCameraOn={remoteCameraStatus[userId] !== false} />
@@ -350,15 +324,12 @@ const Room = () => {
                   <span className="text-xs font-black tracking-[0.5em] uppercase">Waiting for guest</span>
                 </div>
               )}
-
-              {/* Local Video (Stay next to chat) */}
               <VideoPlayer stream={localStream} isLocal={true} label={localStorage.getItem("username") || "You"} mode="grid" isCameraOn={isCameraOn} />
-
             </div>
           )}
         </div>
 
-        {/* Chat Sidebar - Collapses the video area on PC */}
+        {/* Chat Sidebar */}
         <div className={`
           fixed inset-y-0 right-0 z-50 w-full md:relative md:inset-auto md:z-10 bg-slate-900/40 backdrop-blur-3xl border-l border-white/5 flex flex-col
           transition-all duration-500 ease-in-out shadow-2xl overflow-hidden
@@ -369,7 +340,16 @@ const Room = () => {
               <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]" />
               <h2 className="font-bold text-[11px] uppercase tracking-[0.2em] text-blue-100 whitespace-nowrap">In-Call Messages</h2>
             </div>
-            <button onClick={() => setIsChatOpen(false)} className="p-2 hover:bg-white/5 rounded-xl transition-all"><FaTimes size={16} /></button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={clearMessages}
+                className="p-2 hover:bg-red-500/10 text-red-400/60 hover:text-red-400 rounded-xl transition-all"
+                title="Clear Chat"
+              >
+                <FaTrash size={14} />
+              </button>
+              <button onClick={() => setIsChatOpen(false)} className="p-2 hover:bg-white/5 rounded-xl transition-all"><FaTimes size={16} /></button>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
@@ -377,23 +357,9 @@ const Room = () => {
               <div key={i} className={`flex gap-3 ${m.sender === "Me" ? "flex-row-reverse" : "flex-row"}`}>
                 <Avatar name={m.sender} size="sm" />
                 <div className={`flex flex-col ${m.sender === "Me" ? "items-end" : "items-start"}`}>
-                  <div className={`
-                    max-w-[200px] md:max-w-xs ${m.type === 'text' ? 'px-4 py-3' : 'p-0'} rounded-2xl text-[13px] leading-relaxed
-                    ${m.type === 'text'
-                      ? m.sender === "Me"
-                        ? "bg-blue-600 text-white rounded-tr-none shadow-lg shadow-blue-500/10"
-                        : "bg-slate-800 text-slate-200 rounded-tl-none border border-white/5 shadow-md"
-                      : "bg-transparent"
-                    }
-                  `}>
-
+                  <div className={`max-w-[200px] md:max-w-xs ${m.type === 'text' ? 'px-4 py-3' : 'p-0'} rounded-2xl text-[13px] leading-relaxed ${m.type === 'text' ? (m.sender === "Me" ? "bg-blue-600 text-white rounded-tr-none shadow-lg shadow-blue-500/10" : "bg-slate-800 text-slate-200 rounded-tl-none border border-white/5 shadow-md") : "bg-transparent"}`}>
                     {m.type === "image" ? (
-                      <img
-                        src={m.metadata.data}
-                        alt="uploaded"
-                        className="rounded-lg max-w-full cursor-pointer hover:opacity-90 border border-white/10"
-                        onClick={() => handleMediaOpen(m.metadata.data, m.metadata.name, "image", m.metadata.mimeType)}
-                      />
+                      <img src={m.metadata.data} alt="uploaded" className="rounded-lg max-w-full cursor-pointer hover:opacity-90 border border-white/10" onClick={() => handleMediaOpen(m.metadata.data, m.metadata.name, "image", m.metadata.mimeType)} />
                     ) : m.type === "video" ? (
                       <video src={m.metadata.data} controls className="rounded-lg max-w-full border border-white/10" />
                     ) : m.type === "audio" ? (
@@ -401,11 +367,7 @@ const Room = () => {
                     ) : m.type === "file" ? (
                       <div onClick={() => handleMediaOpen(m.metadata.data, m.metadata.name, "file", m.metadata.mimeType)} className="flex items-center gap-2 p-2 rounded-xl hover:bg-white/10 transition-all cursor-pointer">
                         <FaFileAlt className="text-blue-400" size={20} />
-                        {m.metadata.mimeType?.includes("pdf") || m.metadata.name?.toLowerCase().endsWith(".pdf") ? (
-                          <span className="text-[11px] font-normal truncate max-w-[150px]">{m.metadata.name}</span>
-                        ) : (
-                          <span className="text-[10px] opacity-50">{(m.metadata.size / 1024).toFixed(1)} KB</span>
-                        )}
+                        <span className="text-[11px] font-normal truncate max-w-[150px]">{m.metadata.name}</span>
                       </div>
                     ) : (
                       <p className="break-words font-normal">{m.msg}</p>
@@ -426,12 +388,8 @@ const Room = () => {
                   <span className="text-xs font-bold text-blue-100">Recording... {formatTime(recordingTime)}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={cancelRecording} className="p-2 hover:bg-white/10 rounded-lg transition-all text-red-400">
-                    <FaTrash size={14} />
-                  </button>
-                  <button onClick={stopRecording} className="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-500 transition-all flex items-center gap-2">
-                    <FaStop size={10} /> Stop & Send
-                  </button>
+                  <button onClick={cancelRecording} className="p-2 hover:bg-white/10 rounded-lg transition-all text-red-400"><FaTrash size={14} /></button>
+                  <button onClick={stopRecording} className="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-500 transition-all flex items-center gap-2"><FaStop size={10} /> Stop & Send</button>
                 </div>
               </div>
             ) : (
@@ -445,24 +403,11 @@ const Room = () => {
                     <FaFileAlt size={16} className="text-slate-400" />
                     <input type="file" className="hidden" onChange={handleFileUpload} />
                   </label>
-                  <button
-                    type="button"
-                    onClick={startRecording}
-                    className="p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all"
-                    title="Voice message"
-                  >
-                    <FaMicrophone size={16} className="text-slate-400" />
-                  </button>
+                  <button type="button" onClick={startRecording} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all" title="Voice message"><FaMicrophone size={16} className="text-slate-400" /></button>
                 </div>
                 <div className="relative group">
-                  <input
-                    type="text" value={chatInput} onChange={e => setChatInput(e.target.value)}
-                    placeholder="Send a message..."
-                    className="w-full bg-slate-800/80 border-none rounded-2xl py-4 pl-5 pr-14 text-sm focus:ring-1 focus:ring-blue-500/50 transition-all font-medium"
-                  />
-                  <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-500 w-10 h-10 flex items-center justify-center rounded-xl transition-transform active:scale-95 shadow-xl shadow-blue-500/20">
-                    <FaPaperPlane size={14} className="text-white" />
-                  </button>
+                  <input type="text" value={chatInput} onChange={e => setChatInput(e.target.value)} placeholder="Send a message..." className="w-full bg-slate-800/80 border-none rounded-2xl py-4 pl-5 pr-14 text-sm focus:ring-1 focus:ring-blue-500/50 transition-all font-medium" />
+                  <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-500 w-10 h-10 flex items-center justify-center rounded-xl transition-transform active:scale-95 shadow-xl shadow-blue-500/20"><FaPaperPlane size={14} className="text-white" /></button>
                 </div>
               </form>
             )}
@@ -470,41 +415,16 @@ const Room = () => {
         </div>
       </div>
 
-      {/* Control Bar - Optimized Bottom Positioning */}
-      <div className={`
-        fixed bottom-2 md:bottom-8 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 md:gap-4
-        bg-slate-900/80 backdrop-blur-2xl px-4 py-2.5 md:px-7 md:py-3.5 rounded-full border border-white/10 shadow-[0_15px_40px_rgba(0,0,0,0.6)]
-        transition-all duration-500
-        ${isChatOpen ? "max-md:opacity-0 max-md:pointer-events-none max-md:scale-90" : "opacity-100 scale-100"}
-      `}>
-
-        <button onClick={toggleMic} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isMicOn ? "bg-white/5 border-white/5 hover:bg-white/10" : "bg-red-500 border-red-400 shadow-[0_0_25px_rgba(239,68,68,0.4)]"}`}>
-          {isMicOn ? <FaMicrophone size={14} className="md:size-lg" /> : <FaMicrophoneSlash size={14} className="md:size-lg" />}
-        </button>
-
-        <button onClick={toggleCamera} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isCameraOn ? "bg-white/5 border-white/5 hover:bg-white/10" : "bg-red-500 border-red-400 shadow-[0_0_25px_rgba(239,68,68,0.4)]"}`}>
-          {isCameraOn ? <FaVideo size={14} className="md:size-lg" /> : <FaVideoSlash size={14} className="md:size-lg" />}
-        </button>
-
+      {/* Control Bar */}
+      <div className={`fixed bottom-2 md:bottom-8 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 md:gap-4 bg-slate-900/80 backdrop-blur-2xl px-4 py-2.5 md:px-7 md:py-3.5 rounded-full border border-white/10 shadow-[0_15px_40px_rgba(0,0,0,0.6)] transition-all duration-500 ${isChatOpen ? "max-md:opacity-0 max-md:pointer-events-none max-md:scale-90" : "opacity-100 scale-100"}`}>
+        <button onClick={toggleMic} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isMicOn ? "bg-white/5 border-white/5 hover:bg-white/10" : "bg-red-500 border-red-400 shadow-[0_0_25px_rgba(239,68,68,0.4)]"}`}>{isMicOn ? <FaMicrophone size={14} /> : <FaMicrophoneSlash size={14} />}</button>
+        <button onClick={toggleCamera} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isCameraOn ? "bg-white/5 border-white/5 hover:bg-white/10" : "bg-red-500 border-red-400 shadow-[0_0_25px_rgba(239,68,68,0.4)]"}`}>{isCameraOn ? <FaVideo size={14} /> : <FaVideoSlash size={14} />}</button>
         {!isMobileDevice && (
-          <button onClick={toggleScreenShare} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isScreenSharing ? "bg-blue-600 border-blue-400 shadow-[0_0_25px_rgba(59,130,246,0.4)]" : "bg-white/5 border-white/5 hover:bg-white/10"}`} title="Share Screen">
-            <FaDesktop size={14} className="md:size-lg" />
-          </button>
+          <button onClick={toggleScreenShare} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isScreenSharing ? "bg-blue-600 border-blue-400 shadow-[0_0_25px_rgba(59,130,246,0.4)]" : "bg-white/5 border-white/5 hover:bg-white/10"}`} title="Share Screen"><FaDesktop size={14} /></button>
         )}
-
-        <button onClick={() => setIsChatOpen(!isChatOpen)} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isChatOpen ? "bg-blue-600 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.2)]" : "bg-white/5 border-white/5 hover:bg-white/10"}`}>
-          <FaComments size={14} className="md:size-lg" />
-        </button>
-
+        <button onClick={() => setIsChatOpen(!isChatOpen)} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isChatOpen ? "bg-blue-600 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.2)]" : "bg-white/5 border-white/5 hover:bg-white/10"}`}><FaComments size={14} /></button>
         <div className="w-px h-6 md:h-9 bg-white/10 mx-1 md:mx-2" />
-
-        <button
-          onClick={endCall}
-          className="w-10 h-10 md:w-14 md:h-12 flex items-center justify-center rounded-xl md:rounded-2xl bg-red-600 hover:bg-red-700 text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] transition-all active:scale-95 group"
-          title="End Call"
-        >
-          <FaPhoneSlash className="text-sm md:text-xl group-hover:scale-110 transition-transform" />
-        </button>
+        <button onClick={endCall} className="w-10 h-10 md:w-14 md:h-12 flex items-center justify-center rounded-xl md:rounded-2xl bg-red-600 hover:bg-red-700 text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] transition-all active:scale-95 group" title="End Call"><FaPhoneSlash className="text-sm md:text-xl group-hover:scale-110 transition-transform" /></button>
       </div>
 
       <style dangerouslySetInnerHTML={{
@@ -516,91 +436,40 @@ const Room = () => {
       `}} />
 
       {previewMedia && (
-        <div className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-4">
-          {/* ... existing preview media content ... */}
+        <div className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-4 text-sm">
           <div className="absolute top-6 right-6 flex items-center gap-4">
-            <button
-              onClick={() => {
-                const link = document.createElement("a");
-                link.href = previewMedia.data;
-                link.download = previewMedia.name;
-                link.click();
-              }}
-              className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all"
-              title="Download"
-            >
-              <FaFileAlt size={20} />
-            </button>
-            <button
-              onClick={() => setPreviewMedia(null)}
-              className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all"
-            >
-              <FaTimes size={24} />
-            </button>
+            <button onClick={() => { const link = document.createElement("a"); link.href = previewMedia.data; link.download = previewMedia.name; link.click(); }} className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all" title="Download"><FaFileAlt size={20} /></button>
+            <button onClick={() => setPreviewMedia(null)} className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all"><FaTimes size={24} /></button>
           </div>
-
           <div className="w-full h-full flex items-center justify-center animate-in zoom-in duration-300">
-            {previewMedia.type === "image" ? (
-              <img
-                src={previewMedia.data}
-                alt="Preview"
-                className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl border border-white/10"
-              />
-            ) : (
-              <iframe
-                src={previewMedia.data}
-                className="w-full max-w-5xl h-[85vh] bg-white rounded-xl shadow-2xl overflow-hidden border-none"
-                title="PDF Preview"
-              />
-            )}
+            {previewMedia.type === "image" ? <img src={previewMedia.data} alt="Preview" className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl border border-white/10" /> : <iframe src={previewMedia.data} className="w-full max-w-5xl h-[85vh] bg-white rounded-xl shadow-2xl overflow-hidden border-none" title="PDF Preview" />}
           </div>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm font-bold text-white/80">{previewMedia.name}</p>
-          </div>
+          <div className="mt-6 text-center"><p className="text-sm font-bold text-white/80">{previewMedia.name}</p></div>
         </div>
       )}
 
-      {/* Room Full Overlay */}
       {error === "Room is full" && (
         <div className="fixed inset-0 z-[1000] bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-6 text-center">
           <div className="max-w-md w-full animate-in fade-in zoom-in duration-500">
-            <div className="w-24 h-24 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_rgba(239,68,68,0.2)]">
-              <FaPhoneSlash className="text-red-500 text-4xl" />
-            </div>
+            <div className="w-24 h-24 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_rgba(239,68,68,0.2)]"><FaPhoneSlash className="text-red-500 text-4xl" /></div>
             <h1 className="text-3xl font-black text-white mb-4 tracking-tight">Room is Full</h1>
-            <p className="text-slate-400 mb-10 leading-relaxed font-medium">
-              Aree bhai, is room mein pehle se hi 2 log hain. Humne isse private rkha h taaki sirf best experience mile.
-            </p>
-            <button
-              onClick={() => navigate("/dashboard")}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-500/20 transition-all active:scale-95"
-            >
-              Back to Dashboard
-            </button>
+            <p className="text-slate-400 mb-10 leading-relaxed font-medium">Aree bhai, is room mein pehle se hi 2 log hain. Humne isse private rkha h taaki sirf best experience mile.</p>
+            <button onClick={() => navigate("/dashboard")} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-500/20 transition-all active:scale-95">Back to Dashboard</button>
           </div>
         </div>
       )}
 
-      {/* Message Notification Toast */}
       {currentNotification && !isChatOpen && (
-        <div
-          onClick={() => { setIsChatOpen(true); setCurrentNotification(null); }}
-          className="fixed top-24 left-1/2 -translate-x-1/2 z-[70] w-[90%] max-w-sm bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-4 cursor-pointer hover:bg-slate-800 transition-all animate-slideDown group"
-        >
+        <div onClick={() => { setIsChatOpen(true); setCurrentNotification(null); }} className="fixed top-24 left-1/2 -translate-x-1/2 z-[70] w-[90%] max-w-sm bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-4 cursor-pointer hover:bg-slate-800 transition-all animate-slideDown group">
           <div className="relative">
             <Avatar name={currentNotification.sender} size="sm" />
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-slate-900 shadow-[0_0_10px_#3b82f6]" />
           </div>
           <div className="flex-1 min-w-0">
             <h4 className="text-[11px] font-black text-blue-400 uppercase tracking-widest">{currentNotification.sender}</h4>
-            <p className="text-sm text-slate-200 truncate font-medium">
-              {currentNotification.type === 'text' ? currentNotification.msg : `Sent a ${currentNotification.type}`}
-            </p>
+            <p className="text-sm text-slate-200 truncate font-medium">{currentNotification.type === 'text' ? currentNotification.msg : `Sent a ${currentNotification.type}`}</p>
           </div>
-          <button className="bg-blue-600/20 text-blue-400 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase hover:bg-blue-600 hover:text-white transition-all">
-            View
-          </button>
+          <button className="bg-blue-600/20 text-blue-400 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase hover:bg-blue-600 hover:text-white transition-all">View</button>
         </div>
       )}
     </div>
