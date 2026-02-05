@@ -29,11 +29,13 @@ function Signup() {
       });
 
       const { token, user } = res.data;
-      // Save token and username in localStorage
       localStorage.setItem("authToken", token);
       localStorage.setItem("username", user.username);
 
-      const from = location.state?.from?.pathname || "/dashboard";
+      const redirectPath = localStorage.getItem("redirectPath");
+      const from = redirectPath || location.state?.from?.pathname || "/dashboard";
+      localStorage.removeItem("redirectPath");
+
       navigate(from, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "Sign up failed");
@@ -41,6 +43,10 @@ function Signup() {
   };
 
   const handleGoogle = () => {
+    // If there is a "from" state but no redirectPath in storage, save it now
+    if (location.state?.from?.pathname && !localStorage.getItem("redirectPath")) {
+      localStorage.setItem("redirectPath", location.state.from.pathname + (location.state.from.search || ""));
+    }
     window.location.href = `${SERVER_URL}/api/auth/google`;
   };
 
