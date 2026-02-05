@@ -50,6 +50,12 @@ io.on("connection", (socket) => {
   socket.on("join-room", ({ roomId, name }) => {
     if (!rooms[roomId]) rooms[roomId] = [];
 
+    // Enforce 2-user limit
+    if (rooms[roomId].length >= 2) {
+      socket.emit("room-full", { message: "This room is full. Only 2 users are allowed." });
+      return;
+    }
+
     // Existing users data
     const existingUsers = rooms[roomId].map(u => ({ id: u.id, name: u.name }));
     socket.emit("all-users", existingUsers);
