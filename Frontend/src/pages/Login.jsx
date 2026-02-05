@@ -25,13 +25,14 @@ function Login() {
       });
 
       const { token, user } = res.data;
-
-      // Save token & user info to localStorage
       localStorage.setItem("authToken", token);
       localStorage.setItem("username", user.username || user.email);
       localStorage.setItem("email", user.email);
 
-      const from = location.state?.from?.pathname || "/dashboard";
+      const redirectPath = localStorage.getItem("redirectPath");
+      const from = redirectPath || location.state?.from?.pathname || "/dashboard";
+      localStorage.removeItem("redirectPath");
+
       navigate(from, { replace: true });
       window.location.reload();
     } catch (err) {
@@ -41,7 +42,10 @@ function Login() {
 
   // Google login (redirect in same window)
   const handleGoogle = () => {
-    // Navigate current page to Google OAuth endpoint
+    // If there is a "from" state but no redirectPath in storage, save it now
+    if (location.state?.from?.pathname && !localStorage.getItem("redirectPath")) {
+      localStorage.setItem("redirectPath", location.state.from.pathname + (location.state.from.search || ""));
+    }
     window.location.href = `${SERVER_URL}/api/auth/google`;
   };
 
