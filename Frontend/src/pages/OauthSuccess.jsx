@@ -58,7 +58,9 @@ function OAuthSuccess() {
       localStorage.setItem("username", username);
       localStorage.setItem("email", email); // ✅ save email
 
-      navigate("/dashboard");
+      const redirectPath = localStorage.getItem("redirectPath");
+      navigate(redirectPath || "/dashboard");
+      localStorage.removeItem("redirectPath");
       window.location.reload(); // refresh to update navbar or user state
     } else {
       navigate("/login"); // fallback if any info is missing
