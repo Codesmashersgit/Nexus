@@ -93,16 +93,22 @@ const VideoPlayer = memo(({ stream, isLocal = false, label = "", mode = "grid", 
         />
       ) : (
         // Center avatar when video off, bigger font
-        <div className="flex items-center justify-center w-full h-full relative">
-          <div className={`relative ${isSpeaking ? "animate-pulse" : ""}`}>
-            <Avatar name={label} size="xl" /> {/* Bigger size */}
-            {isSpeaking && (
-              <>
-                <div className="absolute inset-0 rounded-full border-4 border-blue-500 animate-ping opacity-75"></div>
-                <div className="absolute inset-0 rounded-full border-4 border-blue-400 animate-ping opacity-50 animation-delay-200"></div>
-                <div className="absolute inset-0 rounded-full border-4 border-blue-300 animate-ping opacity-25 animation-delay-400"></div>
-              </>
-            )}
+        <div className="flex flex-col items-center justify-center w-full h-full relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+          <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent animate-pulse" />
+          <div className={`relative z-10 ${isSpeaking ? "scale-110" : "scale-100"} transition-transform duration-300`}>
+            <div className={`relative ${isSpeaking ? "animate-pulse" : ""}`}>
+              <Avatar name={label} size={mode === "pip" ? "lg" : "xl"} />
+              {isSpeaking && (
+                <>
+                  <div className="absolute -inset-4 rounded-full border-2 border-blue-500/40 animate-ping" />
+                  <div className="absolute -inset-2 rounded-full border-2 border-blue-400/60 animate-pulse" />
+                </>
+              )}
+            </div>
+            <div className="mt-4 text-center">
+              <span className="text-sm font-bold text-white/80 tracking-widest uppercase">{label}</span>
+              {isSpeaking && <div className="text-[10px] text-blue-400 font-black animate-bounce mt-1 italic">Speaking...</div>}
+            </div>
           </div>
         </div>
       )}
@@ -132,6 +138,7 @@ const Room = () => {
     sendMedia,
     isMicOn,
     isCameraOn,
+    remoteCameraStatus,
     isScreenSharing,
     toggleMic,
     toggleCamera,
@@ -141,6 +148,7 @@ const Room = () => {
   } = useRTC();
 
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [chatInput, setChatInput] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -154,10 +162,18 @@ const Room = () => {
   const prevMessagesCount = useRef(0);
 
   useEffect(() => {
+    // Basic mobile/tablet detection
+    const checkDevice = () => {
+      const ua = navigator.userAgent;
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua) || window.innerWidth < 1024;
+      setIsMobileDevice(isMobile);
+    };
+    checkDevice();
+    window.addEventListener("resize", checkDevice);
     startRoom(roomId);
-    // Remove status and timer logic
     return () => {
       if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
+      window.removeEventListener("resize", checkDevice);
     };
   }, [roomId, startRoom]);
 
@@ -282,14 +298,14 @@ const Room = () => {
       MainVideo = <VideoPlayer stream={localStream} isLocal={true} label="You (Screen)" mode="full" />;
       if (isPeerConnected) {
         const [rId, rStream] = remoteUsersList[0];
-        PipVideo = <VideoPlayer stream={rStream} label={remoteUsers[rId]?.name} mode="pip" />;
+        PipVideo = <VideoPlayer stream={rStream} label={remoteUsers[rId]?.name} mode="pip" isCameraOn={remoteCameraStatus[rId] !== false} />;
       }
     } else {
       // Remote is sharing. Main = Remote (Screen), Pip = Me (Face)
       const rStream = remoteStreams[screenSharingId];
       const rName = remoteUsers[screenSharingId]?.name || "Presenter";
-      MainVideo = <VideoPlayer stream={rStream} label={`${rName} (Screen)`} mode="full" />;
-      PipVideo = <VideoPlayer stream={localStream} isLocal={true} label="You" mode="pip" />;
+      MainVideo = <VideoPlayer stream={rStream} label={`${rName} (Screen)`} mode="full" isCameraOn={true} />; // Screen share is always "on" for the screen track
+      PipVideo = <VideoPlayer stream={localStream} isLocal={true} label="You" mode="pip" isCameraOn={isCameraOn} />;
     }
   }
 
@@ -326,7 +342,7 @@ const Room = () => {
               {/* Remote Video (Swapped to Left side) */}
               {isPeerConnected ? (
                 remoteUsersList.map(([userId, stream]) => (
-                  <VideoPlayer key={userId} stream={stream} label={remoteUsers[userId]?.name || "Guest User"} mode="grid" isCameraOn={stream.getVideoTracks()[0]?.enabled || false} />
+                  <VideoPlayer key={userId} stream={stream} label={remoteUsers[userId]?.name || "Guest User"} mode="grid" isCameraOn={remoteCameraStatus[userId] !== false} />
                 ))
               ) : (
                 <div className="hidden md:flex flex-col items-center justify-center bg-slate-900 border border-white/5 rounded-3xl opacity-10">
@@ -469,9 +485,11 @@ const Room = () => {
           {isCameraOn ? <FaVideo size={14} className="md:size-lg" /> : <FaVideoSlash size={14} className="md:size-lg" />}
         </button>
 
-        <button onClick={toggleScreenShare} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isScreenSharing ? "bg-blue-600 border-blue-400 shadow-[0_0_25px_rgba(59,130,246,0.4)]" : "bg-white/5 border-white/5 hover:bg-white/10"}`} title="Share Screen">
-          <FaDesktop size={14} className="md:size-lg" />
-        </button>
+        {!isMobileDevice && (
+          <button onClick={toggleScreenShare} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isScreenSharing ? "bg-blue-600 border-blue-400 shadow-[0_0_25px_rgba(59,130,246,0.4)]" : "bg-white/5 border-white/5 hover:bg-white/10"}`} title="Share Screen">
+            <FaDesktop size={14} className="md:size-lg" />
+          </button>
+        )}
 
         <button onClick={() => setIsChatOpen(!isChatOpen)} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isChatOpen ? "bg-blue-600 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.2)]" : "bg-white/5 border-white/5 hover:bg-white/10"}`}>
           <FaComments size={14} className="md:size-lg" />
