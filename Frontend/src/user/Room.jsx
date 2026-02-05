@@ -110,9 +110,6 @@ const VideoPlayer = memo(({ stream, isLocal = false, label = "", mode = "grid", 
       {isCameraOn && (
         <div className={`flex items-center gap-2 z-10 ${labelClasses[mode] || labelClasses.grid}`}>
           <Avatar name={label} size={mode === "pip" ? "xs" : "sm"} />
-          <span className={`${textClasses[mode] || textClasses.grid} text-white/90 shadow-sm`}>
-            {label}
-          </span>
         </div>
       )}
     </div>
@@ -323,10 +320,18 @@ const Room = () => {
 
               {/* PiP */}
               {PipVideo && (
-                <div className="absolute top-4 right-4 w-32 h-48 md:w-64 md:h-48 z-20 transition-all">
+                <div className="absolute top-4 right-4 w-20 h-28 md:w-40 md:h-56 z-20 transition-all rounded-xl overflow-hidden shadow-2xl border border-white/10">
                   {PipVideo}
                 </div>
               )}
+
+              {/* Sharer Avatar Overlay (Bottom Left) */}
+              <div className="absolute bottom-6 left-6 z-30 flex items-center gap-3 bg-black/20 backdrop-blur-md p-2 rounded-2xl border border-white/5">
+                <Avatar
+                  name={screenSharingId === "me" ? localStorage.getItem("username") : remoteUsers[screenSharingId]?.name}
+                  size="md"
+                />
+              </div>
             </div>
           ) : (
             // GRID LAYOUT (Existing)
@@ -467,7 +472,7 @@ const Room = () => {
 
       {/* Control Bar - Optimized Bottom Positioning */}
       <div className={`
-        fixed bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 md:gap-4
+        fixed bottom-2 md:bottom-8 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 md:gap-4
         bg-slate-900/80 backdrop-blur-2xl px-4 py-2.5 md:px-7 md:py-3.5 rounded-full border border-white/10 shadow-[0_15px_40px_rgba(0,0,0,0.6)]
         transition-all duration-500
         ${isChatOpen ? "max-md:opacity-0 max-md:pointer-events-none max-md:scale-90" : "opacity-100 scale-100"}
