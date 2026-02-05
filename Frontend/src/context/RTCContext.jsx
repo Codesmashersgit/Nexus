@@ -163,6 +163,15 @@ export const RTCProvider = ({ children }) => {
         // Initial broadcast of camera status will happen when peers are created
       });
 
+      socketRef.current.on("room-full", (data) => {
+        console.warn("Room is full:", data.message);
+        setError("Room is full");
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+        }
+        setLocalStream(null);
+      });
+
       socketRef.current.on("all-users", async (users) => {
         console.log("Existing users in room:", users);
         setRemoteUsers(prev => {
