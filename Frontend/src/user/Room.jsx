@@ -82,17 +82,15 @@ const VideoPlayer = memo(({ stream, isLocal = false, label = "", mode = "grid", 
 
   return (
     <div className={containerClasses[mode] || containerClasses.grid}>
-      {isCameraOn ? (
-        <video
-          key={isCameraOn ? 'video-on' : 'video-off'} // Force re-mount on toggle
-          ref={videoRef}
-          autoPlay
-          muted={isLocal}
-          playsInline
-          className={`w-full h-full object-cover ${isLocal ? "transform scale-x-[-1]" : ""}`}
-        />
-      ) : (
-        // Center avatar when video off, bigger font
+      <video
+        ref={videoRef}
+        autoPlay
+        muted={isLocal}
+        playsInline
+        className={`w-full h-full object-cover ${isLocal ? "transform scale-x-[-1]" : ""} ${isCameraOn ? "block" : "hidden"}`}
+      />
+
+      {!isCameraOn && (
         <div className="flex flex-col items-center justify-center w-full h-full relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
           <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent animate-pulse" />
           <div className={`relative z-10 ${isSpeaking ? "scale-110" : "scale-100"} transition-transform duration-300`}>
@@ -105,13 +103,10 @@ const VideoPlayer = memo(({ stream, isLocal = false, label = "", mode = "grid", 
                 </>
               )}
             </div>
-            <div className="mt-4 text-center">
-              <span className="text-sm font-bold text-white/80 tracking-widest uppercase">{label}</span>
-              {isSpeaking && <div className="text-[10px] text-blue-400 font-black animate-bounce mt-1 italic">Speaking...</div>}
-            </div>
           </div>
         </div>
       )}
+
       {isCameraOn && (
         <div className={`flex items-center gap-2 z-10 ${labelClasses[mode] || labelClasses.grid}`}>
           <Avatar name={label} size={mode === "pip" ? "xs" : "sm"} />
@@ -149,6 +144,7 @@ const Room = () => {
 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isMobileDevice, setIsMobileDevice] = useState(false);
+  const [currentNotification, setCurrentNotification] = useState(null); // { sender, msg }
   const [chatInput, setChatInput] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -183,9 +179,9 @@ const Room = () => {
       const lastMsg = messages[messages.length - 1];
       if (lastMsg.sender !== "Me") {
         if (!isChatOpen) {
-          setShowNotification(true);
-          // Play a subtle sound or just show toast
-          setTimeout(() => setShowNotification(false), 5000);
+          // Show toast notification with content
+          setCurrentNotification({ sender: lastMsg.sender, msg: lastMsg.msg, type: lastMsg.type });
+          setTimeout(() => setCurrentNotification(null), 6000);
         }
       }
       prevMessagesCount.current = messages.length;
@@ -516,6 +512,7 @@ const Room = () => {
 
       {previewMedia && (
         <div className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-4">
+          {/* ... existing preview media content ... */}
           <div className="absolute top-6 right-6 flex items-center gap-4">
             <button
               onClick={() => {
@@ -556,6 +553,49 @@ const Room = () => {
           <div className="mt-6 text-center">
             <p className="text-sm font-bold text-white/80">{previewMedia.name}</p>
           </div>
+        </div>
+      )}
+
+      {/* Room Full Overlay */}
+      {error === "Room is full" && (
+        <div className="fixed inset-0 z-[1000] bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-6 text-center">
+          <div className="max-w-md w-full animate-in fade-in zoom-in duration-500">
+            <div className="w-24 h-24 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_rgba(239,68,68,0.2)]">
+              <FaPhoneSlash className="text-red-500 text-4xl" />
+            </div>
+            <h1 className="text-3xl font-black text-white mb-4 tracking-tight">Room is Full</h1>
+            <p className="text-slate-400 mb-10 leading-relaxed font-medium">
+              Aree bhai, is room mein pehle se hi 2 log hain. Humne isse private rkha h taaki sirf best experience mile.
+            </p>
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-500/20 transition-all active:scale-95"
+            >
+              Back to Dashboard
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Message Notification Toast */}
+      {currentNotification && !isChatOpen && (
+        <div
+          onClick={() => { setIsChatOpen(true); setCurrentNotification(null); }}
+          className="fixed top-24 left-1/2 -translate-x-1/2 z-[70] w-[90%] max-w-sm bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-4 cursor-pointer hover:bg-slate-800 transition-all animate-slideDown group"
+        >
+          <div className="relative">
+            <Avatar name={currentNotification.sender} size="sm" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-slate-900 shadow-[0_0_10px_#3b82f6]" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="text-[11px] font-black text-blue-400 uppercase tracking-widest">{currentNotification.sender}</h4>
+            <p className="text-sm text-slate-200 truncate font-medium">
+              {currentNotification.type === 'text' ? currentNotification.msg : `Sent a ${currentNotification.type}`}
+            </p>
+          </div>
+          <button className="bg-blue-600/20 text-blue-400 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase hover:bg-blue-600 hover:text-white transition-all">
+            View
+          </button>
         </div>
       )}
     </div>
