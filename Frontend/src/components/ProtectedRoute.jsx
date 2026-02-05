@@ -11,6 +11,8 @@ const ProtectedRoute = ({ children }) => {
     const token = localStorage.getItem("authToken");
 
     if (!isLoggedIn && !token) {
+        // Save the current path to localStorage to redirect back after login/signup (including OAuth)
+        localStorage.setItem("redirectPath", location.pathname + location.search);
         return <Navigate to="/login" replace state={{ from: location }} />;
     }
 
