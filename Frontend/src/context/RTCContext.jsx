@@ -17,6 +17,7 @@ export const RTCProvider = ({ children }) => {
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [screenSharingId, setScreenSharingId] = useState(null); // 'me' or userId or null
+  const [remoteCameraStatus, setRemoteCameraStatus] = useState({}); // key: userId, value: boolean
   const [error, setError] = useState(null);
 
   const socketRef = useRef(null);
@@ -70,7 +71,13 @@ export const RTCProvider = ({ children }) => {
     // Data channel
     let dataChannel;
     const setupDataChannel = (dc) => {
-      dc.onopen = () => console.log("Data channel open for", userId);
+      dc.onopen = () => {
+        console.log("Data channel open for", userId);
+        // If we are initiator, we can send our status immediately
+        if (isInitiator) {
+          dc.send(JSON.stringify({ type: "system", action: "camera-status", enabled: streamRef.current.getVideoTracks()[0]?.enabled }));
+        }
+      };
       dc.onmessage = e => {
         try {
           const data = JSON.parse(e.data);
@@ -80,6 +87,8 @@ export const RTCProvider = ({ children }) => {
               setScreenSharingId(userId);
             } else if (data.action === "screen-share-stop") {
               setScreenSharingId(null);
+            } else if (data.action === "camera-status") {
+              setRemoteCameraStatus(prev => ({ ...prev, [userId]: data.enabled }));
             }
           }
           // Handle File Chunking Protocol
@@ -123,6 +132,13 @@ export const RTCProvider = ({ children }) => {
         dataChannel = e.channel;
         setupDataChannel(dataChannel);
         peersRef.current[userId].dataChannel = dataChannel;
+
+        // Send current camera status to the user who joined
+        setTimeout(() => {
+          if (dataChannel.readyState === "open") {
+            dataChannel.send(JSON.stringify({ type: "system", action: "camera-status", enabled: streamRef.current.getVideoTracks()[0]?.enabled }));
+          }
+        }, 500);
       };
     }
 
@@ -144,6 +160,7 @@ export const RTCProvider = ({ children }) => {
         console.log("Socket connected:", socketRef.current.id);
         const name = localStorage.getItem("username") || "Anonymous";
         socketRef.current.emit("join-room", { roomId, name });
+        // Initial broadcast of camera status will happen when peers are created
       });
 
       socketRef.current.on("all-users", async (users) => {
@@ -158,6 +175,9 @@ export const RTCProvider = ({ children }) => {
           const offer = await pc.createOffer();
           await pc.setLocalDescription(offer);
           socketRef.current.emit("offer", { offer, to: user.id });
+
+          // Send current camera status to the new user once DC is open
+          // This is handled in setupDataChannel by checking if it's initiator
         }
       });
 
@@ -243,6 +263,11 @@ export const RTCProvider = ({ children }) => {
         });
         // If the sharing user left, reset state
         setScreenSharingId(prev => (prev === userId ? null : prev));
+        setRemoteCameraStatus(prev => {
+          const copy = { ...prev };
+          delete copy[userId];
+          return copy;
+        });
       });
 
     } catch (err) {
@@ -344,6 +369,12 @@ export const RTCProvider = ({ children }) => {
       if (videoTrack) {
         videoTrack.enabled = !videoTrack.enabled;
         setIsCameraOn(videoTrack.enabled);
+
+        // Notify peers
+        const sysMsg = JSON.stringify({ type: "system", action: "camera-status", enabled: videoTrack.enabled });
+        Object.values(peersRef.current).forEach(({ dataChannel }) => {
+          if (dataChannel?.readyState === "open") dataChannel.send(sysMsg);
+        });
       }
     }
   }, []);
@@ -454,6 +485,7 @@ export const RTCProvider = ({ children }) => {
       localStream,
       remoteStreams,
       remoteUsers,
+      remoteCameraStatus, // Exported
       screenSharingId, // Exported
       messages,
       isMicOn,
