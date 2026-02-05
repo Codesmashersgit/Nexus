@@ -489,6 +489,10 @@ export const RTCProvider = ({ children }) => {
     navigate("/dashboard");
   }, [navigate]);
 
+  const clearMessages = useCallback(() => {
+    setMessages([]);
+  }, []);
+
   return (
     <RTCContext.Provider value={{
       localStream,
@@ -504,6 +508,7 @@ export const RTCProvider = ({ children }) => {
       startRoom,
       sendChatMessage,
       sendMedia,
+      clearMessages, // Exported
       toggleMic,
       toggleCamera,
       toggleScreenShare,
