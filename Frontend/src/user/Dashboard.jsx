@@ -146,49 +146,54 @@ function Dashboard() {
     switch (activeSection) {
       case "Dashboard":
         return (
-          <div className="space-y-6">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 rounded-2xl text-white shadow-xl">
-              <h2 className="text-3xl font-bold mb-2">Welcome back, {userNameDisplay}!</h2>
-              <p className="opacity-90">Manage your meetings and analytics from your personalized dashboard.</p>
+          <div className="space-y-8">
+            <div className="relative overflow-hidden p-10 rounded-3xl text-white shadow-2xl glass-panel border-white/10">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#fa1239]/10 blur-[100px] pointer-events-none"></div>
+              <div className="relative z-10">
+                <h2 className="text-4xl font-extrabold mb-3 tracking-tight">Welcome back, <span className="text-[#fa1239]">{userNameDisplay}</span>!</h2>
+                <p className="text-gray-400 text-lg max-w-2xl font-medium">Manage your professional meetings and explore detailed analytics from your premium command center.</p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5 hover:shadow-md transition-shadow">
-                <div className="bg-blue-100 p-4 rounded-xl text-blue-600">
-                  <RiVideoAddFill className="text-2xl" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="glass-panel p-8 flex items-center gap-6 hover:bg-white/5 transition-all duration-300 group cursor-default">
+                <div className="bg-[#fa1239]/10 p-5 rounded-2xl text-[#fa1239] group-hover:scale-110 transition-transform">
+                  <RiVideoAddFill className="text-3xl" />
                 </div>
                 <div>
-                  <p className="text-gray-500 text-sm font-medium">Total Rooms</p>
-                  <p className="text-2xl font-bold text-gray-800">{roomList.length}</p>
+                  <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-1">Total Rooms</p>
+                  <p className="text-3xl font-extrabold text-white tracking-tight">{roomList.length}</p>
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5 hover:shadow-md transition-shadow">
-                <div className="bg-green-100 p-4 rounded-xl text-green-600">
-                  <MdHistory className="text-2xl" />
+              <div className="glass-panel p-8 flex items-center gap-6 hover:bg-white/5 transition-all duration-300 group cursor-default">
+                <div className="bg-blue-500/10 p-5 rounded-2xl text-blue-400 group-hover:scale-110 transition-transform">
+                  <MdHistory className="text-3xl" />
                 </div>
                 <div>
-                  <p className="text-gray-500 text-sm font-medium">History Entries</p>
-                  <p className="text-2xl font-bold text-gray-800">{meetingHistory.length}</p>
+                  <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-1">History Entries</p>
+                  <p className="text-3xl font-extrabold text-white tracking-tight">{meetingHistory.length}</p>
                 </div>
               </div>
-
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="text-xl font-bold mb-4 text-gray-800">Quick Actions</h3>
-              <div className="flex flex-col md:flex-row gap-4">
+            <div className="glass-panel p-10">
+              <h3 className="text-xl font-bold mb-8 text-white flex items-center gap-3">
+                <div className="w-1.5 h-8 bg-[#fa1239] rounded-full"></div>
+                Quick Actions
+              </h3>
+              <div className="flex flex-col sm:flex-row gap-6">
                 <button
                   onClick={() => handleMenuClick("Room")}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 w-full md:w-auto"
+                  className="bg-[#fa1239] hover:brightness-110 text-white px-8 py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-3 w-full sm:w-auto shadow-lg shadow-[#fa1239]/20"
                 >
-                  <RiVideoAddFill /> Create / Join Room
+                  <RiVideoAddFill className="text-xl" /> Create / Join Room
                 </button>
                 <button
                   onClick={() => handleMenuClick("Analytics")}
-                  className="bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 px-6 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 w-full md:w-auto"
+                  className="glass-panel hover:bg-white/10 text-white px-8 py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-3 w-full sm:w-auto border-white/10"
                 >
-                  <IoStatsChart /> View Analytics
+                  <IoStatsChart className="text-xl" /> View Analytics
                 </button>
               </div>
             </div>
@@ -197,69 +202,79 @@ function Dashboard() {
 
       case "Room":
         return (
-          <div className="bg-white shadow-sm border border-gray-100 rounded-2xl p-8 space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-800">My Meeting Rooms</h2>
+          <div className="glass-panel border-white/10 p-8 md:p-12 space-y-10">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+              <div>
+                <h2 className="text-3xl font-extrabold text-white tracking-tight">My Meeting Rooms</h2>
+                <p className="text-gray-500 mt-2 font-medium">Create and manage your private meeting spaces.</p>
+              </div>
               <button
                 onClick={() => setShowCreateRoomForm(true)}
-                className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-semibold transition-colors flex items-center gap-2 shadow-sm"
+                className="bg-[#fa1239] hover:brightness-110 text-white px-6 py-3 rounded-2xl font-bold transition-all flex items-center gap-3 shadow-lg shadow-[#fa1239]/20"
               >
-                <RiVideoAddFill /> New Room
+                <RiVideoAddFill className="text-xl" /> New Room
               </button>
             </div>
 
             {roomList.length === 0 ? (
-              <div className="text-center py-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-                <p className="text-gray-500">You haven't created any rooms yet.</p>
+              <div className="text-center py-20 bg-white/5 rounded-3xl border-2 border-dashed border-white/10">
+                <RiVideoAddFill className="text-5xl text-gray-700 mx-auto mb-4" />
+                <p className="text-gray-500 font-bold">You haven't created any rooms yet.</p>
+                <button
+                  onClick={() => setShowCreateRoomForm(true)}
+                  className="mt-6 text-[#fa1239] font-bold hover:underline"
+                >
+                  Create your first room →
+                </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-6">
                 {roomList.map((room) => {
                   const roomURL = `${FRONTEND_URL}/room/${room.id}`;
                   const shareText = `Join my meeting on Nexus: ${roomURL}`;
                   const whatsappURL = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
 
                   return (
-                    <div key={room.id} className="group bg-gray-50 hover:bg-white border-2 border-transparent hover:border-indigo-100 p-5 rounded-2xl transition-all duration-300">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-bold text-gray-800 group-hover:text-indigo-600 transition-colors">{room.name}</h3>
-                          <p className="text-gray-500 text-sm flex items-center gap-1 mt-1">
-                            <CiCalendarDate /> Created on {room.createdAt}
+                    <div key={room.id} className="group glass-panel hover:bg-white/5 border-white/5 hover:border-[#fa1239]/30 p-6 md:p-8 transition-all duration-500">
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                        <div className="flex-1 space-y-3">
+                          <h3 className="text-2xl font-bold text-white group-hover:text-[#fa1239] transition-colors tracking-tight">{room.name}</h3>
+                          <p className="text-gray-500 text-sm flex items-center gap-2 font-medium">
+                            <CiCalendarDate className="text-[#fa1239]" /> Created on {room.createdAt}
                           </p>
-                          <div className="mt-2 flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-gray-200 w-fit">
-                            <code className="text-xs text-indigo-600 font-mono truncate max-w-[200px] md:max-w-md">{roomURL}</code>
+                          <div className="mt-4 flex items-center gap-3 bg-black/40 px-4 py-3 rounded-xl border border-white/5 w-fit">
+                            <code className="text-xs text-gray-400 font-mono truncate max-w-[150px] md:max-w-md">{roomURL}</code>
                             <button
                               onClick={() => copyToClipboard(roomURL, room.id)}
-                              className="text-gray-400 hover:text-indigo-600 transition-colors"
+                              className="text-[#fa1239] hover:scale-110 transition-transform p-1"
                               title="Copy Link"
                             >
-                              {copySuccess === room.id ? <FaCheckCircle className="text-green-500" /> : <IoMdCopy />}
+                              {copySuccess === room.id ? <FaCheckCircle className="text-green-500" /> : <IoMdCopy className="text-xl" />}
                             </button>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-4">
                           <button
                             onClick={() => navigate(`/room/${room.id}`)}
-                            className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors text-sm"
+                            className="bg-white text-black px-6 py-3 rounded-xl font-bold hover:bg-gray-200 transition-all text-sm shadow-xl"
                           >
                             Join Room
                           </button>
                           <a
                             href={whatsappURL}
                             target="_blank"
-                            className="p-2.5 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
+                            className="p-3 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all border border-green-500/20"
                             title="Share on WhatsApp"
                           >
-                            <FaWhatsapp className="text-lg" />
+                            <FaWhatsapp className="text-xl" />
                           </a>
                           <button
                             onClick={() => { if (window.confirm('Delete this room?')) handleDelete(room.id) }}
-                            className="p-2.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                            className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all border border-red-500/20"
                             title="Delete Room"
                           >
-                            <MdDelete className="text-lg" />
+                            <MdDelete className="text-xl" />
                           </button>
                         </div>
                       </div>
@@ -268,37 +283,36 @@ function Dashboard() {
                 })}
               </div>
             )}
-
           </div>
         );
 
       case "Meeting History":
         return (
-          <div className="bg-white shadow-sm border border-gray-100 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-              <MdHistory className="text-blue-600" /> Meeting History
+          <div className="glass-panel border-white/10 p-8 md:p-12">
+            <h2 className="text-3xl font-extrabold text-white mb-10 flex items-center gap-4">
+              <MdHistory className="text-[#fa1239]" /> <span className="gradient-text">Meeting History</span>
             </h2>
             {meetingHistory.length === 0 ? (
-              <div className="text-center py-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-                <p className="text-gray-500">No meeting history found.</p>
+              <div className="text-center py-20 bg-white/5 rounded-3xl border-2 border-dashed border-white/10">
+                <p className="text-gray-500 font-bold">No meeting history found.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full text-left border-separate border-spacing-y-4">
                   <thead>
-                    <tr className="border-b border-gray-100">
-                      <th className="pb-4 font-bold text-gray-600 px-4">Room Name</th>
-                      <th className="pb-4 font-bold text-gray-600 px-4">Date & Time</th>
-                      <th className="pb-4 font-bold text-gray-600 px-4">Action</th>
+                    <tr className="text-gray-500 text-xs font-black uppercase tracking-[0.2em]">
+                      <th className="pb-4 px-6">Room Name</th>
+                      <th className="pb-4 px-6">Date & Time</th>
+                      <th className="pb-4 px-6">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="">
                     {meetingHistory.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                        <td className="py-4 px-4 font-medium text-gray-800">{item.name}</td>
-                        <td className="py-4 px-4 text-gray-500 text-sm">{item.createdAt}</td>
-                        <td className="py-4 px-4">
-                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${item.type === 'Created' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                      <tr key={idx} className="group glass-panel hover:bg-white/5 transition-all duration-300 border-none">
+                        <td className="py-6 px-6 font-bold text-white group-hover:text-[#fa1239] transition-colors rounded-l-2xl border-y border-l border-white/5">{item.name}</td>
+                        <td className="py-6 px-6 text-gray-400 font-medium border-y border-white/5">{item.createdAt}</td>
+                        <td className="py-6 px-6 rounded-r-2xl border-y border-r border-white/5">
+                          <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${item.type === 'Created' ? 'bg-[#fa1239]/10 text-[#fa1239]' : 'bg-blue-500/10 text-blue-400'
                             }`}>
                             {item.type || 'Joined'}
                           </span>
@@ -317,42 +331,42 @@ function Dashboard() {
 
       case "Profile":
         return (
-          <div className="max-w-2xl mx-auto bg-white shadow-sm border border-gray-100 rounded-3xl overflow-hidden">
-            <div className="bg-indigo-600 h-32 relative">
-              <div className="absolute -bottom-12 left-10">
-                <div className="bg-white p-2 rounded-full shadow-lg">
-                  <div className="bg-indigo-100 text-indigo-600 w-24 h-24 rounded-full flex items-center justify-center text-4xl font-bold border-4 border-white">
+          <div className="max-w-2xl mx-auto glass-panel border-white/10 rounded-[2.5rem] overflow-hidden">
+            <div className="bg-gradient-to-r from-[#fa1239]/20 to-[#fa1239]/5 h-40 relative">
+              <div className="absolute -bottom-16 left-12">
+                <div className="bg-[#050505] p-2 rounded-full shadow-2xl">
+                  <div className="bg-[#fa1239]/10 text-[#fa1239] w-32 h-32 rounded-full flex items-center justify-center text-5xl font-black border-4 border-white/5 shadow-inner">
                     {userNameDisplay.charAt(0).toUpperCase()}
                   </div>
                 </div>
               </div>
             </div>
-            <div className="pt-16 pb-10 px-10 space-y-6">
+            <div className="pt-24 pb-12 px-12 space-y-8">
               <div>
-                <h2 className="text-3xl font-extrabold text-gray-800">{userNameDisplay}</h2>
-                <p className="text-gray-500 font-medium">{userEmail}</p>
+                <h2 className="text-4xl font-black text-white tracking-tight">{userNameDisplay}</h2>
+                <p className="text-gray-500 font-bold tracking-wide mt-1">{userEmail}</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Account Created</p>
-                  <p className="text-gray-700 font-semibold">{currentDate.split(',')[0]}</p>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
+                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-2">Account Created</p>
+                  <p className="text-gray-300 font-bold">{currentDate.split(',')[0]}</p>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Status</p>
-                  <p className="text-green-600 font-bold flex items-center gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                    Active Now
+                <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
+                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-2">Account Status</p>
+                  <p className="text-[#fa1239] font-black flex items-center gap-2">
+                    <span className="w-2 h-2 bg-[#fa1239] rounded-full animate-pulse"></span>
+                    Premium Active
                   </p>
                 </div>
               </div>
 
-              <div className="pt-4">
+              <div className="pt-6">
                 <button
                   onClick={handleLogout}
-                  className="w-full bg-red-50 text-red-600 font-bold py-4 rounded-2xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-red-500/10 text-red-500 font-black py-5 rounded-2xl hover:bg-red-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-3 border border-red-500/20"
                 >
-                  <CiLogout className="text-xl" /> Sign Out
+                  <CiLogout className="text-2xl" /> Sign Out
                 </button>
               </div>
             </div>
@@ -367,46 +381,49 @@ function Dashboard() {
   // Sidebar Menu Items
   const MenuItems = (
     <div className="flex flex-col h-full pt-20 pb-8">
-
-      <div className="flex-1 space-y-2 px-3">
+      <div className="flex-1 space-y-3 px-4">
         <div
           onClick={() => handleMenuClick("Dashboard")}
-          className={`flex items-center gap-4 px-4 py-3.5 cursor-pointer rounded-2xl transition-all duration-200 group ${activeSection === "Dashboard" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" : "text-gray-500 hover:bg-gray-50 hover:text-indigo-600"
+          className={`flex items-center gap-4 px-5 py-4 cursor-pointer rounded-2xl transition-all duration-300 group ${activeSection === "Dashboard"
+            ? "bg-[#fa1239] text-white shadow-lg shadow-[#fa1239]/20"
+            : "text-gray-400 hover:bg-white/5 hover:text-white"
             }`}
         >
-          <RxDashboard className="text-xl" />
-          <span className="font-semibold">Dashboard</span>
+          <RxDashboard className={`text-xl ${activeSection === "Dashboard" ? "text-white" : "group-hover:text-[#fa1239]"}`} />
+          <span className="font-bold tracking-tight">Dashboard</span>
         </div>
 
         <div className="py-2">
           <div
-            className={`flex items-center justify-between px-4 py-3.5 cursor-pointer rounded-2xl transition-all duration-200 ${activeSection === "Room" || activeSection === "Meeting History" ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50 hover:text-indigo-600"
+            className={`flex items-center justify-between px-5 py-4 cursor-pointer rounded-2xl transition-all duration-300 ${activeSection === "Room" || activeSection === "Meeting History"
+              ? "bg-white/5 text-white"
+              : "text-gray-400 hover:bg-white/5 hover:text-white"
               }`}
             onClick={toggleDropdown}
           >
             <div className="flex items-center gap-4">
-              <RiVideoAddFill className="text-xl" />
-              <span className="font-semibold">Video Conference</span>
+              <RiVideoAddFill className={`text-xl ${activeSection === "Room" || activeSection === "Meeting History" ? "text-[#fa1239]" : ""}`} />
+              <span className="font-bold tracking-tight">Video Conference</span>
             </div>
             {isDropdownOpen ? <IoIosArrowUp /> : <IoIosArrowDown />}
           </div>
 
           {isDropdownOpen && (
-            <div className="mt-2 ml-4 space-y-1 border-l-2 border-indigo-100 pl-4">
+            <div className="mt-3 ml-6 space-y-2 border-l-2 border-[#fa1239]/20 pl-4">
               <div
                 onClick={() => handleMenuClick("Room")}
-                className={`flex items-center gap-4 px-4 py-2.5 cursor-pointer rounded-xl transition-all ${activeSection === "Room" ? "text-indigo-600 font-bold" : "text-gray-400 hover:text-indigo-600"
+                className={`flex items-center gap-4 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${activeSection === "Room" ? "text-[#fa1239] bg-[#fa1239]/10 font-bold" : "text-gray-500 hover:text-white hover:bg-white/5"
                   }`}
               >
-                <IoHome /> <span>My Rooms</span>
+                <IoHome className="text-lg" /> <span className="text-sm">My Rooms</span>
               </div>
 
               <div
                 onClick={() => handleMenuClick("Meeting History")}
-                className={`flex items-center gap-4 px-4 py-2.5 cursor-pointer rounded-xl transition-all ${activeSection === "Meeting History" ? "text-indigo-600 font-bold" : "text-gray-400 hover:text-indigo-600"
+                className={`flex items-center gap-4 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 ${activeSection === "Meeting History" ? "text-[#fa1239] bg-[#fa1239]/10 font-bold" : "text-gray-500 hover:text-white hover:bg-white/5"
                   }`}
               >
-                <MdHistory className="text-xl" /> <span>History</span>
+                <MdHistory className="text-xl" /> <span className="text-sm">History</span>
               </div>
             </div>
           )}
@@ -414,27 +431,31 @@ function Dashboard() {
 
         <div
           onClick={() => handleMenuClick("Analytics")}
-          className={`flex items-center gap-4 px-4 py-3.5 cursor-pointer rounded-2xl transition-all duration-200 group ${activeSection === "Analytics" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" : "text-gray-500 hover:bg-gray-50 hover:text-indigo-600"
+          className={`flex items-center gap-4 px-5 py-4 cursor-pointer rounded-2xl transition-all duration-300 group ${activeSection === "Analytics"
+            ? "bg-[#fa1239] text-white shadow-lg shadow-[#fa1239]/20"
+            : "text-gray-400 hover:bg-white/5 hover:text-white"
             }`}
         >
-          <IoStatsChart className="text-xl" />
-          <span className="font-semibold">Analytics</span>
+          <IoStatsChart className={`text-xl ${activeSection === "Analytics" ? "text-white" : "group-hover:text-[#fa1239]"}`} />
+          <span className="font-bold tracking-tight">Analytics</span>
         </div>
 
         <div
           onClick={() => handleMenuClick("Profile")}
-          className={`flex items-center gap-4 px-4 py-3.5 cursor-pointer rounded-2xl transition-all duration-200 group ${activeSection === "Profile" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" : "text-gray-500 hover:bg-gray-50 hover:text-indigo-600"
+          className={`flex items-center gap-4 px-5 py-4 cursor-pointer rounded-2xl transition-all duration-300 group ${activeSection === "Profile"
+            ? "bg-[#fa1239] text-white shadow-lg shadow-[#fa1239]/20"
+            : "text-gray-400 hover:bg-white/5 hover:text-white"
             }`}
         >
-          <ImUser className="text-xl" />
-          <span className="font-semibold">My Profile</span>
+          <ImUser className={`text-xl ${activeSection === "Profile" ? "text-white" : "group-hover:text-[#fa1239]"}`} />
+          <span className="font-bold tracking-tight">My Profile</span>
         </div>
       </div>
 
-      <div className="px-6 pt-10 mt-auto border-t border-gray-100">
+      <div className="px-6 pt-10 mt-auto border-t border-white/5">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-4 w-full px-4 py-3.5 text-red-500 hover:bg-red-50 rounded-2xl transition-all font-semibold"
+          className="flex items-center gap-4 w-full px-5 py-4 text-gray-500 hover:bg-red-500/10 hover:text-red-500 rounded-2xl transition-all duration-300 font-bold tracking-tight"
         >
           <CiLogout className="text-xl" /> Sign Out
         </button>
@@ -443,20 +464,26 @@ function Dashboard() {
   );
 
   return (
-    <div className="h-screen bg-gray-50 flex overflow-hidden">
+    <div className="h-screen bg-[#050505] text-white flex overflow-hidden relative">
+      {/* Dynamic Background */}
+      <div className="mesh-gradient">
+        <div className="mesh-ball ball-1"></div>
+        <div className="mesh-ball ball-2"></div>
+      </div>
+
       {/* Sidebar - Desktop */}
-      <aside className="hidden lg:block w-72 bg-white border-r border-gray-100 z-30 fixed top-16 bottom-0 left-0 overflow-y-auto custom-scrollbar">
+      <aside className="hidden lg:block w-72 glass-panel border-r border-white/5 z-30 fixed top-16 bottom-0 left-0 overflow-y-auto custom-scrollbar m-4 rounded-3xl">
         {MenuItems}
       </aside>
 
       {/* Main Layout Area */}
-      <div className="flex-1 flex flex-col min-w-0 lg:ml-72 h-screen overflow-y-auto pt-16 scroll-smooth">
+      <div className="flex-1 flex flex-col min-w-0 lg:ml-72 h-screen overflow-y-auto pt-16 scroll-smooth relative z-10">
         {/* Removed redundant mobile header as global Navbar is used */}
 
         {/* Mobile menu trigger (Floating button since header is gone) */}
         {!isMenuOpen && (
           <button
-            className="lg:hidden fixed bottom-6 right-6 z-50 bg-indigo-600 text-white p-4 rounded-full shadow-2xl"
+            className="lg:hidden fixed bottom-6 right-6 z-50 bg-[#fa1239] text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform"
             onClick={toggleMenu}
           >
             <RiMenuFoldFill size={24} />
@@ -466,10 +493,10 @@ function Dashboard() {
         {/* Mobile menu overlay */}
         {isMenuOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
-            <div className="fixed inset-0 bg-gray-600/20 backdrop-blur-sm" onClick={toggleMenu}></div>
+            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={toggleMenu}></div>
             <div
               ref={menuRef}
-              className="fixed top-0 left-0 bottom-0 bg-white shadow-2xl w-72 animate-in slide-in-from-left duration-300"
+              className="fixed top-0 left-0 bottom-0 glass-panel border-r border-white/10 shadow-2xl w-72 animate-in slide-in-from-left duration-300 m-0 rounded-none"
             >
               {MenuItems}
             </div>
@@ -478,24 +505,27 @@ function Dashboard() {
 
         {/* Dynamic Content Area */}
         <main className="flex-1 px-4 md:px-6 lg:px-10 pt-4 md:pt-16 pb-16 max-w-7xl mx-auto w-full">
-          <div className="mb-6 hidden lg:flex justify-between items-center h-16 border-b border-gray-100 pb-4">
+          <div className="mb-6 hidden lg:flex justify-between items-center h-20 border-b border-white/5 pb-4">
             <div>
-              <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                {activeSection === "Dashboard" && <RxDashboard className="text-indigo-600" />}
-                {activeSection === "Analytics" && <IoStatsChart className="text-indigo-600" />}
-                {activeSection === "Profile" && <ImUser className="text-indigo-600" />}
-                {activeSection === "Room" && <RiVideoAddFill className="text-indigo-600" />}
-                {activeSection === "Meeting History" && <MdHistory className="text-indigo-600" />}
-                {activeSection}
+              <h2 className="text-3xl font-bold text-white flex items-center gap-3">
+                {activeSection === "Dashboard" && <RxDashboard className="text-[#fa1239]" />}
+                {activeSection === "Analytics" && <IoStatsChart className="text-[#fa1239]" />}
+                {activeSection === "Profile" && <ImUser className="text-[#fa1239]" />}
+                {activeSection === "Room" && <RiVideoAddFill className="text-[#fa1239]" />}
+                {activeSection === "Meeting History" && <MdHistory className="text-[#fa1239]" />}
+                <span className="gradient-text">{activeSection}</span>
               </h2>
-              <p className="text-gray-400 text-xs mt-1">Today is {currentDate}</p>
+              <p className="text-gray-400 text-xs mt-1 font-medium tracking-wide">Today is {currentDate}</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-sm font-bold text-gray-800">{userNameDisplay}</p>
-                <p className="text-xs text-green-500 font-medium">Online</p>
+                <p className="text-sm font-bold text-white tracking-tight">{userNameDisplay}</p>
+                <p className="text-[10px] text-[#fa1239] font-bold uppercase tracking-widest flex items-center justify-end gap-1">
+                  <span className="w-1.5 h-1.5 bg-[#fa1239] rounded-full animate-pulse"></span>
+                  Online
+                </p>
               </div>
-              <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold border-2 border-white shadow-sm hover:scale-110 transition-transform cursor-pointer">
+              <div className="w-12 h-12 glass-panel flex items-center justify-center text-[#fa1239] font-bold border-white/10 shadow-xl hover:scale-110 transition-transform cursor-pointer text-xl">
                 {userNameDisplay.charAt(0).toUpperCase()}
               </div>
             </div>
@@ -505,38 +535,47 @@ function Dashboard() {
           </div>
         </main>
 
-        <footer className="py-6 px-10 text-center text-gray-400 text-xs mt-auto">
+        <footer className="py-8 px-10 text-center text-gray-500 text-[10px] font-bold tracking-[0.2em] uppercase opacity-50">
           © {new Date().getFullYear()} Nexus. Premium Virtual Meetings.
         </footer>
       </div>
 
       {showCreateRoomForm && (
-        <div className="fixed inset-0 w-screen h-screen bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200">
-            <h3 className="text-2xl font-bold mb-6 text-gray-800">Create New Room</h3>
-            <form onSubmit={handleCreateRoom} className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-600 px-1">Room Name</label>
+        <div className="fixed inset-0 w-screen h-screen bg-black/60 backdrop-blur-xl z-[9999] flex items-center justify-center p-4">
+          <div className="glass-panel border-white/10 p-10 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-300 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#fa1239]/10 blur-[60px] pointer-events-none"></div>
+
+            <button
+              onClick={() => setShowCreateRoomForm(false)}
+              className="absolute top-6 right-6 text-gray-500 hover:text-white transition-colors"
+            >
+              <IoCloseSharp size={24} />
+            </button>
+
+            <h3 className="text-3xl font-black mb-8 text-white tracking-tight">Create <span className="text-[#fa1239]">Room</span></h3>
+            <form onSubmit={handleCreateRoom} className="space-y-6">
+              <div className="space-y-3">
+                <label className="text-xs font-black text-gray-500 uppercase tracking-widest px-1">Room Name</label>
                 <input
                   type="text"
-                  placeholder="Enter a descriptive room name"
+                  placeholder="e.g. Weekly Sync"
                   value={roomName}
                   onChange={(e) => setRoomName(e.target.value)}
                   required
                   autoFocus
-                  className="w-full border-2 border-gray-100 focus:border-indigo-500 outline-none px-4 py-3 rounded-2xl transition-all"
+                  className="w-full bg-white/5 border border-white/10 focus:border-[#fa1239] focus:ring-1 focus:ring-[#fa1239] outline-none px-5 py-4 rounded-2xl transition-all text-white placeholder:text-gray-600 font-bold"
                 />
               </div>
-              <div className="flex gap-3 pt-2">
-                <button type="submit" className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-2xl hover:bg-indigo-700 transition-colors">
-                  Create Room
+              <div className="flex flex-col gap-3 pt-4">
+                <button type="submit" className="w-full bg-[#fa1239] text-white font-black py-4 rounded-2xl hover:brightness-110 transition-all shadow-lg shadow-[#fa1239]/20">
+                  Generate Room
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCreateRoomForm(false)}
-                  className="px-6 py-3 rounded-2xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 transition-colors"
+                  className="w-full py-4 rounded-2xl bg-white/5 text-gray-400 font-bold hover:bg-white/10 hover:text-white transition-all"
                 >
-                  Cancel
+                  Discard
                 </button>
               </div>
             </form>
