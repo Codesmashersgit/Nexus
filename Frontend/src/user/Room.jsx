@@ -98,8 +98,8 @@ const VideoPlayer = memo(({ stream, isLocal = false, label = "", mode = "grid", 
               <Avatar name={label} size={mode === "pip" ? "lg" : "xl"} />
               {isSpeaking && (
                 <>
-                  <div className="absolute -inset-4 rounded-full border-2 border-blue-500/40 animate-ping" />
-                  <div className="absolute -inset-2 rounded-full border-2 border-blue-400/60 animate-pulse" />
+                  <div className="absolute -inset-4 rounded-full border-2 border-[#fa1239]/40 animate-ping" />
+                  <div className="absolute -inset-2 rounded-full border-2 border-[#fa1239]/60 animate-pulse" />
                 </>
               )}
             </div>
@@ -337,8 +337,8 @@ const Room = () => {
         `}>
           <div className="p-6 border-b border-white/5 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]" />
-              <h2 className="font-bold text-[11px] uppercase tracking-[0.2em] text-blue-100 whitespace-nowrap">In-Call Messages</h2>
+              <div className="w-1.5 h-1.5 rounded-full bg-[#fa1239] shadow-[0_0_8px_#fa1239]" />
+              <h2 className="font-bold text-[11px] uppercase tracking-[0.2em] text-[#fa1239]/80 whitespace-nowrap">In-Call Messages</h2>
             </div>
             <div className="flex items-center gap-1">
               <button
@@ -357,7 +357,7 @@ const Room = () => {
               <div key={i} className={`flex gap-3 ${m.sender === "Me" ? "flex-row-reverse" : "flex-row"}`}>
                 <Avatar name={m.sender} size="sm" />
                 <div className={`flex flex-col ${m.sender === "Me" ? "items-end" : "items-start"}`}>
-                  <div className={`max-w-[200px] md:max-w-xs ${m.type === 'text' ? 'px-4 py-3' : 'p-0'} rounded-2xl text-[13px] leading-relaxed ${m.type === 'text' ? (m.sender === "Me" ? "bg-blue-600 text-white rounded-tr-none shadow-lg shadow-blue-500/10" : "bg-slate-800 text-slate-200 rounded-tl-none border border-white/5 shadow-md") : "bg-transparent"}`}>
+                  <div className={`max-w-[200px] md:max-w-xs ${m.type === 'text' ? 'px-4 py-3' : 'p-0'} rounded-2xl text-[13px] leading-relaxed ${m.type === 'text' ? (m.sender === "Me" ? "bg-[#fa1239] text-white rounded-tr-none shadow-lg shadow-[#fa1239]/10" : "bg-slate-800 text-slate-200 rounded-tl-none border border-white/5 shadow-md") : "bg-transparent"}`}>
                     {m.type === "image" ? (
                       <img src={m.metadata.data} alt="uploaded" className="rounded-lg max-w-full cursor-pointer hover:opacity-90 border border-white/10" onClick={() => handleMediaOpen(m.metadata.data, m.metadata.name, "image", m.metadata.mimeType)} />
                     ) : m.type === "video" ? (
@@ -382,14 +382,14 @@ const Room = () => {
 
           <div className="p-4 bg-slate-950/40 border-t border-white/5">
             {isRecording ? (
-              <div className="flex items-center justify-between bg-blue-600/10 border border-blue-500/20 rounded-2xl p-4 animate-pulse">
+              <div className="flex items-center justify-between bg-[#fa1239]/10 border border-[#fa1239]/20 rounded-2xl p-4 animate-pulse">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                  <span className="text-xs font-bold text-blue-100">Recording... {formatTime(recordingTime)}</span>
+                  <span className="text-xs font-bold text-red-100">Recording... {formatTime(recordingTime)}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={cancelRecording} className="p-2 hover:bg-white/10 rounded-lg transition-all text-red-400"><FaTrash size={14} /></button>
-                  <button onClick={stopRecording} className="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-500 transition-all flex items-center gap-2"><FaStop size={10} /> Stop & Send</button>
+                  <button onClick={stopRecording} className="bg-[#fa1239] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-[#fa1239]/80 transition-all flex items-center gap-2"><FaStop size={10} /> Stop & Send</button>
                 </div>
               </div>
             ) : (
@@ -406,8 +406,8 @@ const Room = () => {
                   <button type="button" onClick={startRecording} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all" title="Voice message"><FaMicrophone size={16} className="text-slate-400" /></button>
                 </div>
                 <div className="relative group">
-                  <input type="text" value={chatInput} onChange={e => setChatInput(e.target.value)} placeholder="Send a message..." className="w-full bg-slate-800/80 border-none rounded-2xl py-4 pl-5 pr-14 text-sm focus:ring-1 focus:ring-blue-500/50 transition-all font-medium" />
-                  <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-500 w-10 h-10 flex items-center justify-center rounded-xl transition-transform active:scale-95 shadow-xl shadow-blue-500/20"><FaPaperPlane size={14} className="text-white" /></button>
+                  <input type="text" value={chatInput} onChange={e => setChatInput(e.target.value)} placeholder="Send a message..." className="w-full bg-slate-800/80 border-none rounded-2xl py-4 pl-5 pr-14 text-sm focus:ring-1 focus:ring-[#fa1239]/50 transition-all font-medium" />
+                  <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#fa1239] hover:brightness-110 w-10 h-10 flex items-center justify-center rounded-xl transition-transform active:scale-95 shadow-xl shadow-[#fa1239]/20"><FaPaperPlane size={14} className="text-white" /></button>
                 </div>
               </form>
             )}
@@ -416,15 +416,15 @@ const Room = () => {
       </div>
 
       {/* Control Bar */}
-      <div className={`fixed bottom-2 md:bottom-8 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 md:gap-4 bg-slate-900/80 backdrop-blur-2xl px-4 py-2.5 md:px-7 md:py-3.5 rounded-full border border-white/10 shadow-[0_15px_40px_rgba(0,0,0,0.6)] transition-all duration-500 ${isChatOpen ? "max-md:opacity-0 max-md:pointer-events-none max-md:scale-90" : "opacity-100 scale-100"}`}>
-        <button onClick={toggleMic} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isMicOn ? "bg-white/5 border-white/5 hover:bg-white/10" : "bg-red-500 border-red-400 shadow-[0_0_25px_rgba(239,68,68,0.4)]"}`}>{isMicOn ? <FaMicrophone size={14} /> : <FaMicrophoneSlash size={14} />}</button>
-        <button onClick={toggleCamera} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isCameraOn ? "bg-white/5 border-white/5 hover:bg-white/10" : "bg-red-500 border-red-400 shadow-[0_0_25px_rgba(239,68,68,0.4)]"}`}>{isCameraOn ? <FaVideo size={14} /> : <FaVideoSlash size={14} />}</button>
+      <div className={`fixed bottom-2 md:bottom-8 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 md:gap-4 bg-black/40 backdrop-blur-3xl px-4 py-2.5 md:px-7 md:py-3.5 rounded-full border border-white/10 shadow-[0_15px_40px_rgba(0,0,0,0.6)] transition-all duration-500 ${isChatOpen ? "max-md:opacity-0 max-md:pointer-events-none max-md:scale-90" : "opacity-100 scale-100"}`}>
+        <button onClick={toggleMic} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isMicOn ? "bg-white/5 border-white/5 hover:bg-white/10" : "bg-[#fa1239] border-[#fa1239] shadow-[0_0_25px_rgba(250,18,57,0.4)]"}`}>{isMicOn ? <FaMicrophone size={14} /> : <FaMicrophoneSlash size={14} />}</button>
+        <button onClick={toggleCamera} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isCameraOn ? "bg-white/5 border-white/5 hover:bg-white/10" : "bg-[#fa1239] border-[#fa1239] shadow-[0_0_25px_rgba(250,18,57,0.4)]"}`}>{isCameraOn ? <FaVideo size={14} /> : <FaVideoSlash size={14} />}</button>
         {!isMobileDevice && (
-          <button onClick={toggleScreenShare} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isScreenSharing ? "bg-blue-600 border-blue-400 shadow-[0_0_25px_rgba(59,130,246,0.4)]" : "bg-white/5 border-white/5 hover:bg-white/10"}`} title="Share Screen"><FaDesktop size={14} /></button>
+          <button onClick={toggleScreenShare} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isScreenSharing ? "bg-[#fa1239] border-[#fa1239] shadow-[0_0_25px_rgba(250,18,57,0.4)]" : "bg-white/5 border-white/5 hover:bg-white/10"}`} title="Share Screen"><FaDesktop size={14} /></button>
         )}
-        <button onClick={() => setIsChatOpen(!isChatOpen)} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isChatOpen ? "bg-blue-600 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.2)]" : "bg-white/5 border-white/5 hover:bg-white/10"}`}><FaComments size={14} /></button>
+        <button onClick={() => setIsChatOpen(!isChatOpen)} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isChatOpen ? "bg-[#fa1239] border-[#fa1239] shadow-[0_0_20px_rgba(250,18,57,0.2)]" : "bg-white/5 border-white/5 hover:bg-white/10"}`}><FaComments size={14} /></button>
         <div className="w-px h-6 md:h-9 bg-white/10 mx-1 md:mx-2" />
-        <button onClick={endCall} className="w-10 h-10 md:w-14 md:h-12 flex items-center justify-center rounded-xl md:rounded-2xl bg-red-600 hover:bg-red-700 text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] transition-all active:scale-95 group" title="End Call"><FaPhoneSlash className="text-sm md:text-xl group-hover:scale-110 transition-transform" /></button>
+        <button onClick={endCall} className="w-10 h-10 md:w-14 md:h-12 flex items-center justify-center rounded-xl md:rounded-2xl bg-[#fa1239] hover:brightness-110 text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] transition-all active:scale-95 group" title="End Call"><FaPhoneSlash className="text-sm md:text-xl group-hover:scale-110 transition-transform" /></button>
       </div>
 
       <style dangerouslySetInnerHTML={{
@@ -454,22 +454,22 @@ const Room = () => {
             <div className="w-24 h-24 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_rgba(239,68,68,0.2)]"><FaPhoneSlash className="text-red-500 text-4xl" /></div>
             <h1 className="text-3xl font-black text-white mb-4 tracking-tight">Room is Full</h1>
             <p className="text-slate-400 mb-10 leading-relaxed font-medium">Aree bhai, is room mein pehle se hi 2 log hain. Humne isse private rkha h taaki sirf best experience mile.</p>
-            <button onClick={() => navigate("/dashboard")} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-500/20 transition-all active:scale-95">Back to Dashboard</button>
+            <button onClick={() => navigate("/dashboard")} className="w-full bg-[#fa1239] hover:brightness-110 text-white font-bold py-4 rounded-2xl shadow-xl shadow-[#fa1239]/20 transition-all active:scale-95">Back to Dashboard</button>
           </div>
         </div>
       )}
 
       {currentNotification && !isChatOpen && (
-        <div onClick={() => { setIsChatOpen(true); setCurrentNotification(null); }} className="fixed top-24 left-1/2 -translate-x-1/2 z-[70] w-[90%] max-w-sm bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-4 cursor-pointer hover:bg-slate-800 transition-all animate-slideDown group">
+        <div onClick={() => { setIsChatOpen(true); setCurrentNotification(null); }} className="fixed top-24 left-1/2 -translate-x-1/2 z-[70] w-[90%] max-w-sm bg-black/60 backdrop-blur-3xl border border-white/10 rounded-2xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-all animate-slideDown group">
           <div className="relative">
             <Avatar name={currentNotification.sender} size="sm" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-slate-900 shadow-[0_0_10px_#3b82f6]" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#fa1239] rounded-full border-2 border-slate-900 shadow-[0_0_10px_#fa1239]" />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="text-[11px] font-black text-blue-400 uppercase tracking-widest">{currentNotification.sender}</h4>
+            <h4 className="text-[11px] font-black text-[#fa1239] uppercase tracking-widest">{currentNotification.sender}</h4>
             <p className="text-sm text-slate-200 truncate font-medium">{currentNotification.type === 'text' ? currentNotification.msg : `Sent a ${currentNotification.type}`}</p>
           </div>
-          <button className="bg-blue-600/20 text-blue-400 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase hover:bg-blue-600 hover:text-white transition-all">View</button>
+          <button className="bg-[#fa1239]/10 text-[#fa1239] px-3 py-1.5 rounded-lg text-[10px] font-black uppercase hover:bg-[#fa1239] hover:text-white transition-all">View</button>
         </div>
       )}
     </div>
