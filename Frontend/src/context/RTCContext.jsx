@@ -508,7 +508,6 @@ export const RTCProvider = ({ children }) => {
       startRoom,
       sendChatMessage,
       sendMedia,
-      clearMessages, // Exported
       toggleMic,
       toggleCamera,
       toggleScreenShare,

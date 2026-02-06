@@ -341,13 +341,6 @@ const Room = () => {
               <h2 className="font-bold text-[11px] uppercase tracking-[0.2em] text-[#fa1239]/80 whitespace-nowrap">In-Call Messages</h2>
             </div>
             <div className="flex items-center gap-1">
-              <button
-                onClick={clearMessages}
-                className="p-2 hover:bg-red-500/10 text-red-400/60 hover:text-red-400 rounded-xl transition-all"
-                title="Clear Chat"
-              >
-                <FaTrash size={14} />
-              </button>
               <button onClick={() => setIsChatOpen(false)} className="p-2 hover:bg-white/5 rounded-xl transition-all"><FaTimes size={16} /></button>
             </div>
           </div>

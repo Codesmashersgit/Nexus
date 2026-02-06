@@ -66,6 +66,13 @@ function Dashboard() {
     localStorage.setItem("rooms", JSON.stringify(updatedRooms));
   };
 
+  // Delete history entry
+  const handleDeleteHistory = (idx) => {
+    const updatedHistory = meetingHistory.filter((_, i) => i !== idx);
+    setMeetingHistory(updatedHistory);
+    localStorage.setItem("meetingHistory", JSON.stringify(updatedHistory));
+  };
+
   // Close menu on click outside
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -311,11 +318,20 @@ function Dashboard() {
                       <tr key={idx} className="group glass-panel hover:bg-white/5 transition-all duration-300 border-none">
                         <td className="py-6 px-6 font-bold text-white group-hover:text-[#fa1239] transition-colors rounded-l-2xl border-y border-l border-white/5">{item.name}</td>
                         <td className="py-6 px-6 text-gray-400 font-medium border-y border-white/5">{item.createdAt}</td>
-                        <td className="py-6 px-6 rounded-r-2xl border-y border-r border-white/5">
+                        <td className="py-6 px-6 font-medium border-y border-white/5">
                           <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${item.type === 'Created' ? 'bg-[#fa1239]/10 text-[#fa1239]' : 'bg-blue-500/10 text-blue-400'
                             }`}>
                             {item.type || 'Joined'}
                           </span>
+                        </td>
+                        <td className="py-6 px-6 rounded-r-2xl border-y border-r border-white/5">
+                          <button
+                            onClick={() => handleDeleteHistory(idx)}
+                            className="p-2 hover:bg-red-500/10 text-red-400/60 hover:text-red-400 rounded-xl transition-all"
+                            title="Delete Entry"
+                          >
+                            <MdDelete size={20} />
+                          </button>
                         </td>
                       </tr>
                     ))}
