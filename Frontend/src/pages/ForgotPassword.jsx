@@ -35,7 +35,7 @@ function OtpInput({ otp, setOtp, length = 6 }) {
           value={otp[index] || ""}
           onChange={(e) => handleChange(e.target.value, index)}
           onKeyDown={(e) => handleBackspace(e, index)}
-          className="w-12 h-12 border border-gray-400 rounded-lg text-center text-xl"
+          className="w-12 h-14 bg-white/5 border border-white/10 rounded-xl text-center text-xl text-white focus:border-[#fa1239] focus:ring-1 focus:ring-[#fa1239] outline-none transition-all font-bold"
         />
       ))}
     </div>
@@ -54,7 +54,7 @@ function ForgotPassword() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-    const SERVER_URL = import.meta.env.VITE_BACKEND_URL;
+  const SERVER_URL = import.meta.env.VITE_BACKEND_URL;
 
   // Step 1: Send OTP
   const handleEmailSubmit = async (e) => {
@@ -138,88 +138,115 @@ function ForgotPassword() {
   };
 
   return (
-    <div className="pt-28 flex justify-center bg-gray-50">
-      <div className="bg-white rounded-xl shadow-lg lg:p-10 p-5 max-w-md w-full mt-32">
-        <h2 className="text-2xl font-bold text-[#fa1239] mb-6 text-center">
-          Forgot Password
-        </h2>
+    <div className="home-container min-h-screen flex items-center justify-center py-24 px-4 relative overflow-hidden">
+      {/* Dynamic Background */}
+      <div className="mesh-gradient">
+        <div className="mesh-ball ball-1"></div>
+        <div className="mesh-ball ball-2"></div>
+      </div>
 
-        {message && <div className="text-green-600 text-sm text-center mb-4">{message}</div>}
-        {error && <div className="text-red-500 text-sm text-center mb-4">{error}</div>}
+      <div className="glass-panel backdrop-blur-2xl bg-black/40 border-white/5 shadow-2xl lg:p-12 w-full max-w-md p-8 relative z-10 animate-in fade-in zoom-in duration-500">
+        <h2 className="text-3xl md:text-4xl font-black mb-2 text-center tracking-tight text-white">
+          Forgot <span className="text-[#fa1239]">Password</span>
+        </h2>
+        <p className="text-gray-400 text-center mb-10 text-sm font-medium">Protect your account with a new security key</p>
+
+        {message && (
+          <div className="bg-green-500/10 border border-green-500/20 text-green-400 text-xs py-3 rounded-xl text-center font-medium mb-6 animate-pulse">
+            {message}
+          </div>
+        )}
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-xs py-3 rounded-xl text-center font-medium mb-6 animate-pulse">
+            {error}
+          </div>
+        )}
 
         {/* STEP 1: EMAIL INPUT */}
         {!showOtp && !isVerified && (
-          <form onSubmit={handleEmailSubmit} className="flex flex-col gap-5">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="border border-gray-300 text-sm rounded-lg py-3 px-4"
-              disabled={loading}
-            />
+          <form onSubmit={handleEmailSubmit} className="flex flex-col gap-6">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Email Address</label>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-[#fa1239]/50 transition-all font-medium"
+                disabled={loading}
+              />
+            </div>
             <button
               type="submit"
               disabled={loading}
-              className={`bg-[#fa1239] text-white py-3 rounded-lg font-semibold transition ${
-                loading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#d1112b]"
-              }`}
+              className="bg-[#fa1239] text-white py-4 rounded-2xl font-bold text-lg hover:brightness-110 transition-all active:scale-[0.98] shadow-xl shadow-[#fa1239]/20 flex items-center justify-center gap-2"
             >
-              {loading ? "Sending OTP..." : "Send OTP"}
+              {loading ? "Sending..." : "Send Verification Code"}
             </button>
           </form>
         )}
 
         {/* STEP 2: OTP INPUT */}
         {showOtp && !isVerified && (
-          <form onSubmit={handleOtpVerify} className="flex flex-col gap-5 items-center">
+          <form onSubmit={handleOtpVerify} className="flex flex-col gap-8 items-center">
             <OtpInput otp={otp} setOtp={setOtp} length={6} />
 
             <button
               type="submit"
               disabled={loading}
-              className={`bg-green-600 w-full text-white py-3 rounded-lg font-semibold transition ${
-                loading ? "opacity-50 cursor-not-allowed" : "hover:bg-green-700"
-              }`}
+              className="w-full bg-[#fa1239] text-white py-4 rounded-2xl font-bold text-lg hover:brightness-110 transition-all active:scale-[0.98] shadow-xl shadow-[#fa1239]/20"
             >
-              {loading ? "Verifying OTP..." : "Verify OTP"}
+              {loading ? "Verifying..." : "Verify OTP"}
             </button>
           </form>
         )}
 
         {/* STEP 3: RESET PASSWORD */}
         {isVerified && (
-          <form onSubmit={handlePasswordReset} className="flex flex-col gap-5">
-            <input
-              type="password"
-              placeholder="New Password"
-              required
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="border border-gray-300 text-sm rounded-lg py-3 px-4"
-              disabled={loading}
-            />
-            <input
-              type="password"
-              placeholder="Confirm Password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="border border-gray-300 text-sm rounded-lg py-3 px-4"
-              disabled={loading}
-            />
+          <form onSubmit={handlePasswordReset} className="flex flex-col gap-6">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">New Password</label>
+              <input
+                type="password"
+                placeholder="Enter new password"
+                required
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-[#fa1239]/50 transition-all font-medium"
+                disabled={loading}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Confirm Password</label>
+              <input
+                type="password"
+                placeholder="Confirm your password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-[#fa1239]/50 transition-all font-medium"
+                disabled={loading}
+              />
+            </div>
             <button
               type="submit"
               disabled={loading}
-              className={`bg-blue-600 text-white py-3 rounded-lg font-semibold transition ${
-                loading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-700"
-              }`}
+              className="bg-[#fa1239] text-white py-4 rounded-2xl font-bold text-lg hover:brightness-110 transition-all active:scale-[0.98] shadow-xl shadow-[#fa1239]/20"
             >
-              {loading ? "Resetting Password..." : "Reset Password"}
+              {loading ? "Resetting..." : "Reset Password"}
             </button>
           </form>
         )}
+
+        <div className="mt-8 text-center">
+          <button
+            onClick={() => navigate("/login")}
+            className="text-gray-500 hover:text-white transition-colors text-sm font-bold tracking-wide"
+          >
+            Back to Login
+          </button>
+        </div>
       </div>
     </div>
   );
