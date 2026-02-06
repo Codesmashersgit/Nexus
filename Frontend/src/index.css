@@ -9,6 +9,14 @@
   --bg-dark: #050505;
   --glass: rgba(255, 255, 255, 0.03);
   --glass-border: rgba(255, 255, 255, 0.08);
+
+  /* Fluid Typography */
+  --font-xs: clamp(0.7rem, 0.65rem + 0.25vw, 0.8rem);
+  --font-sm: clamp(0.8rem, 0.75rem + 0.25vw, 0.9rem);
+  --font-base: clamp(0.9rem, 0.85rem + 0.25vw, 1rem);
+  --font-lg: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
+  --font-xl: clamp(1.1rem, 1rem + 0.5vw, 1.25rem);
+  --font-2xl: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem);
 }
 
 body {

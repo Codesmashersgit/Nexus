@@ -58,11 +58,11 @@ function Login() {
         <div className="mesh-ball ball-2"></div>
       </div>
 
-      <div className="glass-panel backdrop-blur-2xl bg-black/40 border-white/5 shadow-2xl lg:p-12 w-full max-w-md p-8 relative z-10 animate-in fade-in zoom-in duration-500">
-        <h2 className="md:text-4xl text-3xl font-bold mb-2 text-center tracking-tight">
+      <div className="glass-panel backdrop-blur-2xl bg-black/40 border-white/5 shadow-2xl p-6 md:p-12 w-full max-w-md relative z-10 animate-in fade-in zoom-in duration-500">
+        <h2 className="text-2xl md:text-4xl font-bold mb-2 text-center tracking-tight">
           Welcome <span className="text-[#fa1239]">Back</span>
         </h2>
-        <p className="text-gray-400 text-center mb-10 text-sm font-medium">Please enter your details to sign in</p>
+        <p className="text-gray-400 text-center mb-8 md:mb-10 text-xs md:text-sm font-medium">Please enter your details to sign in</p>
 
         {/* Google Login */}
         <button

@@ -92,10 +92,10 @@
     position: relative;
     background: var(--primary);
     color: white;
-    padding: 14px 32px;
+    padding: clamp(10px, 2vw, 14px) clamp(20px, 4vw, 32px);
     border-radius: 50px;
     font-weight: 600;
-    font-size: 1.1rem;
+    font-size: clamp(0.9rem, 1rem, 1.1rem);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: none;
     cursor: pointer;
@@ -241,21 +241,21 @@
 
 .section-tag {
     display: inline-block;
-    padding: 6px 18px;
+    padding: 4px 14px;
     background: rgba(250, 18, 57, 0.1);
     border: 1px solid rgba(250, 18, 57, 0.2);
     border-radius: 100px;
     color: var(--primary);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 /* Footer Refinement */
 .footer-container {
-    padding: 100px 0 50px;
+    padding: clamp(50px, 10vw, 100px) 0 40px;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     background: linear-gradient(to bottom, transparent, rgba(250, 18, 57, 0.02));
 }
@@ -289,6 +289,12 @@
     display: block;
     margin-bottom: 0.75rem;
     font-size: 0.95rem;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
+    width: fit-content;
 }
 
 .footer-link:hover {
@@ -313,7 +319,8 @@
 }
 
 .copyright-text {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     color: #444;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
+    font-weight: 700;
 }

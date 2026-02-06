@@ -59,11 +59,11 @@ function Signup() {
         <div className="mesh-ball ball-2"></div>
       </div>
 
-      <div className="glass-panel backdrop-blur-2xl bg-black/40 border-white/5 shadow-2xl lg:p-12 w-full max-w-md p-8 relative z-10 animate-in fade-in zoom-in duration-500">
-        <h2 className="md:text-4xl text-3xl font-bold mb-2 text-center tracking-tight">
+      <div className="glass-panel backdrop-blur-2xl bg-black/40 border-white/5 shadow-2xl p-6 md:p-12 w-full max-w-md relative z-10 animate-in fade-in zoom-in duration-500">
+        <h2 className="text-2xl md:text-4xl font-bold mb-2 text-center tracking-tight">
           Join <span className="text-[#fa1239]">Nexus</span>
         </h2>
-        <p className="text-gray-400 text-center mb-10 text-sm font-medium">Create your professional account today</p>
+        <p className="text-gray-400 text-center mb-8 md:mb-10 text-xs md:text-sm font-medium">Create your professional account today</p>
 
         <button
           className="flex items-center justify-center gap-3 w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 text-white font-medium hover:bg-white/10 transition-all active:scale-[0.98]"

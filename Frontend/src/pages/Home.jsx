@@ -26,88 +26,50 @@ function Home() {
         <div className="mesh-ball ball-2"></div>
       </div>
 
-      {/* Hero Section */}
-      <section className="relative z-10 container mx-auto px-6 pt-20 lg:pt-36 pb-20">
-        <div className="flex flex-col lg:flex-row items-center gap-16">
+      {/* Main Content Wrapper */}
+      {/* Main Content Wrapper */}
+      <section className="relative z-10 container mx-auto px-4 md:px-6 pt-24 md:pt-32 lg:pt-48 pb-12 md:pb-20">
 
-          {/* Left Content */}
-          <div className="flex-1 text-center lg:text-left">
+        {/* Centered Hero Section */}
+        <div className="max-w-4xl mx-auto text-center mb-20 md:mb-32">
+          <h1 className="hero-title fade-up mb-6 md:mb-10 leading-[1.15] md:leading-[1.1] tracking-tight text-4xl sm:text-5xl md:text-7xl lg:text-8xl">
+            Experience the Future of <br />
+            <span className="gradient-text">Video Collaboration</span>
+          </h1>
 
-            <h1 className="hero-title fade-up mb-8">
-              Experience the Future of <br />
-              <span className="gradient-text">Video Collaboration</span>
-            </h1>
+          <p className="text-lg md:text-2xl text-gray-400 mb-10 md:mb-14 max-w-3xl mx-auto fade-up delay-1 leading-relaxed font-medium px-2">
+            Connect with your team instantly from anywhere in the world.
+            Crystal clear quality, zero latency, and end-to-end security
+            built for modern professionals.
+          </p>
 
-            <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto lg:mx-0 fade-up delay-1 leading-relaxed">
-              Connect with your team instantly from anywhere in the world.
-              Crystal clear quality, zero latency, and end-to-end security
-              built for modern professionals.
-            </p>
+          <div className="flex flex-col items-center gap-8 md:gap-10 fade-up delay-2">
+            <button
+              type="button"
+              onClick={handleClick}
+              className="btn-premium w-full sm:w-auto px-10 md:px-12 py-4 md:py-5 text-lg md:text-xl group shadow-[0_20px_50px_rgba(250,18,57,0.3)] whitespace-nowrap"
+            >
+              Start Your First Meeting
+              <FiArrowRight className="inline-block transition-transform group-hover:translate-x-2 ml-3 shrink-0" />
+            </button>
 
-            <div className="flex flex-col sm:flex-row items-center gap-6 justify-center lg:justify-start fade-up delay-2">
-              <button
-                type="button"
-                onClick={handleClick}
-                className="btn-premium group"
-              >
-                Start for Free
-                <span className="inline-block transition-transform group-hover:translate-x-1 ml-2">→</span>
-              </button>
-
+            <div className="flex flex-col items-center gap-4">
               <div className="flex -space-x-3 overflow-hidden">
                 {[1, 2, 3, 4].map((i) => (
                   <img
                     key={i}
-                    className="inline-block h-10 w-10 rounded-full ring-2 ring-[#050505]"
+                    className="inline-block h-10 w-10 md:h-12 md:w-12 rounded-full ring-2 md:ring-4 ring-[#050505]"
                     src={`https://i.pravatar.cc/150?u=${i + 20}`}
                     alt="User"
                   />
                 ))}
-                <div className="flex items-center justify-center h-10 w-10 rounded-full bg-gray-800 ring-2 ring-[#050505] text-xs font-medium text-white">
+                <div className="flex items-center justify-center h-10 w-10 md:h-12 md:w-12 rounded-full bg-gray-800 ring-2 md:ring-4 ring-[#050505] text-[10px] md:text-xs font-black text-white">
                   +2k
                 </div>
-                <span className="ml-4 text-sm text-gray-400 pt-2 font-medium">Trusted by 2000+ users</span>
               </div>
+              <span className="text-[10px] md:text-sm text-gray-500 font-black tracking-widest uppercase px-4 text-center">Trusted by 2000+ professionals</span>
             </div>
           </div>
-
-          {/* Right Content - Visual Teaser */}
-          <div className="flex-[1.2] relative fade-up delay-2 w-full max-w-5xl mx-auto lg:mx-0">
-            <div className="visual-teaser glass-panel overflow-hidden shadow-2xl border-white/10 p-0">
-              <div className="bg-white/5 border-b border-white/10 p-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-500/50"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-500/50"></div>
-                </div>
-                <div className="hidden sm:block px-3 py-1 bg-black/20 rounded-md text-[10px] text-gray-500 font-mono tracking-wider">
-                  nexus-meeting.app/live-sync
-                </div>
-                <div className="w-10"></div>
-              </div>
-              <img
-                src="/nexus-hero.png"
-                alt="Nexus Interface"
-                className="w-full h-[250px] sm:h-[350px] lg:h-[400px] object-cover object-top opacity-90 hover:opacity-100 transition-opacity"
-              />
-
-              {/* Floating Feature Tags */}
-              <div className="absolute top-1/2 -right-8 glass-panel py-3 px-5 animate-bounce shadow-xl hidden md:block" style={{ animationDuration: '4s' }}>
-                <div className="flex items-center gap-3">
-                  <FiZap className="text-yellow-400" />
-                  <span className="text-sm font-semibold">4K Ultra HD</span>
-                </div>
-              </div>
-
-              <div className="absolute bottom-1/4 -left-12 glass-panel py-3 px-5 animate-bounce shadow-xl hidden md:block" style={{ animationDuration: '5s' }}>
-                <div className="flex items-center gap-3">
-                  <FiShield className="text-green-400" />
-                  <span className="text-sm font-semibold">End-to-End Encrypted</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
         </div>
 
         {/* Feature Grid */}
@@ -185,7 +147,7 @@ function Home() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:col-span-3 gap-12 sm:text-left text-center">
-              <div>
+              <div className="flex flex-col items-center lg:items-start">
                 <h4 className="footer-nav-title">Product</h4>
                 <button onClick={handleClick} className="footer-link">Video Meetings</button>
                 <a href="#features" className="footer-link">Screen Sharing</a>
@@ -211,8 +173,8 @@ function Home() {
           </div>
 
           <div className="border-t border-white/5 pt-10 flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="copyright-text">© 2026 NEXUS MEETINGS. ALL RIGHTS RESERVED.</p>
-            <div className="flex gap-8">
+            <p className="copyright-text text-center md:text-left w-full md:w-auto text-[10px] md:text-xs">© 2026 NEXUS MEETINGS. ALL RIGHTS RESERVED.</p>
+            <div className="flex gap-8 justify-center md:justify-end w-full md:w-auto">
               <a href="#" className="text-[10px] tracking-widest text-gray-600 hover:text-white transition-colors">PRIVACY POLICY</a>
               <a href="#" className="text-[10px] tracking-widest text-gray-600 hover:text-white transition-colors">TERMS OF SERVICE</a>
             </div>

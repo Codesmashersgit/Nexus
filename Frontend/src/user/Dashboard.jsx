@@ -146,54 +146,54 @@ function Dashboard() {
     switch (activeSection) {
       case "Dashboard":
         return (
-          <div className="space-y-8">
-            <div className="relative overflow-hidden p-10 rounded-3xl text-white shadow-2xl glass-panel border-white/10">
+          <div className="space-y-6 md:y-8">
+            <div className="relative overflow-hidden p-6 md:p-10 rounded-2xl md:rounded-3xl text-white shadow-2xl glass-panel border-white/10">
               <div className="absolute top-0 right-0 w-64 h-64 bg-[#fa1239]/10 blur-[100px] pointer-events-none"></div>
               <div className="relative z-10">
-                <h2 className="text-4xl font-extrabold mb-3 tracking-tight">Welcome back, <span className="text-[#fa1239]">{userNameDisplay}</span>!</h2>
-                <p className="text-gray-400 text-lg max-w-2xl font-medium">Manage your professional meetings and explore detailed analytics from your premium command center.</p>
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-extrabold mb-3 tracking-tight">Welcome back, <span className="text-[#fa1239]">{userNameDisplay}</span>!</h2>
+                <p className="text-gray-400 text-base md:text-lg max-w-2xl font-medium">Manage your professional meetings and explore detailed analytics from your premium command center.</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="glass-panel p-8 flex items-center gap-6 hover:bg-white/5 transition-all duration-300 group cursor-default">
-                <div className="bg-[#fa1239]/10 p-5 rounded-2xl text-[#fa1239] group-hover:scale-110 transition-transform">
-                  <RiVideoAddFill className="text-3xl" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+              <div className="glass-panel p-6 md:p-8 flex items-center gap-4 md:gap-6 hover:bg-white/5 transition-all duration-300 group cursor-default">
+                <div className="bg-[#fa1239]/10 p-4 md:p-5 rounded-2xl text-[#fa1239] group-hover:scale-110 transition-transform">
+                  <RiVideoAddFill className="text-2xl md:text-3xl" />
                 </div>
                 <div>
-                  <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-1">Total Rooms</p>
-                  <p className="text-3xl font-extrabold text-white tracking-tight">{roomList.length}</p>
+                  <p className="text-gray-500 text-[10px] md:text-xs font-bold uppercase tracking-widest mb-1">Total Rooms</p>
+                  <p className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">{roomList.length}</p>
                 </div>
               </div>
 
-              <div className="glass-panel p-8 flex items-center gap-6 hover:bg-white/5 transition-all duration-300 group cursor-default">
-                <div className="bg-blue-500/10 p-5 rounded-2xl text-blue-400 group-hover:scale-110 transition-transform">
-                  <MdHistory className="text-3xl" />
+              <div className="glass-panel p-6 md:p-8 flex items-center gap-4 md:gap-6 hover:bg-white/5 transition-all duration-300 group cursor-default">
+                <div className="bg-blue-500/10 p-4 md:p-5 rounded-2xl text-blue-400 group-hover:scale-110 transition-transform">
+                  <MdHistory className="text-2xl md:text-3xl" />
                 </div>
                 <div>
-                  <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-1">History Entries</p>
-                  <p className="text-3xl font-extrabold text-white tracking-tight">{meetingHistory.length}</p>
+                  <p className="text-gray-500 text-[10px] md:text-xs font-bold uppercase tracking-widest mb-1">History Entries</p>
+                  <p className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">{meetingHistory.length}</p>
                 </div>
               </div>
             </div>
 
-            <div className="glass-panel p-10">
-              <h3 className="text-xl font-bold mb-8 text-white flex items-center gap-3">
-                <div className="w-1.5 h-8 bg-[#fa1239] rounded-full"></div>
+            <div className="glass-panel p-6 md:p-10">
+              <h3 className="text-lg md:text-xl font-bold mb-6 md:mb-8 text-white flex items-center gap-3">
+                <div className="w-1 md:w-1.5 h-6 md:h-8 bg-[#fa1239] rounded-full"></div>
                 Quick Actions
               </h3>
-              <div className="flex flex-col sm:flex-row gap-6">
+              <div className="flex flex-col sm:flex-row gap-4 md:gap-6">
                 <button
                   onClick={() => handleMenuClick("Room")}
-                  className="bg-[#fa1239] hover:brightness-110 text-white px-8 py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-3 w-full sm:w-auto shadow-lg shadow-[#fa1239]/20"
+                  className="bg-[#fa1239] hover:brightness-110 text-white px-6 md:px-8 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-bold transition-all flex items-center justify-center gap-3 w-full sm:w-auto shadow-lg shadow-[#fa1239]/20 text-sm md:text-base"
                 >
-                  <RiVideoAddFill className="text-xl" /> Create / Join Room
+                  <RiVideoAddFill className="text-lg md:text-xl" /> Create / Join Room
                 </button>
                 <button
                   onClick={() => handleMenuClick("Analytics")}
-                  className="glass-panel hover:bg-white/10 text-white px-8 py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-3 w-full sm:w-auto border-white/10"
+                  className="glass-panel hover:bg-white/10 text-white px-6 md:px-8 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-bold transition-all flex items-center justify-center gap-3 w-full sm:w-auto border-white/10 text-sm md:text-base"
                 >
-                  <IoStatsChart className="text-xl" /> View Analytics
+                  <IoStatsChart className="text-lg md:text-xl" /> View Analytics
                 </button>
               </div>
             </div>
@@ -202,15 +202,15 @@ function Dashboard() {
 
       case "Room":
         return (
-          <div className="glass-panel border-white/10 p-8 md:p-12 space-y-10">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+          <div className="glass-panel border-white/10 p-5 md:p-12 space-y-8 md:space-y-10">
+            <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-6">
               <div>
-                <h2 className="text-3xl font-extrabold text-white tracking-tight">My Meeting Rooms</h2>
-                <p className="text-gray-500 mt-2 font-medium">Create and manage your private meeting spaces.</p>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">My Meeting Rooms</h2>
+                <p className="text-gray-500 mt-2 text-sm md:text-base font-medium">Create and manage your private meeting spaces.</p>
               </div>
               <button
                 onClick={() => setShowCreateRoomForm(true)}
-                className="bg-[#fa1239] hover:brightness-110 text-white px-6 py-3 rounded-2xl font-bold transition-all flex items-center gap-3 shadow-lg shadow-[#fa1239]/20"
+                className="bg-[#fa1239] hover:brightness-110 text-white px-6 py-3.5 rounded-xl md:rounded-2xl font-bold transition-all flex items-center justify-center gap-3 shadow-lg shadow-[#fa1239]/20 w-full lg:w-auto text-sm md:text-base"
               >
                 <RiVideoAddFill className="text-xl" /> New Room
               </button>
@@ -542,20 +542,20 @@ function Dashboard() {
 
       {showCreateRoomForm && (
         <div className="fixed inset-0 w-screen h-screen bg-black/60 backdrop-blur-xl z-[9999] flex items-center justify-center p-4">
-          <div className="glass-panel border-white/10 p-10 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-300 relative overflow-hidden">
+          <div className="glass-panel border-white/10 p-6 md:p-10 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-300 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#fa1239]/10 blur-[60px] pointer-events-none"></div>
 
             <button
               onClick={() => setShowCreateRoomForm(false)}
-              className="absolute top-6 right-6 text-gray-500 hover:text-white transition-colors"
+              className="absolute top-4 md:top-6 right-4 md:right-6 text-gray-500 hover:text-white transition-colors"
             >
               <IoCloseSharp size={24} />
             </button>
 
-            <h3 className="text-3xl font-black mb-8 text-white tracking-tight">Create <span className="text-[#fa1239]">Room</span></h3>
-            <form onSubmit={handleCreateRoom} className="space-y-6">
-              <div className="space-y-3">
-                <label className="text-xs font-black text-gray-500 uppercase tracking-widest px-1">Room Name</label>
+            <h3 className="text-2xl md:text-3xl font-black mb-6 md:mb-8 text-white tracking-tight">Create <span className="text-[#fa1239]">Room</span></h3>
+            <form onSubmit={handleCreateRoom} className="space-y-4 md:space-y-6">
+              <div className="space-y-2 md:space-y-3">
+                <label className="text-[10px] md:text-xs font-black text-gray-500 uppercase tracking-widest px-1">Room Name</label>
                 <input
                   type="text"
                   placeholder="e.g. Weekly Sync"
@@ -563,17 +563,17 @@ function Dashboard() {
                   onChange={(e) => setRoomName(e.target.value)}
                   required
                   autoFocus
-                  className="w-full bg-white/5 border border-white/10 focus:border-[#fa1239] focus:ring-1 focus:ring-[#fa1239] outline-none px-5 py-4 rounded-2xl transition-all text-white placeholder:text-gray-600 font-bold"
+                  className="w-full bg-white/5 border border-white/10 focus:border-[#fa1239] focus:ring-1 focus:ring-[#fa1239] outline-none px-4 md:px-5 py-3.5 md:py-4 rounded-xl md:rounded-2xl transition-all text-white placeholder:text-gray-600 font-bold text-sm md:text-base"
                 />
               </div>
-              <div className="flex flex-col gap-3 pt-4">
-                <button type="submit" className="w-full bg-[#fa1239] text-white font-black py-4 rounded-2xl hover:brightness-110 transition-all shadow-lg shadow-[#fa1239]/20">
+              <div className="flex flex-col gap-3 pt-2 md:pt-4">
+                <button type="submit" className="w-full bg-[#fa1239] text-white font-black py-3.5 md:py-4 rounded-xl md:rounded-2xl hover:brightness-110 transition-all shadow-lg shadow-[#fa1239]/20 text-sm md:text-base">
                   Generate Room
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCreateRoomForm(false)}
-                  className="w-full py-4 rounded-2xl bg-white/5 text-gray-400 font-bold hover:bg-white/10 hover:text-white transition-all"
+                  className="w-full py-3.5 md:py-4 rounded-xl md:rounded-2xl bg-white/5 text-gray-400 font-bold hover:bg-white/10 hover:text-white transition-all text-sm md:text-base"
                 >
                   Discard
                 </button>
