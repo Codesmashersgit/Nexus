@@ -1,0 +1,319 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --primary: #fa1239;
+    --bg-dark: #050505;
+    --glass: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+.home-container {
+    min-height: 100vh;
+    background-color: var(--bg-dark);
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    overflow-x: hidden;
+    position: relative;
+    scroll-behavior: smooth;
+}
+
+/* Moving Mesh Gradient Background */
+.mesh-gradient {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.mesh-ball {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    animation: move 20s infinite alternate;
+}
+
+.ball-1 {
+    width: 500px;
+    height: 500px;
+    background: var(--primary);
+    top: -10%;
+    right: -10%;
+}
+
+.ball-2 {
+    width: 400px;
+    height: 400px;
+    background: #4f46e5;
+    bottom: -5%;
+    left: -5%;
+    animation-delay: -5s;
+}
+
+@keyframes move {
+    from {
+        transform: translate(0, 0) scale(1);
+    }
+
+    to {
+        transform: translate(-100px, 100px) scale(1.2);
+    }
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+}
+
+/* Typography Enhancements */
+.hero-title {
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, #fff 30%, var(--primary) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Premium Button */
+.btn-premium {
+    position: relative;
+    background: var(--primary);
+    color: white;
+    padding: 14px 32px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 10px 20px -5px rgba(250, 18, 57, 0.4);
+}
+
+.btn-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 30px -10px rgba(250, 18, 57, 0.6);
+    filter: brightness(1.1);
+}
+
+.btn-premium:active {
+    transform: translateY(0);
+}
+
+/* Animations */
+.fade-up {
+    animation: fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.delay-1 {
+    animation-delay: 0.2s;
+}
+
+.delay-2 {
+    animation-delay: 0.4s;
+}
+
+.delay-3 {
+    animation-delay: 0.6s;
+}
+
+/* Visual Teaser / Floating Card */
+.visual-teaser {
+    position: relative;
+    width: 100%;
+    max-width: 850px;
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.feature-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: rgba(250, 18, 57, 0.1);
+    border: 1px solid rgba(250, 18, 57, 0.2);
+    border-radius: 100px;
+    color: var(--primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Steps Section Refinement */
+.step-container {
+    position: relative;
+    margin-top: 4rem;
+}
+
+@media (min-width: 1024px) {
+    .step-card:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 25%;
+        left: 80%;
+        width: 40%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--primary) 0%, transparent 100%);
+        opacity: 0.15;
+        z-index: 0;
+    }
+}
+
+.step-card {
+    position: relative;
+    padding: 3rem 2rem;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+}
+
+.step-icon-wrapper {
+    width: 90px;
+    height: 90px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2rem;
+    font-size: 2.5rem;
+    color: var(--primary);
+    transition: all 0.5s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.step-card:hover .step-icon-wrapper {
+    background: var(--primary);
+    color: white;
+    transform: scale(1.1) rotate(8deg);
+    box-shadow: 0 15px 40px rgba(250, 18, 57, 0.4);
+}
+
+.step-number-pill {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(250, 18, 57, 0.1);
+    border: 1px solid rgba(250, 18, 57, 0.2);
+    border-radius: 100px;
+    color: var(--primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.section-tag {
+    display: inline-block;
+    padding: 6px 18px;
+    background: rgba(250, 18, 57, 0.1);
+    border: 1px solid rgba(250, 18, 57, 0.2);
+    border-radius: 100px;
+    color: var(--primary);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1.5rem;
+}
+
+/* Footer Refinement */
+.footer-container {
+    padding: 100px 0 50px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: linear-gradient(to bottom, transparent, rgba(250, 18, 57, 0.02));
+}
+
+.footer-brand-section {
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    padding-right: 3rem;
+}
+
+@media (max-width: 1024px) {
+    .footer-brand-section {
+        border-right: none;
+        padding-right: 0;
+        margin-bottom: 3rem;
+    }
+}
+
+.footer-nav-title {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #444;
+    margin-bottom: 2rem;
+}
+
+.footer-link {
+    color: #888;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+}
+
+.footer-link:hover {
+    color: #fff;
+    transform: translateX(5px);
+}
+
+.social-pill {
+    padding: 8px 16px;
+    border-radius: 12px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    color: #888;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+}
+
+.social-pill:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.copyright-text {
+    font-size: 0.85rem;
+    color: #444;
+    letter-spacing: 0.05em;
+}
