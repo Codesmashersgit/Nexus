@@ -146,6 +146,7 @@ const Room = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [currentNotification, setCurrentNotification] = useState(null); // { sender, msg }
+  const [unreadCount, setUnreadCount] = useState(0);
   const [chatInput, setChatInput] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -175,20 +176,36 @@ const Room = () => {
     };
   }, [roomId, startRoom]);
 
-  // Notification Logic
+  // Message & Notification & Badge Logic
   useEffect(() => {
     if (messages.length > prevMessagesCount.current) {
       const lastMsg = messages[messages.length - 1];
+
       if (lastMsg.sender !== "Me") {
         if (!isChatOpen) {
-          setCurrentNotification({ sender: lastMsg.sender, msg: lastMsg.msg, type: lastMsg.type });
-          setTimeout(() => setCurrentNotification(null), 6000);
+          setUnreadCount(prev => prev + 1);
+          // Only show popup on desktop
+          if (!isMobileDevice) {
+            setCurrentNotification({ sender: lastMsg.sender, msg: lastMsg.msg, type: lastMsg.type });
+            setTimeout(() => setCurrentNotification(null), 6000);
+          }
         }
       }
       prevMessagesCount.current = messages.length;
     }
+  }, [messages.length, isChatOpen, isMobileDevice]);
+
+  useEffect(() => {
+    if (isChatOpen) {
+      setUnreadCount(0);
+      setCurrentNotification(null);
+    }
+  }, [isChatOpen]);
+
+  // Auto-scroll logic
+  useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isChatOpen]);
+  }, [messages, remoteTyping]);
 
   const handleSend = (e) => {
     e.preventDefault();
@@ -389,8 +406,8 @@ const Room = () => {
             {messages.map((m, i) => (
               <div key={i} className={`flex gap-3 ${m.sender === "Me" ? "flex-row-reverse" : "flex-row"}`}>
                 <Avatar name={m.sender} size="sm" />
-                <div className={`flex flex-col ${m.sender === "Me" ? "items-end" : "items-start"}`}>
-                  <div className={`max-w-[200px] md:max-w-xs ${m.type === 'text' ? 'px-4 py-3' : 'p-0'} rounded-2xl text-[13px] leading-relaxed ${m.type === 'text' ? (m.sender === "Me" ? "bg-slate-800 text-slate-200 rounded-tr-none border border-white/5 shadow-md" : "bg-slate-800 text-slate-200 rounded-tl-none border border-white/5 shadow-md") : "bg-transparent"}`}>
+                <div className={`flex flex-col ${m.sender === "Me" ? "items-end" : "items-start"} max-w-[85%] md:max-w-[80%]`}>
+                  <div className={`w-full ${m.type === 'text' ? 'px-4 py-3' : 'p-0'} rounded-2xl text-[13px] leading-relaxed ${m.type === 'text' ? (m.sender === "Me" ? "bg-slate-800 text-slate-200 rounded-tr-none border border-white/5 shadow-md" : "bg-slate-800 text-slate-200 rounded-tl-none border border-white/5 shadow-md") : "bg-transparent"}`}>
                     {m.type === "image" ? (
                       <img src={m.metadata.data} alt="uploaded" className="rounded-lg max-w-full cursor-pointer hover:opacity-90 border border-white/10" onClick={() => handleMediaOpen(m.metadata.data, m.metadata.name, "image", m.metadata.mimeType)} />
                     ) : m.type === "video" ? (
@@ -403,7 +420,7 @@ const Room = () => {
                         <span className="text-[11px] font-normal truncate max-w-[150px]">{m.metadata.name}</span>
                       </div>
                     ) : (
-                      <p className="break-words font-normal">{m.msg}</p>
+                      <p className="break-words [overflow-wrap:anywhere] font-normal">{m.msg}</p>
                     )}
                   </div>
                   <span className="text-[9px] text-slate-600 mt-2 px-1 font-medium">{m.timestamp}</span>
@@ -469,7 +486,14 @@ const Room = () => {
         {!isMobileDevice && (
           <button onClick={toggleScreenShare} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isScreenSharing ? "bg-[#fa1239] border-[#fa1239] shadow-[0_0_25px_rgba(250,18,57,0.4)]" : "bg-white/5 border-white/5 hover:bg-white/10"}`} title="Share Screen"><FaDesktop size={14} /></button>
         )}
-        <button onClick={() => setIsChatOpen(!isChatOpen)} className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isChatOpen ? "bg-[#fa1239] border-[#fa1239] shadow-[0_0_20px_rgba(250,18,57,0.2)]" : "bg-white/5 border-white/5 hover:bg-white/10"}`}><FaComments size={14} /></button>
+        <button onClick={() => setIsChatOpen(!isChatOpen)} className={`relative w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isChatOpen ? "bg-[#fa1239] border-[#fa1239] shadow-[0_0_20px_rgba(250,18,57,0.2)]" : "bg-white/5 border-white/5 hover:bg-white/10"}`}>
+          <FaComments size={14} />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-[#fa1239] text-white text-[10px] font-black w-4 h-4 md:w-5 md:h-5 rounded-full flex items-center justify-center shadow-lg border-2 border-slate-900 animate-in zoom-in duration-300">
+              {unreadCount}
+            </span>
+          )}
+        </button>
         <div className="w-px h-6 md:h-9 bg-white/10 mx-1 md:mx-2" />
         <button onClick={endCall} className="w-10 h-10 md:w-14 md:h-12 flex items-center justify-center rounded-xl md:rounded-2xl bg-[#fa1239] hover:brightness-110 text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] transition-all active:scale-95 group" title="End Call"><FaPhoneSlash className="text-sm md:text-xl group-hover:scale-110 transition-transform" /></button>
       </div>
