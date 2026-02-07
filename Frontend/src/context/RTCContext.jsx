@@ -160,8 +160,10 @@ export const RTCProvider = ({ children }) => {
 
       socketRef.current.on("connect", () => {
         console.log("Socket connected:", socketRef.current.id);
-        const name = localStorage.getItem("username") || "Anonymous";
-        const email = localStorage.getItem("email") || "Anonymous";
+        const name = (localStorage.getItem("username") || "Guest").trim();
+        const email = (localStorage.getItem("email") || "Anonymous").toLowerCase().trim();
+
+        console.log(`Connection established. Joining room ${roomId} as ${name} (${email})`);
         socketRef.current.emit("join-room", { roomId, name, email });
         // Initial broadcast of camera status will happen when peers are created
       });
