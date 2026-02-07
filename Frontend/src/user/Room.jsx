@@ -518,6 +518,17 @@ const Room = () => {
         </div>
       )}
 
+      {error === "Duplicate email" && (
+        <div className="fixed inset-0 z-[1000] bg-[#050505]/95 backdrop-blur-xl flex items-center justify-center p-6 text-center">
+          <div className="max-w-md w-full animate-in fade-in zoom-in duration-500">
+            <div className="w-24 h-24 bg-[#fa1239]/10 border border-[#fa1239]/20 rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_rgba(250,18,57,0.2)]"><FaPhoneSlash className="text-[#fa1239] text-4xl" /></div>
+            <h1 className="text-3xl font-black text-white mb-4 tracking-tight">Access <span className="text-[#fa1239]">Denied</span></h1>
+            <p className="text-gray-400 mb-10 leading-relaxed font-medium">You are not allowed to enter into this room. First you have to change email because the email is already in use</p>
+            <button onClick={() => navigate("/dashboard")} className="w-full bg-[#fa1239] hover:brightness-110 text-white font-black py-4 rounded-2xl shadow-xl shadow-[#fa1239]/20 transition-all active:scale-95">Back to Dashboard</button>
+          </div>
+        </div>
+      )}
+
       {currentNotification && !isChatOpen && (
         <div onClick={() => { setIsChatOpen(true); setCurrentNotification(null); }} className="fixed top-6 right-6 z-[70] w-64 bg-slate-900 shadow-2xl border border-white/10 rounded-2xl p-4 flex items-center gap-3 cursor-pointer hover:bg-slate-800 transition-all animate-slideIn group">
           <div className="relative shrink-0">

@@ -161,13 +161,23 @@ export const RTCProvider = ({ children }) => {
       socketRef.current.on("connect", () => {
         console.log("Socket connected:", socketRef.current.id);
         const name = localStorage.getItem("username") || "Anonymous";
-        socketRef.current.emit("join-room", { roomId, name });
+        const email = localStorage.getItem("email") || "Anonymous";
+        socketRef.current.emit("join-room", { roomId, name, email });
         // Initial broadcast of camera status will happen when peers are created
       });
 
       socketRef.current.on("room-full", (data) => {
         console.warn("Room is full:", data.message);
         setError("Room is full");
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+        }
+        setLocalStream(null);
+      });
+
+      socketRef.current.on("duplicate-email", (data) => {
+        console.warn("Duplicate email:", data.message);
+        setError("Duplicate email");
         if (streamRef.current) {
           streamRef.current.getTracks().forEach(track => track.stop());
         }
