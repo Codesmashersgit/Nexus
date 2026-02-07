@@ -36,7 +36,7 @@ function Navbar() {
       <div className="mx-auto max-w-7xl glass-panel px-4 md:px-6 py-3 md:py-4 flex items-center justify-between backdrop-blur-xl bg-black/40 border-white/5 shadow-2xl">
         <Link to="/" className="group">
           <div className="flex items-center gap-2 md:gap-3">
-            <img src={img} alt="Nexus" className="w-8 md:w-10 group-hover:scale-110 transition-transform" />
+            <img src={img} alt="Nexus" className="w-8 md:w-10" />
             <h1 className="text-xl md:text-2xl font-bold tracking-tight">
               Ne<span className="text-[#fa1239]">xu</span>s
             </h1>
