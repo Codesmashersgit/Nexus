@@ -36,7 +36,9 @@ function Signup() {
       localStorage.setItem("createdAt", user.createdAt);
 
       const redirectPath = localStorage.getItem("redirectPath");
-      const from = redirectPath || location.state?.from?.pathname || "/dashboard";
+      // Only redirect to stored path if it's a room path, otherwise default to dashboard
+      const safeRedirect = (redirectPath && redirectPath.startsWith("/room/")) ? redirectPath : null;
+      const from = safeRedirect || (location.state?.from?.pathname?.startsWith("/room/") ? location.state.from.pathname : "/dashboard");
       localStorage.removeItem("redirectPath");
 
       navigate(from, { replace: true });

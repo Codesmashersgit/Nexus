@@ -60,7 +60,8 @@ function OAuthSuccess() {
       localStorage.setItem("email", email); // ✅ save email
 
       const redirectPath = localStorage.getItem("redirectPath");
-      const target = redirectPath || "/dashboard";
+      // Only use redirectPath if it's for a specific meeting room
+      const target = (redirectPath && redirectPath.startsWith("/room/")) ? redirectPath : "/dashboard";
 
       // Delay slightly for smooth transition
       setTimeout(() => {
