@@ -33,8 +33,8 @@ function Home() {
         {/* Centered Hero Section */}
         <div className="max-w-4xl mx-auto text-center mb-20 md:mb-32">
           <h1 className="hero-title fade-up mb-6 md:mb-10 leading-[1.15] md:leading-[1.1] tracking-tight text-4xl sm:text-5xl md:text-7xl lg:text-8xl">
-            Experience the Future of <br />
-            <span className="gradient-text">Video Collaboration</span>
+            Lag Dies Here<br />
+            <span className="gradient-text">Communication Lives </span>
           </h1>
 
           <p className="text-lg md:text-2xl text-gray-400 mb-10 md:mb-14 max-w-3xl mx-auto fade-up delay-1 leading-relaxed font-medium px-2">
