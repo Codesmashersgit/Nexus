@@ -45,14 +45,23 @@ const io = new Server(server, {
 const rooms = {};
 
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
+  console.log("New socket connection:", socket.id);
 
   socket.on("join-room", ({ roomId, name, email }) => {
     if (!rooms[roomId]) rooms[roomId] = [];
 
+    // Normalize email for consistent comparison
+    const normalizedEmail = email ? email.toLowerCase().trim() : "anonymous";
+    console.log(`User ${name} (${normalizedEmail}) attempting to join room ${roomId}`);
+
     // Enforce 1-user-per-email limit
-    const isEmailDuplicate = rooms[roomId].some(u => u.email === email);
+    const isEmailDuplicate = rooms[roomId].some(u => {
+      const uEmail = u.email ? u.email.toLowerCase().trim() : "anonymous";
+      return uEmail === normalizedEmail;
+    });
+
     if (isEmailDuplicate) {
+      console.log(`Join denied: Duplicate email ${normalizedEmail} in room ${roomId}`);
       socket.emit("duplicate-email", { message: "You are not allowed to enter into this room. First you have to change email because the email is already in use" });
       return;
     }
@@ -67,9 +76,11 @@ io.on("connection", (socket) => {
     const existingUsers = rooms[roomId].map(u => ({ id: u.id, name: u.name }));
     socket.emit("all-users", existingUsers);
 
-    const newUser = { id: socket.id, name, email };
+    const newUser = { id: socket.id, name, email: normalizedEmail };
     rooms[roomId].push(newUser);
     socket.join(roomId);
+
+    console.log(`User ${name} (${normalizedEmail}) joined room ${roomId}. Total users: ${rooms[roomId].length}`);
 
     // Notify others
     socket.to(roomId).emit("user-joined", newUser);
