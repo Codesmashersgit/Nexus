@@ -19,6 +19,7 @@ export const RTCProvider = ({ children }) => {
   const [screenSharingId, setScreenSharingId] = useState(null); // 'me' or userId or null
   const [remoteCameraStatus, setRemoteCameraStatus] = useState({}); // key: userId, value: boolean
   const [networkMetrics, setNetworkMetrics] = useState({ rtt: 0, packetLoss: 0, jitter: 0 });
+  const [remoteTyping, setRemoteTyping] = useState({}); // key: userId, value: { name, isTyping }
   const [error, setError] = useState(null);
 
   const socketRef = useRef(null);
@@ -90,6 +91,10 @@ export const RTCProvider = ({ children }) => {
               setScreenSharingId(null);
             } else if (data.action === "camera-status") {
               setRemoteCameraStatus(prev => ({ ...prev, [userId]: data.enabled }));
+            } else if (data.action === "typing-start") {
+              setRemoteTyping(prev => ({ ...prev, [userId]: { name: data.name, isTyping: true } }));
+            } else if (data.action === "typing-stop") {
+              setRemoteTyping(prev => ({ ...prev, [userId]: { name: data.name, isTyping: false } }));
             }
           }
           // Handle File Chunking Protocol
@@ -278,6 +283,11 @@ export const RTCProvider = ({ children }) => {
           delete copy[userId];
           return copy;
         });
+        setRemoteTyping(prev => {
+          const copy = { ...prev };
+          delete copy[userId];
+          return copy;
+        });
       });
 
     } catch (err) {
@@ -387,6 +397,18 @@ export const RTCProvider = ({ children }) => {
         });
       }
     }
+  }, []);
+
+  const sendTypingStatus = useCallback((isTyping) => {
+    const name = localStorage.getItem("username") || "Me";
+    const sysMsg = JSON.stringify({
+      type: "system",
+      action: isTyping ? "typing-start" : "typing-stop",
+      name
+    });
+    Object.values(peersRef.current).forEach(({ dataChannel }) => {
+      if (dataChannel?.readyState === "open") dataChannel.send(sysMsg);
+    });
   }, []);
 
   const toggleScreenShare = useCallback(async () => {
@@ -583,10 +605,12 @@ export const RTCProvider = ({ children }) => {
       isCameraOn,
       isScreenSharing,
       networkMetrics,
+      remoteTyping,
       error,
       startRoom,
       sendChatMessage,
       sendMedia,
+      sendTypingStatus,
       toggleMic,
       toggleCamera,
       toggleScreenShare,

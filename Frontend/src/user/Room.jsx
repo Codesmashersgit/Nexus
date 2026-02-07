@@ -138,6 +138,8 @@ const Room = () => {
     toggleScreenShare,
     endCall,
     networkMetrics,
+    remoteTyping,
+    sendTypingStatus,
     error
   } = useRTC();
 
@@ -149,8 +151,10 @@ const Room = () => {
   const [recordingTime, setRecordingTime] = useState(0);
   const [previewMedia, setPreviewMedia] = useState(null); // { data, name, type }
   const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
+  const audioChunksRef = useRef(null);
   const recordingIntervalRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+  const [isTyping, setIsTyping] = useState(false);
 
   const chatEndRef = useRef(null);
   const prevMessagesCount = useRef(0);
@@ -191,6 +195,29 @@ const Room = () => {
     if (!chatInput.trim()) return;
     sendChatMessage(chatInput);
     setChatInput("");
+
+    // Stop typing indicator immediately on send
+    if (isTyping) {
+      setIsTyping(false);
+      sendTypingStatus(false);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    }
+  };
+
+  const handleTyping = (e) => {
+    setChatInput(e.target.value);
+
+    if (!isTyping) {
+      setIsTyping(true);
+      sendTypingStatus(true);
+    }
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+      sendTypingStatus(false);
+    }, 2000);
   };
 
   const handleFileUpload = (e) => {
@@ -386,6 +413,24 @@ const Room = () => {
             <div ref={chatEndRef} />
           </div>
 
+          <div className="px-6 py-2">
+            {Object.values(remoteTyping).some(u => u.isTyping) && (
+              <div className="flex items-center gap-2 animate-pulse">
+                <div className="flex gap-1">
+                  <span className="w-1.5 h-1.5 bg-[#fa1239] rounded-full dot-1" />
+                  <span className="w-1.5 h-1.5 bg-[#fa1239] rounded-full dot-2" />
+                  <span className="w-1.5 h-1.5 bg-[#fa1239] rounded-full dot-3" />
+                </div>
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                  {Object.values(remoteTyping)
+                    .filter(u => u.isTyping)
+                    .map(u => u.name)
+                    .join(", ")} {Object.values(remoteTyping).filter(u => u.isTyping).length > 1 ? "are" : "is"} typing...
+                </span>
+              </div>
+            )}
+          </div>
+
           <div className="p-4 bg-slate-950/40 border-t border-white/5">
             {isRecording ? (
               <div className="flex items-center justify-between bg-[#fa1239]/10 border border-[#fa1239]/20 rounded-2xl p-4 animate-pulse">
@@ -412,7 +457,7 @@ const Room = () => {
                   <button type="button" onClick={startRecording} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all" title="Voice message"><FaMicrophone size={16} className="text-slate-400" /></button>
                 </div>
                 <div className="relative group">
-                  <input type="text" value={chatInput} onChange={e => setChatInput(e.target.value)} placeholder="Send a message..." className="w-full bg-slate-800/80 border-none rounded-2xl py-4 pl-5 pr-14 text-sm focus:ring-1 focus:ring-[#fa1239]/50 transition-all font-medium" />
+                  <input type="text" value={chatInput} onChange={handleTyping} placeholder="Send a message..." className="w-full bg-slate-800/80 border-none rounded-2xl py-4 pl-5 pr-14 text-sm focus:ring-1 focus:ring-[#fa1239]/50 transition-all font-medium" />
                   <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#fa1239] hover:brightness-110 w-10 h-10 flex items-center justify-center rounded-xl transition-transform active:scale-95 shadow-xl shadow-[#fa1239]/20"><FaPaperPlane size={14} className="text-white" /></button>
                 </div>
               </form>
