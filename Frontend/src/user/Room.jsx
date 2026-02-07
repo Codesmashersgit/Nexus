@@ -410,25 +410,21 @@ const Room = () => {
                 </div>
               </div>
             ))}
-            <div ref={chatEndRef} />
-          </div>
 
-          <div className="px-6 py-2">
-            {Object.values(remoteTyping).some(u => u.isTyping) && (
-              <div className="flex items-center gap-2 animate-pulse">
-                <div className="flex gap-1">
-                  <span className="w-1.5 h-1.5 bg-[#fa1239] rounded-full dot-1" />
-                  <span className="w-1.5 h-1.5 bg-[#fa1239] rounded-full dot-2" />
-                  <span className="w-1.5 h-1.5 bg-[#fa1239] rounded-full dot-3" />
+            {/* Typing Indicator Bubbles */}
+            {Object.values(remoteTyping).filter(u => u.isTyping).map((u, i) => (
+              <div key={`typing-${i}`} className="flex gap-3 mb-6 animate-pulse">
+                <Avatar name={u.name} size="sm" />
+                <div className="flex flex-col items-start px-4 py-3 bg-slate-800 text-slate-200 rounded-2xl rounded-tl-none border border-white/5 shadow-md">
+                  <div className="flex gap-1 h-3 items-center">
+                    <span className="w-1 h-1 bg-slate-400 rounded-full dot-1" />
+                    <span className="w-1 h-1 bg-slate-400 rounded-full dot-2" />
+                    <span className="w-1 h-1 bg-slate-400 rounded-full dot-3" />
+                  </div>
                 </div>
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                  {Object.values(remoteTyping)
-                    .filter(u => u.isTyping)
-                    .map(u => u.name)
-                    .join(", ")} {Object.values(remoteTyping).filter(u => u.isTyping).length > 1 ? "are" : "is"} typing...
-                </span>
               </div>
-            )}
+            ))}
+            <div ref={chatEndRef} />
           </div>
 
           <div className="p-4 bg-slate-950/40 border-t border-white/5">
@@ -482,8 +478,8 @@ const Room = () => {
         __html: `
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 10px; }
-        @keyframes slideDown { from { transform: translate(-50%, -100%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
-        .animate-slideDown { animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-slideIn { animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
       `}} />
 
       {previewMedia && (
@@ -511,16 +507,14 @@ const Room = () => {
       )}
 
       {currentNotification && !isChatOpen && (
-        <div onClick={() => { setIsChatOpen(true); setCurrentNotification(null); }} className="fixed top-24 left-1/2 -translate-x-1/2 z-[70] w-[90%] max-w-sm bg-black/60 backdrop-blur-3xl border border-white/10 rounded-2xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-all animate-slideDown group">
-          <div className="relative">
+        <div onClick={() => { setIsChatOpen(true); setCurrentNotification(null); }} className="fixed top-6 right-6 z-[70] w-64 bg-slate-900 shadow-2xl border border-white/10 rounded-2xl p-4 flex items-center gap-3 cursor-pointer hover:bg-slate-800 transition-all animate-slideIn group">
+          <div className="relative shrink-0">
             <Avatar name={currentNotification.sender} size="sm" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#fa1239] rounded-full border-2 border-slate-900 shadow-[0_0_10px_#fa1239]" />
+            <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#fa1239] rounded-full border-2 border-slate-900 shadow-[0_0_10px_#fa1239]" />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="text-[11px] font-black text-[#fa1239] uppercase tracking-widest">{currentNotification.sender}</h4>
-            <p className="text-sm text-slate-200 truncate font-medium">{currentNotification.type === 'text' ? currentNotification.msg : `Sent a ${currentNotification.type}`}</p>
+            <p className="text-sm text-slate-200 truncate font-medium">{currentNotification.type === 'text' ? currentNotification.msg : `Shared a ${currentNotification.type}`}</p>
           </div>
-          <button className="bg-[#fa1239]/10 text-[#fa1239] px-3 py-1.5 rounded-lg text-[10px] font-black uppercase hover:bg-[#fa1239] hover:text-white transition-all">View</button>
         </div>
       )}
     </div>
