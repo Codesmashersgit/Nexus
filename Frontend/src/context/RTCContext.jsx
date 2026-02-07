@@ -18,6 +18,7 @@ export const RTCProvider = ({ children }) => {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [screenSharingId, setScreenSharingId] = useState(null); // 'me' or userId or null
   const [remoteCameraStatus, setRemoteCameraStatus] = useState({}); // key: userId, value: boolean
+  const [networkMetrics, setNetworkMetrics] = useState({ rtt: 0, packetLoss: 0, jitter: 0 });
   const [error, setError] = useState(null);
 
   const socketRef = useRef(null);
@@ -473,6 +474,83 @@ export const RTCProvider = ({ children }) => {
     }
   }, [isScreenSharing]);
 
+  const adjustVideoQuality = useCallback(async (isPoor) => {
+    Object.values(peersRef.current).forEach(async ({ peer }) => {
+      const senders = peer.getSenders().filter(s => s.track?.kind === "video");
+      for (const sender of senders) {
+        try {
+          const params = sender.getParameters();
+          if (!params.encodings) params.encodings = [{}];
+
+          if (isPoor) {
+            // Reduce quality: lower resolution and framerate
+            params.encodings[0].scaleResolutionDownBy = 2;
+            params.encodings[0].maxFramerate = 15;
+            console.log("Lowering video quality due to poor network");
+          } else {
+            // Restore quality
+            params.encodings[0].scaleResolutionDownBy = 1;
+            params.encodings[0].maxFramerate = 30;
+            console.log("Restoring video quality due to improved network");
+          }
+
+          await sender.setParameters(params);
+        } catch (err) {
+          console.error("Error adjusting video quality:", err);
+        }
+      }
+    });
+  }, []);
+
+  const monitorNetwork = useCallback(async () => {
+    if (Object.keys(peersRef.current).length === 0) return;
+
+    let totalRtt = 0;
+    let totalLoss = 0;
+    let totalJitter = 0;
+    let peerCount = 0;
+
+    for (const { peer } of Object.values(peersRef.current)) {
+      if (peer.connectionState !== "connected") continue;
+
+      const stats = await peer.getStats();
+      stats.forEach(report => {
+        if (report.type === "remote-inbound-rtp" && report.kind === "video") {
+          totalRtt += (report.roundTripTime || 0) * 1000; // ms
+          totalJitter += (report.jitter || 0) * 1000; // ms
+          peerCount++;
+        }
+        if (report.type === "inbound-rtp" && report.kind === "video") {
+          const loss = (report.packetsLost / (report.packetsReceived + report.packetsLost)) * 100 || 0;
+          totalLoss += loss;
+        }
+      });
+    }
+
+    if (peerCount > 0) {
+      const avgRtt = totalRtt / peerCount;
+      const avgLoss = totalLoss / peerCount;
+      const avgJitter = totalJitter / peerCount;
+
+      setNetworkMetrics({ rtt: avgRtt, packetLoss: avgLoss, jitter: avgJitter });
+
+      // Thresholds: RTT > 300ms, Loss > 5%, Jitter > 30ms
+      if (avgRtt > 300 || avgLoss > 5 || avgJitter > 30) {
+        adjustVideoQuality(true);
+      } else if (avgRtt < 150 && avgLoss < 2 && avgJitter < 15) {
+        adjustVideoQuality(false);
+      }
+    }
+  }, [adjustVideoQuality]);
+
+  // Network Monitoring Effect
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      monitorNetwork();
+    }, 5000); // Check every 5 seconds
+    return () => clearInterval(interval);
+  }, [monitorNetwork]);
+
   const endCall = useCallback(() => {
     Object.values(peersRef.current).forEach(({ peer, dataChannel }) => {
       peer.close();
@@ -504,6 +582,7 @@ export const RTCProvider = ({ children }) => {
       isMicOn,
       isCameraOn,
       isScreenSharing,
+      networkMetrics,
       error,
       startRoom,
       sendChatMessage,
