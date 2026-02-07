@@ -287,10 +287,12 @@ export const RTCProvider = ({ children }) => {
       });
 
       socketRef.current.on("typing-start", ({ userId, name }) => {
+        console.log("Typing started:", name, userId);
         setRemoteTyping(prev => ({ ...prev, [userId]: { name, isTyping: true } }));
       });
 
       socketRef.current.on("typing-stop", ({ userId }) => {
+        console.log("Typing stopped:", userId);
         setRemoteTyping(prev => ({ ...prev, [userId]: { isTyping: false } }));
       });
 

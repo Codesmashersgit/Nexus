@@ -373,17 +373,6 @@ const Room = () => {
             </div>
           )}
 
-          {/* Network Metrics HUD (Subtle) */}
-          <div className="absolute top-4 left-4 z-[40] flex flex-col gap-1 pointer-events-none">
-            {networkMetrics.rtt > 0 && (
-              <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/5">
-                <div className={`w-1.5 h-1.5 rounded-full ${networkMetrics.rtt > 200 ? "bg-red-500" : "bg-green-500"}`} />
-                <span className="text-[10px] font-bold text-white/70 uppercase tracking-tighter">
-                  Ping: {Math.round(networkMetrics.rtt)}ms | Loss: {Math.round(networkMetrics.packetLoss)}% | Jitter: {Math.round(networkMetrics.jitter)}ms
-                </span>
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Chat Sidebar */}
@@ -428,15 +417,14 @@ const Room = () => {
               </div>
             ))}
 
-            {/* Typing Indicator Bubbles */}
             {Object.values(remoteTyping).filter(u => u.isTyping).map((u, i) => (
-              <div key={`typing-${i}`} className="flex gap-3 mb-6 animate-pulse">
+              <div key={`typing-${i}`} className="flex gap-3 mb-6">
                 <Avatar name={u.name} size="sm" />
-                <div className="flex flex-col items-start px-4 py-3 bg-slate-800 text-slate-200 rounded-2xl rounded-tl-none border border-white/5 shadow-md">
-                  <div className="flex gap-1 h-3 items-center">
-                    <span className="w-1 h-1 bg-slate-400 rounded-full dot-1" />
-                    <span className="w-1 h-1 bg-slate-400 rounded-full dot-2" />
-                    <span className="w-1 h-1 bg-slate-400 rounded-full dot-3" />
+                <div className="flex flex-col items-start px-4 py-3 bg-slate-800/80 text-slate-200 rounded-2xl rounded-tl-none border border-white/5 shadow-lg">
+                  <div className="flex gap-1.5 h-3 items-center">
+                    <span className="w-1.5 h-1.5 bg-[#fa1239]/60 rounded-full dot-1" />
+                    <span className="w-1.5 h-1.5 bg-[#fa1239]/60 rounded-full dot-2" />
+                    <span className="w-1.5 h-1.5 bg-[#fa1239]/60 rounded-full dot-3" />
                   </div>
                 </div>
               </div>
