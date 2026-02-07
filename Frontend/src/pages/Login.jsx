@@ -29,6 +29,7 @@ function Login() {
       localStorage.setItem("authToken", token);
       localStorage.setItem("username", user.username || user.email);
       localStorage.setItem("email", user.email);
+      localStorage.setItem("createdAt", user.createdAt);
 
       const redirectPath = localStorage.getItem("redirectPath");
       const from = redirectPath || location.state?.from?.pathname || "/dashboard";

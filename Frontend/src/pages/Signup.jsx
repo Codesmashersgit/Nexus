@@ -32,6 +32,8 @@ function Signup() {
       const { token, user } = res.data;
       localStorage.setItem("authToken", token);
       localStorage.setItem("username", user.username);
+      localStorage.setItem("email", user.email);
+      localStorage.setItem("createdAt", user.createdAt);
 
       const redirectPath = localStorage.getItem("redirectPath");
       const from = redirectPath || location.state?.from?.pathname || "/dashboard";

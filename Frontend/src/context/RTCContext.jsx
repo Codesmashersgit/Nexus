@@ -91,10 +91,6 @@ export const RTCProvider = ({ children }) => {
               setScreenSharingId(null);
             } else if (data.action === "camera-status") {
               setRemoteCameraStatus(prev => ({ ...prev, [userId]: data.enabled }));
-            } else if (data.action === "typing-start") {
-              setRemoteTyping(prev => ({ ...prev, [userId]: { name: data.name, isTyping: true } }));
-            } else if (data.action === "typing-stop") {
-              setRemoteTyping(prev => ({ ...prev, [userId]: { name: data.name, isTyping: false } }));
             }
           }
           // Handle File Chunking Protocol
@@ -290,6 +286,14 @@ export const RTCProvider = ({ children }) => {
         });
       });
 
+      socketRef.current.on("typing-start", ({ userId, name }) => {
+        setRemoteTyping(prev => ({ ...prev, [userId]: { name, isTyping: true } }));
+      });
+
+      socketRef.current.on("typing-stop", ({ userId }) => {
+        setRemoteTyping(prev => ({ ...prev, [userId]: { isTyping: false } }));
+      });
+
     } catch (err) {
       console.error("Failed to start room:", err);
       setError(err.message);
@@ -400,15 +404,9 @@ export const RTCProvider = ({ children }) => {
   }, []);
 
   const sendTypingStatus = useCallback((isTyping) => {
+    if (!socketRef.current) return;
     const name = localStorage.getItem("username") || "Me";
-    const sysMsg = JSON.stringify({
-      type: "system",
-      action: isTyping ? "typing-start" : "typing-stop",
-      name
-    });
-    Object.values(peersRef.current).forEach(({ dataChannel }) => {
-      if (dataChannel?.readyState === "open") dataChannel.send(sysMsg);
-    });
+    socketRef.current.emit(isTyping ? "typing-start" : "typing-stop", { name });
   }, []);
 
   const toggleScreenShare = useCallback(async () => {

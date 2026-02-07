@@ -79,6 +79,14 @@ io.on("connection", (socket) => {
       io.to(to).emit("ice-candidate", { candidate, from: socket.id });
     });
 
+    socket.on("typing-start", ({ name }) => {
+      socket.to(roomId).emit("typing-start", { userId: socket.id, name });
+    });
+
+    socket.on("typing-stop", () => {
+      socket.to(roomId).emit("typing-stop", { userId: socket.id });
+    });
+
     socket.on("disconnect", () => {
       console.log("User disconnected:", socket.id);
       if (rooms[roomId]) {

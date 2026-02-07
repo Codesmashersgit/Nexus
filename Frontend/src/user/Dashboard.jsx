@@ -34,6 +34,7 @@ function Dashboard() {
   const [userEmail, setUserEmail] = useState("email@example.com");
 
   const [currentDate, setCurrentDate] = useState("");
+  const [accountCreatedAt, setAccountCreatedAt] = useState("");
 
   const menuRef = useRef();
   const navigate = useNavigate();
@@ -125,6 +126,14 @@ function Dashboard() {
 
     setUserNameDisplay(localStorage.getItem("username") || "Guest User");
     setUserEmail(localStorage.getItem("email") || "email@example.com");
+
+    const rawDate = localStorage.getItem("createdAt");
+    if (rawDate) {
+      const d = new Date(rawDate);
+      setAccountCreatedAt(d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }));
+    } else {
+      setAccountCreatedAt("Oct 24, 2024"); // Fallback
+    }
 
     const token = localStorage.getItem("authToken");
     setIsLogged(!!token);
@@ -366,7 +375,7 @@ function Dashboard() {
               <div className="grid grid-cols-2 gap-6">
                 <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
                   <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-2">Account Created</p>
-                  <p className="text-gray-300 font-bold">{currentDate.split(',')[0]}</p>
+                  <p className="text-gray-300 font-bold">{accountCreatedAt || currentDate.split(',')[0]}</p>
                 </div>
                 <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
                   <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-2">Account Status</p>
