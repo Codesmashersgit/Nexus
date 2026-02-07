@@ -363,7 +363,7 @@ const Room = () => {
               <div key={i} className={`flex gap-3 ${m.sender === "Me" ? "flex-row-reverse" : "flex-row"}`}>
                 <Avatar name={m.sender} size="sm" />
                 <div className={`flex flex-col ${m.sender === "Me" ? "items-end" : "items-start"}`}>
-                  <div className={`max-w-[200px] md:max-w-xs ${m.type === 'text' ? 'px-4 py-3' : 'p-0'} rounded-2xl text-[13px] leading-relaxed ${m.type === 'text' ? (m.sender === "Me" ? "bg-[#fa1239] text-white rounded-tr-none shadow-lg shadow-[#fa1239]/10" : "bg-slate-800 text-slate-200 rounded-tl-none border border-white/5 shadow-md") : "bg-transparent"}`}>
+                  <div className={`max-w-[200px] md:max-w-xs ${m.type === 'text' ? 'px-4 py-3' : 'p-0'} rounded-2xl text-[13px] leading-relaxed ${m.type === 'text' ? (m.sender === "Me" ? "bg-slate-800 text-slate-200 rounded-tr-none border border-white/5 shadow-md" : "bg-slate-800 text-slate-200 rounded-tl-none border border-white/5 shadow-md") : "bg-transparent"}`}>
                     {m.type === "image" ? (
                       <img src={m.metadata.data} alt="uploaded" className="rounded-lg max-w-full cursor-pointer hover:opacity-90 border border-white/10" onClick={() => handleMediaOpen(m.metadata.data, m.metadata.name, "image", m.metadata.mimeType)} />
                     ) : m.type === "video" ? (
