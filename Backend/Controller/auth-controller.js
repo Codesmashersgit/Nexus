@@ -68,11 +68,37 @@ const sendOtp = async (req, res) => {
     await user.save();
 
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "Your OTP for Password Reset",
-      text: `Your OTP is: ${otp}. It expires in 10 minutes.`,
-    });
+  from: process.env.EMAIL_USER,
+  to: email,
+  subject: "Your OTP for Password Reset",
+  html: `
+    <div style="font-family: 'Arial', sans-serif; background: #f9f9f9; padding: 40px; text-align: center;">
+      <div style="max-width: 600px; margin: auto; border-radius: 12px; background: #ffffff; padding: 40px; box-shadow: 0 10px 30px rgba(250, 18, 57, 0.2);">
+        
+        <img src="https://nexus1802.netlify.app/assets/Group-BxPgapkn.png" alt="Nexus Logo" width="60" style="margin-bottom: 20px;" />
+
+        <h1 style="font-size: 28px; color: #fa1239; margin-bottom: 10px;">Your One-Time Password</h1>
+        <p style="color: #555555; font-size: 16px; margin-bottom: 30px;">
+          Enter the OTP below to reset your password. It will expire in 10 minutes.
+        </p>
+        
+        <div style="font-size: 48px; font-weight: bold; color: #fa1239; letter-spacing: 4px; margin-bottom: 30px;">
+          ${otp}
+        </div>
+        
+        <a href="https://nexus1802.netlify.app/login" 
+           style="display: inline-block; background: linear-gradient(135deg, #fa1239, #ff6a00); color: #fff; padding: 15px 40px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 16px;">
+          Go to Login
+        </a>
+        
+        <p style="color: #999999; font-size: 12px; margin-top: 30px;">
+          If you did not request this, please ignore this email.
+        </p>
+      </div>
+    </div>
+  `,
+});
+
 
     res.json({ message: "OTP sent to your email" });
   } catch (err) {
