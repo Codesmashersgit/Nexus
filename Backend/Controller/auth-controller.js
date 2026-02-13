@@ -4,14 +4,6 @@ const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 
-// Email transporter
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 // Register
 const register = async (req, res) => {
@@ -51,6 +43,17 @@ const login = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com", 
+  port: 465,              
+  secure: true,           
+  auth: {
+    user: process.env.EMAIL_USER, 
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
 
 // Send OTP
 const sendOtp = async (req, res) => {
