@@ -94,13 +94,24 @@ const checkOtp = async (req, res) => {
 // Reset Password
 const resetPassword = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, code } = req.body;
+
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user)
+      return res.status(404).json({ message: "User not found" });
+
+    if (
+      !user.otp ||
+      user.otp !== code ||
+      user.otpExpires < Date.now()
+    ) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
 
     user.password = await bcrypt.hash(password, 10);
-    user.otp = undefined; // Clear OTP
+    user.otp = undefined;
     user.otpExpires = undefined;
+
     await user.save();
 
     res.json({ message: "Password reset successfully" });
@@ -108,5 +119,6 @@ const resetPassword = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 module.exports = { register, login, sendOtp, checkOtp, resetPassword };
