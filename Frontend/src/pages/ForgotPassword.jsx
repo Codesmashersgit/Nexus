@@ -117,8 +117,10 @@ function ForgotPassword() {
     try {
       const res = await axios.post(`${SERVER_URL}/api/auth/reset-password`, {
         email,
-        password: newPassword
+        password: newPassword,
+         code: otp.join("")
       });
+      setOtp(Array(6).fill(""));
 
       setMessage(res.data.message || "Password reset successfully.");
 
