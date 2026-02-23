@@ -324,7 +324,20 @@ function Dashboard() {
 
                         <div className="flex items-center gap-4">
                           <button
-                            onClick={() => guardCallLimit(() => navigate(`/room/${room.id}`))}
+                            onClick={() => guardCallLimit(() => {
+                              // Add to history as 'Joined'
+                              const joinEntry = {
+                                id: room.id,
+                                name: room.name,
+                                createdAt: new Date().toLocaleString(),
+                                type: 'Joined'
+                              };
+                              const updatedHistory = [joinEntry, ...meetingHistory];
+                              setMeetingHistory(updatedHistory);
+                              localStorage.setItem("meetingHistory", JSON.stringify(updatedHistory));
+
+                              navigate(`/room/${room.id}`);
+                            })}
                             className="bg-white text-black px-6 py-3 rounded-xl font-bold hover:bg-gray-200 transition-all text-sm shadow-xl"
                           >
                             Join Room
@@ -404,7 +417,7 @@ function Dashboard() {
         );
 
       case "Analytics":
-        return <AnalyticsDashboard />;
+        return <AnalyticsDashboard rooms={roomList} history={meetingHistory} />;
 
       case "Profile":
         return (
