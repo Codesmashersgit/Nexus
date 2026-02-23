@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, memo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useRTC } from "../context/RTCContext";
+import { incrementCallCount } from "../utils/callLimitUtils";
 import {
   FaMicrophone,
   FaMicrophoneSlash,
@@ -170,6 +171,8 @@ const Room = () => {
     checkDevice();
     window.addEventListener("resize", checkDevice);
     startRoom(roomId);
+    // Count this as one call used for the free plan
+    incrementCallCount();
     return () => {
       if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
       window.removeEventListener("resize", checkDevice);
