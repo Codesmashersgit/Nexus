@@ -1,6 +1,90 @@
-import React from 'react'
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { FaCrown, FaCheckCircle, FaSpinner } from 'react-icons/fa';
 
 const Pricing = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(null); // 'pro' or 'enterprise'
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handlePayment = async (planType, amount) => {
+    setLoading(planType);
+    const res = await loadRazorpayScript();
+
+    if (!res) {
+      alert("Razorpay SDK failed to load. Are you online?");
+      setLoading(null);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("authToken");
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
+      // 1. Create Order on Backend
+      const orderRes = await axios.post(
+        `${backendUrl}/api/payment/create-order`,
+        { amount },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const { id: order_id, currency } = orderRes.data;
+
+      // 2. Open Razorpay Checkout
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: amount * 100,
+        currency: currency,
+        name: "Nexus Meetings",
+        description: `${planType === 'pro' ? 'Pro Monthly' : 'Enterprise Yearly'} Plan Subscription`,
+        image: "/logo.png", // Replace with your logo path
+        order_id: order_id,
+        handler: async (response) => {
+          try {
+            // 3. Verify Payment on Backend
+            const verifyRes = await axios.post(
+              `${backendUrl}/api/payment/verify`,
+              response,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            if (verifyRes.data.success) {
+              navigate(`/payment-success?plan=${planType}`);
+            }
+          } catch (err) {
+            console.error("Verification failed:", err);
+            alert("Payment verification failed. Please contact support.");
+          }
+        },
+        prefill: {
+          name: localStorage.getItem("username") || "",
+          email: localStorage.getItem("email") || "",
+        },
+        theme: {
+          color: "#fa1239",
+        },
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+    } catch (error) {
+      console.error("Payment error:", error);
+      alert(error.response?.data?.message || "Something went wrong during payment initialization.");
+    } finally {
+      setLoading(null);
+    }
+  };
+
   return (
     <div className="home-container min-h-screen pt-32 pb-20 px-4 relative overflow-hidden">
       {/* Dynamic Background */}
@@ -61,8 +145,12 @@ const Pricing = () => {
                 <div className="w-1 md:w-1.5 h-1 md:h-1.5 bg-[#fa1239] rounded-full"></div> Advanced analytics
               </li>
             </ul>
-            <button className="w-full bg-[#fa1239] text-white py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs tracking-widest uppercase hover:brightness-110 transition-all shadow-xl shadow-[#fa1239]/20">
-              Subscribe Now
+            <button
+              onClick={() => handlePayment('pro', 11)}
+              disabled={loading === 'pro'}
+              className="w-full bg-[#fa1239] text-white py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs tracking-widest uppercase hover:brightness-110 transition-all shadow-xl shadow-[#fa1239]/20 flex items-center justify-center gap-2"
+            >
+              {loading === 'pro' ? <FaSpinner className="animate-spin" /> : 'Subscribe Now'}
             </button>
           </div>
 
@@ -79,8 +167,12 @@ const Pricing = () => {
                 <div className="w-1 md:w-1.5 h-1 md:h-1.5 bg-[#fa1239] rounded-full"></div> 24/7 dedicated support
               </li>
             </ul>
-            <button className="w-full glass-panel border-white/10 text-white py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs tracking-widest uppercase hover:bg-white/5 transition-all">
-              Choose Yearly
+            <button
+              onClick={() => handlePayment('enterprise', 59)}
+              disabled={loading === 'enterprise'}
+              className="w-full glass-panel border-white/10 text-white py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs tracking-widest uppercase hover:bg-white/5 transition-all flex items-center justify-center gap-2"
+            >
+              {loading === 'enterprise' ? <FaSpinner className="animate-spin" /> : 'Choose Yearly'}
             </button>
           </div>
 
@@ -90,6 +182,4 @@ const Pricing = () => {
   );
 };
 
-
-
-export default Pricing
+export default Pricing;
