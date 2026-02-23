@@ -192,8 +192,8 @@ function Dashboard({ defaultSection = "Dashboard" }) {
             <div className="relative overflow-hidden p-6 md:p-10 rounded-2xl md:rounded-3xl text-white shadow-2xl glass-panel border-white/10">
               <div className="absolute top-0 right-0 w-64 h-64 bg-[#fa1239]/10 blur-[100px] pointer-events-none"></div>
               <div className="relative z-10">
-                <h2 className="text-2xl md:text-3xl lg:text-4xl font-extrabold mb-3 tracking-tight">Welcome back, <span className="text-[#fa1239]">{userNameDisplay}</span>!</h2>
-                <p className="text-gray-400 text-base md:text-lg max-w-2xl font-medium">Manage your professional meetings and explore detailed analytics from your premium command center.</p>
+                <h2 className="text-xl md:text-2xl font-extrabold mb-2 tracking-tight">Welcome back, <span className="text-[#fa1239]">{userNameDisplay}</span>!</h2>
+                <p className="text-gray-400 text-sm md:text-base max-w-xl font-medium">Manage your professional meetings and explore detailed analytics from your premium command center.</p>
               </div>
             </div>
 
@@ -204,7 +204,7 @@ function Dashboard({ defaultSection = "Dashboard" }) {
                 </div>
                 <div>
                   <p className="text-gray-500 text-[10px] md:text-xs font-bold uppercase tracking-widest mb-1">Total Rooms</p>
-                  <p className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">{roomList.length}</p>
+                  <p className="text-xl md:text-2xl font-extrabold text-white tracking-tight">{roomList.length}</p>
                 </div>
               </div>
 
@@ -214,7 +214,7 @@ function Dashboard({ defaultSection = "Dashboard" }) {
                 </div>
                 <div>
                   <p className="text-gray-500 text-[10px] md:text-xs font-bold uppercase tracking-widest mb-1">History Entries</p>
-                  <p className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">{meetingHistory.length}</p>
+                  <p className="text-xl md:text-2xl font-extrabold text-white tracking-tight">{meetingHistory.length}</p>
                 </div>
               </div>
             </div>
@@ -273,7 +273,7 @@ function Dashboard({ defaultSection = "Dashboard" }) {
           <div className="glass-panel border-white/10 p-5 md:p-12 space-y-8 md:space-y-10">
             <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-6">
               <div>
-                <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">My Meeting Rooms</h2>
+                <h2 className="text-xl md:text-2xl font-extrabold text-white tracking-tight">My Meeting Rooms</h2>
                 <p className="text-gray-500 mt-2 text-sm md:text-base font-medium">Create and manage your private meeting spaces.</p>
               </div>
               <button
@@ -306,7 +306,7 @@ function Dashboard({ defaultSection = "Dashboard" }) {
                     <div key={room.id} className="group glass-panel hover:bg-white/5 border-white/5 hover:border-[#fa1239]/30 p-6 md:p-8 transition-all duration-500">
                       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                         <div className="flex-1 space-y-3">
-                          <h3 className="text-2xl font-bold text-white group-hover:text-[#fa1239] transition-colors tracking-tight">{room.name}</h3>
+                          <h3 className="text-xl font-bold text-white group-hover:text-[#fa1239] transition-colors tracking-tight">{room.name}</h3>
                           <p className="text-gray-500 text-sm flex items-center gap-2 font-medium">
                             <CiCalendarDate className="text-[#fa1239]" /> Created on {room.createdAt}
                           </p>
@@ -370,7 +370,7 @@ function Dashboard({ defaultSection = "Dashboard" }) {
       case "Meeting History":
         return (
           <div className="glass-panel border-white/10 p-8 md:p-12">
-            <h2 className="text-3xl font-extrabold text-white mb-10 flex items-center gap-4">
+            <h2 className="text-xl md:text-2xl font-extrabold text-white mb-8 flex items-center gap-4">
               <MdHistory className="text-[#fa1239]" /> <span className="gradient-text">Meeting History</span>
             </h2>
             {meetingHistory.length === 0 ? (
@@ -433,7 +433,7 @@ function Dashboard({ defaultSection = "Dashboard" }) {
             </div>
             <div className="pt-24 pb-12 px-12 space-y-8">
               <div>
-                <h2 className="text-4xl font-black text-white tracking-tight">{userNameDisplay}</h2>
+                <h2 className="text-2xl font-black text-white tracking-tight">{userNameDisplay}</h2>
                 <p className="text-gray-500 font-bold tracking-wide mt-1">{userEmail}</p>
               </div>
 
@@ -597,12 +597,12 @@ function Dashboard({ defaultSection = "Dashboard" }) {
         <main className="flex-1 px-4 md:px-6 lg:px-10 pt-4 md:pt-16 pb-16 max-w-7xl mx-auto w-full">
           <div className="mb-6 hidden lg:flex justify-between items-center h-20 border-b border-white/5 pb-4">
             <div>
-              <h2 className="text-3xl font-bold text-white flex items-center gap-3">
-                {activeSection === "Dashboard" && <RxDashboard className="text-[#fa1239]" />}
-                {activeSection === "Analytics" && <IoStatsChart className="text-[#fa1239]" />}
-                {activeSection === "Profile" && <ImUser className="text-[#fa1239]" />}
-                {activeSection === "Room" && <RiVideoAddFill className="text-[#fa1239]" />}
-                {activeSection === "Meeting History" && <MdHistory className="text-[#fa1239]" />}
+              <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                {activeSection === "Dashboard" && <RxDashboard size={20} className="text-[#fa1239]" />}
+                {activeSection === "Analytics" && <IoStatsChart size={20} className="text-[#fa1239]" />}
+                {activeSection === "Profile" && <ImUser size={20} className="text-[#fa1239]" />}
+                {activeSection === "Room" && <RiVideoAddFill size={20} className="text-[#fa1239]" />}
+                {activeSection === "Meeting History" && <MdHistory size={20} className="text-[#fa1239]" />}
                 <span className="gradient-text">{activeSection}</span>
               </h2>
               <p className="text-gray-400 text-xs mt-1 font-medium tracking-wide">Today is {currentDate}</p>
