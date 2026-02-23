@@ -253,15 +253,15 @@ function Dashboard({ defaultSection = "Dashboard" }) {
               <div className="flex flex-col sm:flex-row gap-4 md:gap-6">
                 <button
                   onClick={() => guardCallLimit(() => handleMenuClick("Room"))}
-                  className="bg-[#fa1239] hover:brightness-110 text-white px-6 md:px-8 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-bold transition-all flex items-center justify-center gap-3 w-full sm:w-auto shadow-lg shadow-[#fa1239]/20 text-sm md:text-base"
+                  className="bg-[#fa1239] hover:brightness-110 text-white px-6 md:px-7 py-3 md:py-3.5 rounded-xl md:rounded-2xl font-bold transition-all flex items-center justify-center gap-2.5 w-full sm:w-auto shadow-lg shadow-[#fa1239]/20 text-xs md:text-sm"
                 >
-                  <RiVideoAddFill className="text-lg md:text-xl" /> Create / Join Room
+                  <RiVideoAddFill className="text-base md:text-lg" /> Create / Join Room
                 </button>
                 <button
                   onClick={() => handleMenuClick("Analytics")}
-                  className="glass-panel hover:bg-white/10 text-white px-6 md:px-8 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-bold transition-all flex items-center justify-center gap-3 w-full sm:w-auto border-white/10 text-sm md:text-base"
+                  className="glass-panel hover:bg-white/10 text-white px-6 md:px-7 py-3 md:py-3.5 rounded-xl md:rounded-2xl font-bold transition-all flex items-center justify-center gap-2.5 w-full sm:w-auto border-white/10 text-xs md:text-sm"
                 >
-                  <IoStatsChart className="text-lg md:text-xl" /> View Analytics
+                  <IoStatsChart className="text-base md:text-lg" /> View Analytics
                 </button>
               </div>
             </div>
@@ -278,9 +278,9 @@ function Dashboard({ defaultSection = "Dashboard" }) {
               </div>
               <button
                 onClick={() => setShowCreateRoomForm(true)}
-                className="bg-[#fa1239] hover:brightness-110 text-white px-6 py-3.5 rounded-xl md:rounded-2xl font-bold transition-all flex items-center justify-center gap-3 shadow-lg shadow-[#fa1239]/20 w-full lg:w-auto text-sm md:text-base"
+                className="bg-[#fa1239] hover:brightness-110 text-white px-5 py-3 rounded-xl md:rounded-2xl font-bold transition-all flex items-center justify-center gap-2.5 shadow-lg shadow-[#fa1239]/20 w-full lg:w-auto text-xs md:text-sm"
               >
-                <RiVideoAddFill className="text-xl" /> New Room
+                <RiVideoAddFill className="text-lg" /> New Room
               </button>
             </div>
 
@@ -307,8 +307,8 @@ function Dashboard({ defaultSection = "Dashboard" }) {
                       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                         <div className="flex-1 space-y-3">
                           <h3 className="text-xl font-bold text-white group-hover:text-[#fa1239] transition-colors tracking-tight">{room.name}</h3>
-                          <p className="text-gray-500 text-sm flex items-center gap-2 font-medium">
-                            <CiCalendarDate className="text-[#fa1239]" /> Created on {room.createdAt}
+                          <p className="text-gray-500 text-xs flex items-center gap-2 font-medium">
+                            <CiCalendarDate className="text-[#fa1239] text-sm" /> Created on {room.createdAt}
                           </p>
                           <div className="mt-4 flex items-center gap-3 bg-black/40 px-4 py-3 rounded-xl border border-white/5 w-fit">
                             <code className="text-xs text-gray-400 font-mono truncate max-w-[150px] md:max-w-md">{roomURL}</code>
@@ -338,7 +338,7 @@ function Dashboard({ defaultSection = "Dashboard" }) {
 
                               navigate(`/room/${room.id}`);
                             })}
-                            className="bg-white text-black px-6 py-3 rounded-xl font-bold hover:bg-gray-200 transition-all text-sm shadow-xl"
+                            className="bg-white text-black px-5 py-2.5 rounded-xl font-bold hover:bg-gray-200 transition-all text-xs shadow-xl"
                           >
                             Join Room
                           </button>
@@ -390,8 +390,8 @@ function Dashboard({ defaultSection = "Dashboard" }) {
                   <tbody className="">
                     {meetingHistory.map((item, idx) => (
                       <tr key={idx} className="group glass-panel hover:bg-white/5 transition-all duration-300 border-none">
-                        <td className="py-6 px-6 font-bold text-white group-hover:text-[#fa1239] transition-colors rounded-l-2xl border-y border-l border-white/5">{item.name}</td>
-                        <td className="py-6 px-6 text-gray-400 font-medium border-y border-white/5">{item.createdAt}</td>
+                        <td className="py-5 px-6 font-bold text-white group-hover:text-[#fa1239] transition-colors rounded-l-2xl border-y border-l border-white/5 text-sm">{item.name}</td>
+                        <td className="py-5 px-6 text-gray-400 font-medium border-y border-white/5 text-xs">{item.createdAt}</td>
                         <td className="py-6 px-6 font-medium border-y border-white/5">
                           <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${item.type === 'Created' ? 'bg-[#fa1239]/10 text-[#fa1239]' : 'bg-blue-500/10 text-blue-400'
                             }`}>
@@ -433,19 +433,19 @@ function Dashboard({ defaultSection = "Dashboard" }) {
             </div>
             <div className="pt-24 pb-12 px-12 space-y-8">
               <div>
-                <h2 className="text-2xl font-black text-white tracking-tight">{userNameDisplay}</h2>
-                <p className="text-gray-500 font-bold tracking-wide mt-1">{userEmail}</p>
+                <h2 className="text-xl md:text-2xl font-black text-white tracking-tight">{userNameDisplay}</h2>
+                <p className="text-gray-500 font-bold tracking-wide mt-1 text-sm">{userEmail}</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
                   <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-2">Account Created</p>
-                  <p className="text-gray-300 font-bold">{accountCreatedAt || currentDate.split(',')[0]}</p>
+                  <p className="text-gray-300 font-bold text-sm">{accountCreatedAt || currentDate.split(',')[0]}</p>
                 </div>
                 <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
                   <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-2">Account Status</p>
-                  <p className={`${hasProPlan ? "text-yellow-400" : "text-[#fa1239]"} font-black flex items-center gap-2`}>
-                    <span className={`w-2 h-2 ${hasProPlan ? "bg-yellow-400" : "bg-[#fa1239]"} rounded-full animate-pulse`}></span>
+                  <p className={`${hasProPlan ? "text-yellow-400" : "text-[#fa1239]"} font-black flex items-center gap-2 text-sm`}>
+                    <span className={`w-1.5 h-1.5 ${hasProPlan ? "bg-yellow-400" : "bg-[#fa1239]"} rounded-full animate-pulse`}></span>
                     {hasProPlan ? "Premium Active" : "Free Plan"}
                   </p>
                 </div>
@@ -454,9 +454,9 @@ function Dashboard({ defaultSection = "Dashboard" }) {
               <div className="pt-6">
                 <button
                   onClick={handleLogout}
-                  className="w-full bg-red-500/10 text-red-500 font-black py-5 rounded-2xl hover:bg-red-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-3 border border-red-500/20"
+                  className="w-full bg-red-500/10 text-red-500 font-black py-4 rounded-xl hover:bg-red-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2.5 border border-red-500/20 text-sm"
                 >
-                  <CiLogout className="text-2xl" /> Sign Out
+                  <CiLogout className="text-xl" /> Sign Out
                 </button>
               </div>
             </div>
