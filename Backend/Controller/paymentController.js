@@ -1,0 +1,62 @@
+const Razorpay = require("razorpay");
+const crypto = require("crypto");
+
+/**
+ * Creates a Razorpay order
+ * Amount should be in paise (e.g., 100 paise = 1 INR)
+ */
+exports.createOrder = async (req, res) => {
+    try {
+        const { amount, currency = "INR" } = req.body;
+
+        if (!amount) {
+            return res.status(400).json({ message: "Amount is required" });
+        }
+
+        const instance = new Razorpay({
+            key_id: process.env.RAZORPAY_KEY_ID,
+            key_secret: process.env.RAZORPAY_KEY_SECRET,
+        });
+
+        const options = {
+            amount: parseInt(amount) * 100, // Amount to paise
+            currency: currency,
+            receipt: `receipt_${Date.now()}`,
+        };
+
+        const order = await instance.orders.create(options);
+
+        if (!order) {
+            return res.status(500).json({ message: "Failed to create order" });
+        }
+
+        res.status(200).json(order);
+    } catch (error) {
+        console.error("Razorpay order error:", error);
+        res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+};
+
+/**
+ * Verifies Razorpay payment signature
+ */
+exports.verifyPayment = async (req, res) => {
+    try {
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+        const sign = razorpay_order_id + "|" + razorpay_payment_id;
+        const expectedSign = crypto
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+            .update(sign.toString())
+            .digest("hex");
+
+        if (razorpay_signature === expectedSign) {
+            return res.status(200).json({ success: true, message: "Payment verified successfully" });
+        } else {
+            return res.status(400).json({ success: false, message: "Invalid signature sentinel" });
+        }
+    } catch (error) {
+        console.error("Razorpay verification error:", error);
+        res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+};
