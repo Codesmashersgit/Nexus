@@ -15,6 +15,7 @@ import Demo from './pages/Analytics';
 import Pricing from "./pages/Pricing";
 // import RoomAccess from "./user/RoomAccess";
 import ProtectedRoute from "./components/ProtectedRoute";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 import { RTCProvider } from "./context/RTCContext";
 function Layout() {
@@ -41,6 +42,7 @@ function Layout() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/room/:roomId" element={<ProtectedRoute><Room /></ProtectedRoute>} />
+          <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
 
 
 
