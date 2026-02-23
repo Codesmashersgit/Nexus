@@ -14,12 +14,12 @@ exports.createOrder = async (req, res) => {
         }
 
         const instance = new Razorpay({
-            key_id: process.env.RAZORPAY_KEY_ID,
-            key_secret: process.env.RAZORPAY_KEY_SECRET,
+            key_id: process.env.RAZORPAY_KEY_ID?.trim(),
+            key_secret: process.env.RAZORPAY_KEY_SECRET?.trim(),
         });
 
         const options = {
-            amount: parseInt(amount) * 100, // Amount to paise
+            amount: parseInt(amount) * 100, // Amount in paise
             currency: currency,
             receipt: `receipt_${Date.now()}`,
         };
@@ -27,13 +27,22 @@ exports.createOrder = async (req, res) => {
         const order = await instance.orders.create(options);
 
         if (!order) {
+            console.error("Razorpay order creation returned null/undefined");
             return res.status(500).json({ message: "Failed to create order" });
         }
 
         res.status(200).json(order);
     } catch (error) {
-        console.error("Razorpay order error:", error);
-        res.status(500).json({ message: "Internal Server Error", error: error.message });
+        console.error("Razorpay order error details:", {
+            message: error.message,
+            stack: error.stack,
+            errorObject: error // Log the whole error for deep inspection
+        });
+        res.status(500).json({
+            message: "Internal Server Error",
+            error: error.message,
+            details: "Please check backend logs for more information"
+        });
     }
 };
 
