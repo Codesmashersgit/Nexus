@@ -45,11 +45,11 @@ export const DAILY_CALL_LIMIT = CALL_LIMIT;
 /** Checks if the user has an active Pro or Enterprise plan */
 export const isProUser = () => {
     try {
-        const rawPlan = localStorage.getItem("userPlan");
-        if (rawPlan) {
-            const plan = JSON.parse(rawPlan);
-            // Check if plan is active and not expired
-            if (plan.active && new Date(plan.expiresAt) > new Date()) {
+        const rawSubscription = localStorage.getItem("subscription");
+        if (rawSubscription) {
+            const subscription = JSON.parse(rawSubscription);
+            // Check if plan is 'pro' and is active and not expired
+            if (subscription.planType === 'pro' && subscription.active && new Date(subscription.expiresAt) > new Date()) {
                 return true;
             }
         }

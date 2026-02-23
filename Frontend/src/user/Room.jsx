@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, memo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useRTC } from "../context/RTCContext";
-import { incrementCallCount } from "../utils/callLimitUtils";
+import { incrementCallCount, isProUser } from "../utils/callLimitUtils";
 import {
   FaMicrophone,
   FaMicrophoneSlash,
@@ -157,6 +157,7 @@ const Room = () => {
   const recordingIntervalRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const [isTyping, setIsTyping] = useState(false);
+  const [hasPro, setHasPro] = useState(isProUser());
 
   const chatEndRef = useRef(null);
   const prevMessagesCount = useRef(0);
@@ -241,6 +242,10 @@ const Room = () => {
   };
 
   const handleFileUpload = (e) => {
+    if (!hasPro) {
+      alert("Aree bhai, file sharing sirf Premium users ke liye hai. Upgrade karo for full access!");
+      return;
+    }
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
@@ -252,6 +257,10 @@ const Room = () => {
   };
 
   const startRecording = async () => {
+    if (!hasPro) {
+      alert("Voice messages are a Premium feature. Upgrade to Pro for full access!");
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
@@ -450,15 +459,20 @@ const Room = () => {
             ) : (
               <form onSubmit={handleSend} className="flex flex-col gap-3">
                 <div className="flex items-center gap-2">
-                  <label className="cursor-pointer p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all" title="Share Image">
-                    <FaImage size={16} className="text-slate-400" />
-                    <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                  <label className={`p-3 rounded-xl transition-all ${hasPro ? "cursor-pointer bg-white/5 hover:bg-white/10" : "cursor-not-allowed bg-white/5 opacity-50"}`} title={hasPro ? "Share Image" : "Premium Feature"}>
+                    <FaImage size={16} className={hasPro ? "text-slate-400" : "text-slate-600"} />
+                    <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={!hasPro} />
+                    {!hasPro && <div className="absolute -top-1 -right-1 bg-[#fa1239] p-0.5 rounded-full"><FaLock size={8} className="text-white" /></div>}
                   </label>
-                  <label className="cursor-pointer p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all" title="Share Documents">
-                    <FaFileAlt size={16} className="text-slate-400" />
-                    <input type="file" className="hidden" onChange={handleFileUpload} />
+                  <label className={`p-3 rounded-xl transition-all ${hasPro ? "cursor-pointer bg-white/5 hover:bg-white/10" : "cursor-not-allowed bg-white/5 opacity-50"}`} title={hasPro ? "Share Documents" : "Premium Feature"}>
+                    <FaFileAlt size={16} className={hasPro ? "text-slate-400" : "text-slate-600"} />
+                    <input type="file" className="hidden" onChange={handleFileUpload} disabled={!hasPro} />
+                    {!hasPro && <div className="absolute -top-1 -right-1 bg-[#fa1239] p-0.5 rounded-full"><FaLock size={8} className="text-white" /></div>}
                   </label>
-                  <button type="button" onClick={startRecording} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all" title="Voice message"><FaMicrophone size={16} className="text-slate-400" /></button>
+                  <button type="button" onClick={startRecording} className={`p-3 rounded-xl transition-all ${hasPro ? "bg-white/5 hover:bg-white/10" : "bg-white/5 opacity-50 cursor-not-allowed"}`} title={hasPro ? "Voice message" : "Premium Feature"}>
+                    <FaMicrophone size={16} className={hasPro ? "text-slate-400" : "text-slate-600"} />
+                    {!hasPro && <div className="absolute -top-1 -right-1 bg-[#fa1239] p-0.5 rounded-full"><FaLock size={8} className="text-white" /></div>}
+                  </button>
                 </div>
                 <div className="relative group">
                   <input type="text" value={chatInput} onChange={handleTyping} placeholder="Send a message..." className="w-full bg-slate-800/80 border-none rounded-2xl py-4 pl-5 pr-14 text-sm focus:ring-1 focus:ring-[#fa1239]/50 transition-all font-medium" />

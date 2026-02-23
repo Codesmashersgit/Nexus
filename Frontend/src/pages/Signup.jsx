@@ -34,6 +34,9 @@ function Signup() {
       localStorage.setItem("username", user.username);
       localStorage.setItem("email", user.email);
       localStorage.setItem("createdAt", user.createdAt);
+      if (user.subscription) {
+        localStorage.setItem("subscription", JSON.stringify(user.subscription));
+      }
 
       const redirectPath = localStorage.getItem("redirectPath");
       // Only redirect to stored path if it's a room path, otherwise default to dashboard

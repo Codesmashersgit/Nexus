@@ -164,8 +164,28 @@ function Dashboard({ defaultSection = "Dashboard" }) {
     const storedHistory = localStorage.getItem("meetingHistory");
     if (storedHistory) setMeetingHistory(JSON.parse(storedHistory));
 
-    setUserNameDisplay(localStorage.getItem("username") || "Guest User");
-    setUserEmail(localStorage.getItem("email") || "email@example.com");
+    localStorage.setItem("username", localStorage.getItem("username") || "Guest User"); // Ensure these exist
+    localStorage.setItem("email", localStorage.getItem("email") || "email@example.com");
+
+    const fetchUserProfile = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) return;
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/profile`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.subscription) {
+          localStorage.setItem("subscription", JSON.stringify(data.subscription));
+          setHasProPlan(data.subscription.planType === 'pro' && data.subscription.active);
+        }
+        setUserNameDisplay(data.username);
+        setUserEmail(data.email);
+      } catch (err) {
+        console.error("Failed to fetch profile:", err);
+      }
+    };
+    fetchUserProfile();
 
     const rawDate = localStorage.getItem("createdAt");
     if (rawDate) {
