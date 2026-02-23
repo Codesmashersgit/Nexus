@@ -437,7 +437,7 @@ function Dashboard({ defaultSection = "Dashboard" }) {
                 <p className="text-gray-500 font-bold tracking-wide mt-1">{userEmail}</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
                   <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-2">Account Created</p>
                   <p className="text-gray-300 font-bold">{accountCreatedAt || currentDate.split(',')[0]}</p>
