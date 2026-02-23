@@ -17,7 +17,8 @@ import {
   FaDesktop,
   FaCommentAlt,
   FaStop,
-  FaTrash
+  FaTrash,
+  FaLock
 } from "react-icons/fa";
 import Avatar from "../components/Avatar";
 
