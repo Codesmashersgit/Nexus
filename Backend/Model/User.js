@@ -10,7 +10,8 @@ const userSchema = new mongoose.Schema(
     resetPasswordToken: String,
     resetPasswordExpires: Date,
     otp: String, // New: OTP code
-    otpExpires: Date // New: OTP expiry
+    otpExpires: Date, // New: OTP expiry
+    subscriptionPlan: { type: String, default: 'free' } // New: subscription plan
   },
   { timestamps: true }
 );

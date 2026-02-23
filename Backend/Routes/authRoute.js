@@ -9,17 +9,22 @@ require("dotenv").config();
 const {
   sendOtp,
   checkOtp,
-  resetPassword
+  resetPassword,
+  getProfile
 } = require("../Controller/auth-controller");
 
 const { register, login } = require("../Controller/auth-controller");
 const User = require("../Model/User");
+const authMiddleware = require("../Middleware/Auth");
 
 // Register route
 router.post("/register", register);
 
 // Login route
 router.post("/login", login);
+
+// Profile route
+router.get("/profile", authMiddleware, getProfile);
 
 // Google OAuth routes
 router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));

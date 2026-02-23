@@ -45,11 +45,11 @@ const login = async (req, res) => {
 };
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com", 
-  port: 465,              
-  secure: true,           
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
   auth: {
-    user: process.env.EMAIL_USER, 
+    user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 });
@@ -68,10 +68,10 @@ const sendOtp = async (req, res) => {
     await user.save();
 
     await transporter.sendMail({
-  from: process.env.EMAIL_USER,
-  to: email,
-  subject: "Your OTP for Password Reset",
-  html: `
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Your OTP for Password Reset",
+      html: `
     <div style="font-family: 'Arial', sans-serif; background: #f9f9f9; padding: 40px; text-align: center;">
       <div style="max-width: 600px; margin: auto; border-radius: 12px; background: #ffffff; padding: 40px; box-shadow: 0 10px 30px rgba(250, 18, 57, 0.2);">
         
@@ -97,7 +97,7 @@ const sendOtp = async (req, res) => {
       </div>
     </div>
   `,
-});
+    });
 
 
     res.json({ message: "OTP sent to your email" });
@@ -149,5 +149,16 @@ const resetPassword = async (req, res) => {
   }
 };
 
+// Get User Profile
+const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password -otp -otpExpires");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
-module.exports = { register, login, sendOtp, checkOtp, resetPassword };
+
+module.exports = { register, login, sendOtp, checkOtp, resetPassword, getProfile };

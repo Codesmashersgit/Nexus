@@ -65,6 +65,12 @@ exports.verifyPayment = async (req, res) => {
             .digest("hex");
 
         if (razorpay_signature === expectedSign) {
+            // Update user's subscription plan
+            const User = require("../Model/User");
+            const { planType } = req.body;
+            if (planType && req.user && req.user.id) {
+                await User.findByIdAndUpdate(req.user.id, { subscriptionPlan: planType });
+            }
             return res.status(200).json({ success: true, message: "Payment verified successfully" });
         } else {
             return res.status(400).json({ success: false, message: "Invalid signature sentinel" });
