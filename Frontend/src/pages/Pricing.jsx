@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FaCrown, FaCheckCircle, FaSpinner } from 'react-icons/fa';
+import { AuthContext } from '../AuthContext';
 
 const Pricing = () => {
   const navigate = useNavigate();
+  const { user, fetchProfile } = useContext(AuthContext);
   const [loading, setLoading] = useState(null); // 'pro' or 'enterprise'
 
   const loadRazorpayScript = () => {
@@ -54,11 +56,12 @@ const Pricing = () => {
             // 3. Verify Payment on Backend
             const verifyRes = await axios.post(
               `${backendUrl}/api/payment/verify`,
-              response,
+              { ...response, planType },
               { headers: { Authorization: `Bearer ${token}` } }
             );
 
             if (verifyRes.data.success) {
+              await fetchProfile(token);
               navigate(`/payment-success?plan=${planType}`);
             }
           } catch (err) {
@@ -84,6 +87,10 @@ const Pricing = () => {
     } finally {
       setLoading(null);
     }
+  };
+
+  const isPlanActive = (planType) => {
+    return user?.subscriptionPlan === planType;
   };
 
   return (
@@ -122,8 +129,11 @@ const Pricing = () => {
                 <div className="w-1 md:w-1.5 h-1 md:h-1.5 bg-[#fa1239] rounded-full"></div> Up to 2 participants
               </li>
             </ul>
-            <button className="w-full bg-white/5 text-gray-400 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs tracking-widest uppercase cursor-not-allowed border border-white/5" disabled>
-              Current Plan
+            <button
+              className={`w-full py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs tracking-widest uppercase border border-white/5 ${isPlanActive('free') || !user ? 'bg-white/5 text-gray-400 cursor-not-allowed' : 'bg-white/5 text-white hover:bg-white/10'}`}
+              disabled={isPlanActive('free') || !user}
+            >
+              {isPlanActive('free') || !user ? 'Current Plan' : 'Select Plan'}
             </button>
           </div>
 
@@ -148,10 +158,10 @@ const Pricing = () => {
             </ul>
             <button
               onClick={() => handlePayment('pro', 11)}
-              disabled={loading === 'pro'}
-              className="w-full bg-[#fa1239] text-white py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs tracking-widest uppercase hover:brightness-110 transition-all shadow-xl shadow-[#fa1239]/20 flex items-center justify-center gap-2"
+              disabled={loading === 'pro' || isPlanActive('pro')}
+              className={`w-full py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs tracking-widest uppercase transition-all shadow-xl flex items-center justify-center gap-2 ${isPlanActive('pro') ? 'bg-green-500/20 text-green-500 cursor-not-allowed border border-green-500/30' : 'bg-[#fa1239] text-white hover:brightness-110 shadow-[#fa1239]/20'}`}
             >
-              {loading === 'pro' ? <FaSpinner className="animate-spin" /> : 'Subscribe Now'}
+              {loading === 'pro' ? <FaSpinner className="animate-spin" /> : isPlanActive('pro') ? 'Active' : 'Subscribe Now'}
             </button>
           </div>
 
@@ -170,10 +180,10 @@ const Pricing = () => {
             </ul>
             <button
               onClick={() => handlePayment('enterprise', 59)}
-              disabled={loading === 'enterprise'}
-              className="w-full glass-panel border-white/10 text-white py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs tracking-widest uppercase hover:bg-white/5 transition-all flex items-center justify-center gap-2"
+              disabled={loading === 'enterprise' || isPlanActive('enterprise')}
+              className={`w-full py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs tracking-widest uppercase transition-all flex items-center justify-center gap-2 ${isPlanActive('enterprise') ? 'bg-green-500/20 text-green-500 cursor-not-allowed border border-green-500/30' : 'glass-panel border-white/10 text-white hover:bg-white/5'}`}
             >
-              {loading === 'enterprise' ? <FaSpinner className="animate-spin" /> : 'Choose Yearly'}
+              {loading === 'enterprise' ? <FaSpinner className="animate-spin" /> : isPlanActive('enterprise') ? 'Active' : 'Choose Yearly'}
             </button>
           </div>
 
