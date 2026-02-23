@@ -6,6 +6,7 @@ const passport = require("passport");
 const mongoose = require("mongoose");
 
 const authRoutes = require("./Routes/authRoute");
+const paymentRoutes = require("./Routes/paymentRoute");
 require("./config/passport");
 
 const app = express();
@@ -29,6 +30,7 @@ app.use(passport.initialize());
 
 // ===== Routes =====
 app.use("/api/auth", authRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // ===== Socket.IO =====
 const { Server } = require("socket.io");
