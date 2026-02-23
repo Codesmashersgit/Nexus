@@ -37,8 +37,10 @@ const AnalyticsDashboard = ({ rooms: initialRooms = [], history: initialHistory 
   const totalRooms = rooms.length;
   const totalMeetings = history.length;
 
-  // Mock some active sessions based on data presence
-  const activeSessions = totalMeetings > 0 ? Math.floor(Math.random() * 5) + 1 : 0;
+  // Mock some active sessions based on data presence (Memoized to prevent fluctuation)
+  const activeSessions = useMemo(() => {
+    return totalMeetings > 0 ? Math.floor(Math.random() * 5) + 1 : 0;
+  }, [totalMeetings]);
 
   // Calculate engagement rate (dummy logic: meetings per room ratio)
   const engagementRate = totalRooms > 0
