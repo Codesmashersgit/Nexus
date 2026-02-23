@@ -13,6 +13,11 @@ exports.createOrder = async (req, res) => {
             return res.status(400).json({ message: "Amount is required" });
         }
 
+        if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+            console.error("Razorpay API keys are missing in environment variables!");
+            return res.status(500).json({ message: "Payment configuration error on server" });
+        }
+
         const instance = new Razorpay({
             key_id: process.env.RAZORPAY_KEY_ID?.trim(),
             key_secret: process.env.RAZORPAY_KEY_SECRET?.trim(),
