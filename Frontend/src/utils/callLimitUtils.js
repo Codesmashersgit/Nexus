@@ -41,3 +41,18 @@ export const incrementCallCount = () => {
 
 /** Total daily call limit (for UI display) */
 export const DAILY_CALL_LIMIT = CALL_LIMIT;
+
+/** Checks if the user has an active Pro or Enterprise plan */
+export const isProUser = () => {
+    try {
+        const rawPlan = localStorage.getItem("userPlan");
+        if (rawPlan) {
+            const plan = JSON.parse(rawPlan);
+            // Check if plan is active and not expired
+            if (plan.active && new Date(plan.expiresAt) > new Date()) {
+                return true;
+            }
+        }
+    } catch (_) { /* ignore */ }
+    return false;
+};
