@@ -1,11 +1,24 @@
 
 import { createContext, useEffect, useState } from "react";
+import axios from "axios";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
+
+  const fetchProfile = async (token) => {
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+      const res = await axios.get(`${backendUrl}/api/auth/profile`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUser(prev => ({ ...prev, ...res.data }));
+    } catch (err) {
+      console.error("Failed to fetch profile:", err);
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -14,7 +27,8 @@ export const AuthProvider = ({ children }) => {
 
     if (token && username) {
       setIsLoggedIn(true);
-      setUser({ name: username, email: email || "Anonymous" });
+      setUser({ name: username, email: email || "Anonymous", subscriptionPlan: 'free' });
+      fetchProfile(token);
     }
   }, []);
 
@@ -23,7 +37,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("username", username);
     localStorage.setItem("email", email);
     setIsLoggedIn(true);
-    setUser({ name: username, email: email });
+    setUser({ name: username, email: email, subscriptionPlan: 'free' });
+    fetchProfile(token);
   };
 
   const logout = () => {
@@ -35,7 +50,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, user, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, user, login, logout, fetchProfile }}>
       {children}
     </AuthContext.Provider>
   );
