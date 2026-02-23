@@ -133,17 +133,7 @@ const AnalyticsDashboard = ({ rooms: initialRooms = [], history: initialHistory 
   };
 
   return (
-    <div className="pt-24 px-4 lg:px-0">
-      <div className="flex justify-between items-end mb-10">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Platform <span className="text-[#fa1239]">Analytics</span></h1>
-          <p className="text-gray-400 font-medium">Real-time performance metrics for your meetings</p>
-        </div>
-        <div className="hidden md:block">
-          <button className="px-5 py-2.5 glass-panel text-sm font-bold border-white/10 hover:bg-white/5 transition-all">Download Report</button>
-        </div>
-      </div>
-
+    <div className="pt-4 px-4 lg:px-0">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
         {stats.map((stat, index) => (

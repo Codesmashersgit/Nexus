@@ -33,7 +33,7 @@ function Layout() {
       <RTCProvider>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/analytics" element={<ProtectedRoute><Demo /></ProtectedRoute>} />
+          <Route path="/analytics" element={<ProtectedRoute><Dashboard defaultSection="Analytics" /></ProtectedRoute>} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />

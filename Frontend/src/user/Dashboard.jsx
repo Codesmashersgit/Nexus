@@ -24,10 +24,10 @@ import {
   isProUser,
 } from "../utils/callLimitUtils";
 
-function Dashboard() {
+function Dashboard({ defaultSection = "Dashboard" }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState("Dashboard");
+  const [activeSection, setActiveSection] = useState(defaultSection);
   const [showCreateRoomForm, setShowCreateRoomForm] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
 
