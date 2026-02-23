@@ -13,7 +13,26 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend, Filler);
 
-const AnalyticsDashboard = ({ rooms = [], history = [] }) => {
+const AnalyticsDashboard = ({ rooms: initialRooms = [], history: initialHistory = [] }) => {
+  // Use state to handle cases where props aren't provided (e.g. direct /analytics link)
+  const [rooms, setRooms] = React.useState(initialRooms);
+  const [history, setHistory] = React.useState(initialHistory);
+
+  React.useEffect(() => {
+    // If props were provided (from Dashboard), use them
+    if (initialRooms.length > 0 || initialHistory.length > 0) {
+      setRooms(initialRooms);
+      setHistory(initialHistory);
+    } else {
+      // Fallback: Load from localStorage for standalone page
+      const storedRooms = localStorage.getItem("rooms");
+      if (storedRooms) setRooms(JSON.parse(storedRooms));
+
+      const storedHistory = localStorage.getItem("meetingHistory");
+      if (storedHistory) setHistory(JSON.parse(storedHistory));
+    }
+  }, [initialRooms, initialHistory]);
+
   // Calculate stats based on real data
   const totalRooms = rooms.length;
   const totalMeetings = history.length;
