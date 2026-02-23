@@ -21,6 +21,7 @@ import {
   isCallLimitExceeded,
   getCallsRemaining,
   DAILY_CALL_LIMIT,
+  isProUser,
 } from "../utils/callLimitUtils";
 
 function Dashboard() {
@@ -35,6 +36,7 @@ function Dashboard() {
   const [meetingHistory, setMeetingHistory] = useState([]);
   const [copySuccess, setCopySuccess] = useState(null);
   const [callsRemaining, setCallsRemaining] = useState(getCallsRemaining());
+  const [hasProPlan, setHasProPlan] = useState(isProUser());
 
   const [_isLogged, setIsLogged] = useState(false);
   const [userNameDisplay, setUserNameDisplay] = useState("User");
@@ -94,6 +96,7 @@ function Dashboard() {
 
   // Guard: check call limit before entering any room
   const guardCallLimit = (onAllowed) => {
+    if (hasProPlan) return onAllowed();
     if (isCallLimitExceeded()) {
       setShowLimitModal(true);
     } else {
@@ -216,29 +219,31 @@ function Dashboard() {
               </div>
             </div>
 
-            {/* Daily Call Limit Badge */}
-            <div className="glass-panel p-4 md:p-6 border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="bg-[#fa1239]/10 p-3 rounded-xl">
-                  <FaCrown className="text-[#fa1239] text-xl" />
+            {/* Daily Call Limit Badge (Only for Free users) */}
+            {!hasProPlan && (
+              <div className="glass-panel p-4 md:p-6 border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="bg-[#fa1239]/10 p-3 rounded-xl">
+                    <FaCrown className="text-[#fa1239] text-xl" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Free Plan · Daily Call Limit</p>
+                    <p className="text-white font-bold text-sm">
+                      {callsRemaining > 0
+                        ? <><span className="text-[#fa1239] text-lg font-black">{callsRemaining}</span> / {DAILY_CALL_LIMIT} calls remaining today</>
+                        : <span className="text-red-400">Daily limit reached — upgrade to continue</span>
+                      }
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Free Plan · Daily Call Limit</p>
-                  <p className="text-white font-bold text-sm">
-                    {callsRemaining > 0
-                      ? <><span className="text-[#fa1239] text-lg font-black">{callsRemaining}</span> / {DAILY_CALL_LIMIT} calls remaining today</>
-                      : <span className="text-red-400">Daily limit reached — upgrade to continue</span>
-                    }
-                  </p>
-                </div>
+                <button
+                  onClick={() => setShowLimitModal(true)}
+                  className="text-[10px] font-black uppercase tracking-widest text-[#fa1239] border border-[#fa1239]/30 px-4 py-2 rounded-xl hover:bg-[#fa1239]/10 transition-all whitespace-nowrap"
+                >
+                  Upgrade ↗
+                </button>
               </div>
-              <button
-                onClick={() => setShowLimitModal(true)}
-                className="text-[10px] font-black uppercase tracking-widest text-[#fa1239] border border-[#fa1239]/30 px-4 py-2 rounded-xl hover:bg-[#fa1239]/10 transition-all whitespace-nowrap"
-              >
-                Upgrade ↗
-              </button>
-            </div>
+            )}
 
             <div className="glass-panel p-6 md:p-10">
               <h3 className="text-lg md:text-xl font-bold mb-6 md:mb-8 text-white flex items-center gap-3">
@@ -426,9 +431,9 @@ function Dashboard() {
                 </div>
                 <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
                   <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-2">Account Status</p>
-                  <p className="text-[#fa1239] font-black flex items-center gap-2">
-                    <span className="w-2 h-2 bg-[#fa1239] rounded-full animate-pulse"></span>
-                    Premium Active
+                  <p className={`${hasProPlan ? "text-yellow-400" : "text-[#fa1239]"} font-black flex items-center gap-2`}>
+                    <span className={`w-2 h-2 ${hasProPlan ? "bg-yellow-400" : "bg-[#fa1239]"} rounded-full animate-pulse`}></span>
+                    {hasProPlan ? "Premium Active" : "Free Plan"}
                   </p>
                 </div>
               </div>
