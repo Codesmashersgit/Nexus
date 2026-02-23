@@ -27,7 +27,9 @@ import {
 function Dashboard({ defaultSection = "Dashboard" }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState(defaultSection);
+  const [activeSection, setActiveSection] = useState(() => {
+    return localStorage.getItem("activeDashboardSection") || defaultSection;
+  });
   const [showCreateRoomForm, setShowCreateRoomForm] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
 
@@ -62,6 +64,18 @@ function Dashboard({ defaultSection = "Dashboard" }) {
     });
     setCurrentDate(formatted);
   }, []);
+
+  // Update active section when prop changes (e.g. from routing)
+  useEffect(() => {
+    if (defaultSection) {
+      setActiveSection(defaultSection);
+    }
+  }, [defaultSection]);
+
+  // Persist active section
+  useEffect(() => {
+    localStorage.setItem("activeDashboardSection", activeSection);
+  }, [activeSection]);
 
   // Toggle dropdown
   const toggleDropdown = () => setIsDropdownOpen(prev => !prev);
