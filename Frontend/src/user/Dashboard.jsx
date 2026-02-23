@@ -12,22 +12,29 @@ import { IoIosArrowDown, IoIosArrowUp, IoMdCopy } from "react-icons/io";
 import { IoHome, IoStatsChart } from "react-icons/io5";
 import { TiGroup } from "react-icons/ti";
 import { CiLogout } from "react-icons/ci";
-import { FaWhatsapp, FaCheckCircle } from "react-icons/fa";
+import { FaWhatsapp, FaCheckCircle, FaCrown, FaLock } from "react-icons/fa";
 import { CiCalendarDate } from "react-icons/ci";
 import { MdEmail, MdDelete, MdHistory } from "react-icons/md";
 import { IoCloseSharp } from "react-icons/io5";
 import AnalyticsDashboard from "../pages/Analytics";
+import {
+  isCallLimitExceeded,
+  getCallsRemaining,
+  DAILY_CALL_LIMIT,
+} from "../utils/callLimitUtils";
 
 function Dashboard() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("Dashboard");
   const [showCreateRoomForm, setShowCreateRoomForm] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
 
   const [roomName, setRoomName] = useState("");
   const [roomList, setRoomList] = useState([]);
   const [meetingHistory, setMeetingHistory] = useState([]);
   const [copySuccess, setCopySuccess] = useState(null);
+  const [callsRemaining, setCallsRemaining] = useState(getCallsRemaining());
 
   const [_isLogged, setIsLogged] = useState(false);
   const [userNameDisplay, setUserNameDisplay] = useState("User");
@@ -85,10 +92,25 @@ function Dashboard() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isMenuOpen]);
 
+  // Guard: check call limit before entering any room
+  const guardCallLimit = (onAllowed) => {
+    if (isCallLimitExceeded()) {
+      setShowLimitModal(true);
+    } else {
+      onAllowed();
+    }
+  };
+
   // Create new room
   const handleCreateRoom = (e) => {
     e.preventDefault();
     if (!roomName.trim()) return;
+
+    if (isCallLimitExceeded()) {
+      setShowCreateRoomForm(false);
+      setShowLimitModal(true);
+      return;
+    }
 
     const newRoom = {
       id: uuidv4(),
@@ -105,6 +127,7 @@ function Dashboard() {
     setMeetingHistory(updatedHistory);
     localStorage.setItem("meetingHistory", JSON.stringify(updatedHistory));
 
+    setCallsRemaining(getCallsRemaining());
     setRoomName("");
     setShowCreateRoomForm(false);
   };
@@ -193,6 +216,30 @@ function Dashboard() {
               </div>
             </div>
 
+            {/* Daily Call Limit Badge */}
+            <div className="glass-panel p-4 md:p-6 border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="bg-[#fa1239]/10 p-3 rounded-xl">
+                  <FaCrown className="text-[#fa1239] text-xl" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Free Plan · Daily Call Limit</p>
+                  <p className="text-white font-bold text-sm">
+                    {callsRemaining > 0
+                      ? <><span className="text-[#fa1239] text-lg font-black">{callsRemaining}</span> / {DAILY_CALL_LIMIT} calls remaining today</>
+                      : <span className="text-red-400">Daily limit reached — upgrade to continue</span>
+                    }
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowLimitModal(true)}
+                className="text-[10px] font-black uppercase tracking-widest text-[#fa1239] border border-[#fa1239]/30 px-4 py-2 rounded-xl hover:bg-[#fa1239]/10 transition-all whitespace-nowrap"
+              >
+                Upgrade ↗
+              </button>
+            </div>
+
             <div className="glass-panel p-6 md:p-10">
               <h3 className="text-lg md:text-xl font-bold mb-6 md:mb-8 text-white flex items-center gap-3">
                 <div className="w-1 md:w-1.5 h-6 md:h-8 bg-[#fa1239] rounded-full"></div>
@@ -200,7 +247,7 @@ function Dashboard() {
               </h3>
               <div className="flex flex-col sm:flex-row gap-4 md:gap-6">
                 <button
-                  onClick={() => handleMenuClick("Room")}
+                  onClick={() => guardCallLimit(() => handleMenuClick("Room"))}
                   className="bg-[#fa1239] hover:brightness-110 text-white px-6 md:px-8 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-bold transition-all flex items-center justify-center gap-3 w-full sm:w-auto shadow-lg shadow-[#fa1239]/20 text-sm md:text-base"
                 >
                   <RiVideoAddFill className="text-lg md:text-xl" /> Create / Join Room
@@ -272,7 +319,7 @@ function Dashboard() {
 
                         <div className="flex items-center gap-4">
                           <button
-                            onClick={() => navigate(`/room/${room.id}`)}
+                            onClick={() => guardCallLimit(() => navigate(`/room/${room.id}`))}
                             className="bg-white text-black px-6 py-3 rounded-xl font-bold hover:bg-gray-200 transition-all text-sm shadow-xl"
                           >
                             Join Room
@@ -564,6 +611,70 @@ function Dashboard() {
           © {new Date().getFullYear()} Nexus. Premium Virtual Meetings.
         </footer>
       </div>
+
+      {/* Daily Call Limit Exceeded Modal */}
+      {showLimitModal && (
+        <div className="fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-xl z-[9999] flex items-center justify-center p-4">
+          <div className="glass-panel border-[#fa1239]/20 p-8 md:p-12 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-300 relative overflow-hidden text-center">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-[#fa1239]/10 blur-[80px] pointer-events-none" />
+            <div className="absolute -top-2 -left-2 w-32 h-32 bg-yellow-500/5 blur-[60px] pointer-events-none" />
+
+            <button
+              onClick={() => setShowLimitModal(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
+            >
+              <IoCloseSharp size={22} />
+            </button>
+
+            {/* Icon */}
+            <div className="w-20 h-20 bg-[#fa1239]/10 border border-[#fa1239]/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_40px_rgba(250,18,57,0.2)]">
+              <FaLock className="text-[#fa1239] text-3xl" />
+            </div>
+
+            <h3 className="text-2xl md:text-3xl font-black text-white mb-3 tracking-tight">
+              Daily Limit <span className="text-[#fa1239]">Reached</span>
+            </h3>
+            <p className="text-gray-400 text-sm font-medium leading-relaxed mb-2">
+              Free plan mein sirf <span className="text-white font-bold">{DAILY_CALL_LIMIT} video calls per day</span> allowed hain.
+            </p>
+            <p className="text-gray-500 text-xs mb-8">
+              Aaj ki limit khatam ho gayi hai. Kal phir try karo ya Pro plan upgrade karo for unlimited calls.
+            </p>
+
+            {/* Stats */}
+            <div className="flex justify-center gap-8 mb-8">
+              <div className="text-center">
+                <p className="text-3xl font-black text-[#fa1239]">{DAILY_CALL_LIMIT}</p>
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-1">Daily Limit</p>
+              </div>
+              <div className="w-px bg-white/10" />
+              <div className="text-center">
+                <p className="text-3xl font-black text-white">0</p>
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-1">Remaining</p>
+              </div>
+              <div className="w-px bg-white/10" />
+              <div className="text-center">
+                <p className="text-3xl font-black text-green-400">∞</p>
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-1">Pro Plan</p>
+              </div>
+            </div>
+
+            {/* CTA */}
+            <a
+              href="/pricing"
+              className="w-full flex items-center justify-center gap-3 bg-[#fa1239] hover:brightness-110 text-white font-black py-4 rounded-2xl shadow-xl shadow-[#fa1239]/20 transition-all active:scale-95 text-sm tracking-widest uppercase mb-3"
+            >
+              <FaCrown /> Upgrade to Pro
+            </a>
+            <button
+              onClick={() => setShowLimitModal(false)}
+              className="w-full py-3 rounded-2xl bg-white/5 text-gray-400 font-bold hover:bg-white/10 hover:text-white transition-all text-sm"
+            >
+              Maybe Later
+            </button>
+          </div>
+        </div>
+      )}
 
       {showCreateRoomForm && (
         <div className="fixed inset-0 w-screen h-screen bg-black/60 backdrop-blur-xl z-[9999] flex items-center justify-center p-4">
