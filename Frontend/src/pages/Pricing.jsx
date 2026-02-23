@@ -79,7 +79,8 @@ const Pricing = () => {
       paymentObject.open();
     } catch (error) {
       console.error("Payment error:", error);
-      alert(error.response?.data?.message || "Something went wrong during payment initialization.");
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || "Something went wrong during payment initialization.";
+      alert(`Error: ${errorMessage}`);
     } finally {
       setLoading(null);
     }
