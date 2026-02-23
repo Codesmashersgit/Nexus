@@ -69,7 +69,16 @@ exports.verifyPayment = async (req, res) => {
             const User = require("../Model/User");
             const { planType } = req.body;
             if (planType && req.user && req.user.id) {
-                await User.findByIdAndUpdate(req.user.id, { subscriptionPlan: planType });
+                const expiresAt = new Date();
+                expiresAt.setDate(expiresAt.getDate() + 30); // Default to 30 days for pro
+
+                await User.findByIdAndUpdate(req.user.id, {
+                    subscription: {
+                        planType: planType,
+                        active: true,
+                        expiresAt: expiresAt
+                    }
+                });
             }
             return res.status(200).json({ success: true, message: "Payment verified successfully" });
         } else {

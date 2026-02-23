@@ -11,7 +11,11 @@ const userSchema = new mongoose.Schema(
     resetPasswordExpires: Date,
     otp: String, // New: OTP code
     otpExpires: Date, // New: OTP expiry
-    subscriptionPlan: { type: String, default: 'free' } // New: subscription plan
+    subscription: {
+      planType: { type: String, default: 'free' },
+      active: { type: Boolean, default: false },
+      expiresAt: { type: Date }
+    } // Updated: detailed subscription info
   },
   { timestamps: true }
 );
