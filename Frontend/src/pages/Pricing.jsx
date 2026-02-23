@@ -28,6 +28,9 @@ const Pricing = () => {
             <p className="text-gray-500 mb-8 md:mb-10 text-sm md:text-base font-medium">Forever free for individuals</p>
             <ul className="text-left w-full space-y-3 md:space-y-4 mb-10 md:mb-12 flex-1">
               <li className="flex items-center gap-3 text-xs md:text-sm text-gray-300 font-medium opacity-80">
+                <div className="w-1 md:w-1.5 h-1 md:h-1.5 bg-[#fa1239] rounded-full"></div> 2 video calls per day
+              </li>
+              <li className="flex items-center gap-3 text-xs md:text-sm text-gray-300 font-medium opacity-80">
                 <div className="w-1 md:w-1.5 h-1 md:h-1.5 bg-[#fa1239] rounded-full"></div> 40-minute meetings
               </li>
               <li className="flex items-center gap-3 text-xs md:text-sm text-gray-300 font-medium opacity-80">
