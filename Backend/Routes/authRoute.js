@@ -10,7 +10,8 @@ const {
   sendOtp,
   checkOtp,
   resetPassword,
-  getProfile
+  getProfile,
+  incrementCallCount
 } = require("../Controller/auth-controller");
 
 const { register, login } = require("../Controller/auth-controller");
@@ -53,5 +54,6 @@ router.get(
 router.post("/send-otp", sendOtp);
 router.post("/check-otp", checkOtp);
 router.post("/reset-password", resetPassword);
+router.post("/increment-call", authMiddleware, incrementCallCount);
 
 module.exports = router;

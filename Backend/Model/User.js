@@ -16,7 +16,11 @@ const userSchema = new mongoose.Schema(
       active: { type: Boolean, default: false },
       expiresAt: { type: Date },
       processedPayments: [{ type: String }] // track razorpay_payment_id to prevent duplicates
-    } // Updated: detailed subscription info
+    }, // Updated: detailed subscription info
+    callUsage: {
+      count: { type: Number, default: 0 },
+      lastUsedDate: { type: String, default: "" } // Format: YYYY-MM-DD
+    }
   },
   { timestamps: true }
 );

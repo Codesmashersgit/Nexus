@@ -154,11 +154,43 @@ const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password -otp -otpExpires");
     if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Daily Reset Logic for Call Usage
+    const today = new Date().toISOString().slice(0, 10);
+    if (user.callUsage.lastUsedDate !== today) {
+      user.callUsage.count = 0;
+      user.callUsage.lastUsedDate = today;
+      await user.save();
+    }
+
     res.json(user);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
+// Increment Call Count
+const incrementCallCount = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-module.exports = { register, login, sendOtp, checkOtp, resetPassword, getProfile };
+    const today = new Date().toISOString().slice(0, 10);
+
+    // Check if it's a new day, reset if so
+    if (user.callUsage.lastUsedDate !== today) {
+      user.callUsage.count = 1;
+      user.callUsage.lastUsedDate = today;
+    } else {
+      user.callUsage.count += 1;
+    }
+
+    await user.save();
+    res.json({ success: true, count: user.callUsage.count });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+module.exports = { register, login, sendOtp, checkOtp, resetPassword, getProfile, incrementCallCount };
