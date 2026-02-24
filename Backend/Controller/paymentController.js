@@ -97,12 +97,12 @@ exports.verifyPayment = async (req, res) => {
                 }
 
                 await User.findByIdAndUpdate(req.user.id, {
-                    subscription: {
-                        planType: planType,
-                        active: true,
-                        expiresAt: newExpiresAt,
-                        $addToSet: { "subscription.processedPayments": razorpay_payment_id }
-                    }
+                    $set: {
+                        "subscription.planType": planType,
+                        "subscription.active": true,
+                        "subscription.expiresAt": newExpiresAt
+                    },
+                    $addToSet: { "subscription.processedPayments": razorpay_payment_id }
                 });
             }
             return res.status(200).json({ success: true, message: "Payment verified successfully" });
