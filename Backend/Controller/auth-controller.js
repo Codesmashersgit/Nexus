@@ -45,9 +45,7 @@ const login = async (req, res) => {
 };
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -102,7 +100,8 @@ const sendOtp = async (req, res) => {
 
     res.json({ message: "OTP sent to your email" });
   } catch (err) {
-    res.status(500).json({ message: "Failed to send OTP" });
+    console.error("Error sending OTP:", err); // Added error logging
+    res.status(500).json({ message: "Failed to send OTP", error: err.message });
   }
 };
 
