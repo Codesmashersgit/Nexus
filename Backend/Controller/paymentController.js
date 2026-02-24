@@ -26,7 +26,7 @@ exports.createOrder = async (req, res) => {
         const options = {
             amount: parseInt(amount) * 100, // Amount in paise
             currency: currency,
-            receipt: `receipt_${Date.now()}`,
+            receipt: `receipt_${req.user.id}_${Date.now()}`,
         };
 
         const order = await instance.orders.create(options);
@@ -69,14 +69,38 @@ exports.verifyPayment = async (req, res) => {
             const User = require("../Model/User");
             const { planType } = req.body;
             if (planType && req.user && req.user.id) {
-                const expiresAt = new Date();
-                expiresAt.setDate(expiresAt.getDate() + 30); // Default to 30 days for pro
+                const user = await User.findById(req.user.id);
+
+                // Idempotency check: if payment already processed
+                if (user.subscription && user.subscription.processedPayments && user.subscription.processedPayments.includes(razorpay_payment_id)) {
+                    return res.status(200).json({ success: true, message: "Payment already processed" });
+                }
+
+                // Calculate duration based on planType
+                let daysToAdd = 30; // Default for 'pro'
+                if (planType === 'enterprise') {
+                    daysToAdd = 365; // Yearly for enterprise
+                }
+
+                let newExpiresAt;
+                const now = new Date();
+
+                // If user has an active subscription that hasn't expired yet, extend it
+                if (user.subscription && user.subscription.active && user.subscription.expiresAt && user.subscription.expiresAt > now) {
+                    newExpiresAt = new Date(user.subscription.expiresAt);
+                    newExpiresAt.setDate(newExpiresAt.getDate() + daysToAdd);
+                } else {
+                    // Start new subscription from today
+                    newExpiresAt = new Date(now);
+                    newExpiresAt.setDate(newExpiresAt.getDate() + daysToAdd);
+                }
 
                 await User.findByIdAndUpdate(req.user.id, {
                     subscription: {
                         planType: planType,
                         active: true,
-                        expiresAt: expiresAt
+                        expiresAt: newExpiresAt,
+                        $addToSet: { "subscription.processedPayments": razorpay_payment_id }
                     }
                 });
             }
