@@ -14,7 +14,8 @@ const userSchema = new mongoose.Schema(
     subscription: {
       planType: { type: String, default: 'free' },
       active: { type: Boolean, default: false },
-      expiresAt: { type: Date }
+      expiresAt: { type: Date },
+      processedPayments: [{ type: String }] // track razorpay_payment_id to prevent duplicates
     } // Updated: detailed subscription info
   },
   { timestamps: true }
