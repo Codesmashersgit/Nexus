@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }) => {
 
     if (token && username) {
       setIsLoggedIn(true);
-      setUser({ name: username, email: email || "Anonymous", subscriptionPlan: 'free' });
+      setUser({ name: username, email: email || "Anonymous", subscription: { planType: 'free', active: false } });
       fetchProfile(token);
     }
   }, []);
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("username", username);
     localStorage.setItem("email", email);
     setIsLoggedIn(true);
-    setUser({ name: username, email: email, subscriptionPlan: 'free' });
+    setUser({ name: username, email: email, subscription: { planType: 'free', active: false } });
     fetchProfile(token);
   };
 

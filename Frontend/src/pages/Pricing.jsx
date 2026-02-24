@@ -90,7 +90,22 @@ const Pricing = () => {
   };
 
   const isPlanActive = (planType) => {
-    return user?.subscriptionPlan === planType;
+    if (!user || !user.subscription) return planType === 'free';
+
+    const { subscription } = user;
+    const now = new Date();
+    const expiry = subscription.expiresAt ? new Date(subscription.expiresAt) : null;
+
+    // Check if subscription has expired
+    const isExpired = expiry && expiry <= now;
+
+    if (planType === 'free') {
+      // Free is active if explicitly free OR if a paid plan exists but has expired OR is inactive
+      return subscription.planType === 'free' || !subscription.active || isExpired;
+    }
+
+    // Paid plan is active only if it matches, is active, and NOT expired
+    return subscription.planType === planType && subscription.active && !isExpired;
   };
 
   return (
