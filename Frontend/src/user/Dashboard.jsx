@@ -37,8 +37,9 @@ function Dashboard({ defaultSection = "Dashboard" }) {
   const [roomList, setRoomList] = useState([]);
   const [meetingHistory, setMeetingHistory] = useState([]);
   const [copySuccess, setCopySuccess] = useState(null);
-  const [callsRemaining, setCallsRemaining] = useState(getCallsRemaining());
-  const [hasProPlan, setHasProPlan] = useState(isProUser());
+  const [callsRemaining, setCallsRemaining] = useState(DAILY_CALL_LIMIT);
+  const [hasProPlan, setHasProPlan] = useState(false);
+  const [userData, setUserData] = useState(null);
 
   const [_isLogged, setIsLogged] = useState(false);
   const [userNameDisplay, setUserNameDisplay] = useState("User");
@@ -110,8 +111,8 @@ function Dashboard({ defaultSection = "Dashboard" }) {
 
   // Guard: check call limit before entering any room
   const guardCallLimit = (onAllowed) => {
-    if (hasProPlan) return onAllowed();
-    if (isCallLimitExceeded()) {
+    if (isProUser(userData)) return onAllowed();
+    if (isCallLimitExceeded(userData)) {
       setShowLimitModal(true);
     } else {
       onAllowed();
@@ -123,7 +124,7 @@ function Dashboard({ defaultSection = "Dashboard" }) {
     e.preventDefault();
     if (!roomName.trim()) return;
 
-    if (isCallLimitExceeded()) {
+    if (isCallLimitExceeded(userData)) {
       setShowCreateRoomForm(false);
       setShowLimitModal(true);
       return;
@@ -144,7 +145,7 @@ function Dashboard({ defaultSection = "Dashboard" }) {
     setMeetingHistory(updatedHistory);
     localStorage.setItem("meetingHistory", JSON.stringify(updatedHistory));
 
-    setCallsRemaining(getCallsRemaining());
+    setCallsRemaining(getCallsRemaining(userData));
     setRoomName("");
     setShowCreateRoomForm(false);
   };
@@ -177,8 +178,10 @@ function Dashboard({ defaultSection = "Dashboard" }) {
         const data = await res.json();
         if (data.subscription) {
           localStorage.setItem("subscription", JSON.stringify(data.subscription));
-          setHasProPlan(data.subscription.planType === 'pro' && data.subscription.active);
+          setHasProPlan(isProUser(data));
         }
+        setUserData(data);
+        setCallsRemaining(getCallsRemaining(data));
         setUserNameDisplay(data.username);
         setUserEmail(data.email);
       } catch (err) {

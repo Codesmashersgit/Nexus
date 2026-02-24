@@ -158,7 +158,8 @@ const Room = () => {
   const recordingIntervalRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const [isTyping, setIsTyping] = useState(false);
-  const [hasPro, setHasPro] = useState(isProUser());
+  const [hasPro, setHasPro] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const chatEndRef = useRef(null);
   const prevMessagesCount = useRef(0);
@@ -173,8 +174,29 @@ const Room = () => {
     checkDevice();
     window.addEventListener("resize", checkDevice);
     startRoom(roomId);
-    // Count this as one call used for the free plan
-    incrementCallCount();
+
+    // Fetch profile and check plan
+    const checkPlan = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) return;
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/profile`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const data = await res.json();
+        setCurrentUser(data);
+        setHasPro(isProUser(data));
+
+        // Count this as one call used for the free plan (Backend API)
+        if (!isProUser(data)) {
+          await incrementCallCount();
+        }
+      } catch (err) {
+        console.error("Failed to fetch profile in Room:", err);
+      }
+    };
+    checkPlan();
+
     return () => {
       if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
       window.removeEventListener("resize", checkDevice);
