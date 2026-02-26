@@ -3,11 +3,6 @@
   <h1>🎥 Nexus - Ultra Modern Video Conferencing & Chat Hub</h1>
 </div>
 
-![Chroma Meet Banner](https://img.shields.io/badge/Chroma--Meet-Premium-blueviolet?style=for-the-badge&logo=react)
-![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
-![WebRTC](https://img.shields.io/badge/WebRTC-Socket.io-010101?style=for-the-badge&logo=socketdotio)
 
 **Nexus** is a high-performance, real-time communication platform built for the modern web. It combines seamless video meetings with interactive chat features, all packaged in a stunning, user-friendly interface.
 
