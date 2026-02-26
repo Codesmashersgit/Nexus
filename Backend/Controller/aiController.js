@@ -12,7 +12,7 @@ const getAISuggestions = async (req, res) => {
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const prompt = `
-      You are an interview assistant named "Chroma AI". 
+      You are an interview assistant named "Nexus AI". 
       The following is a live transcript of a meeting/interview. 
       Analyze the transcript and provide 2-3 short, helpful suggestions or hints for the user to answer better or points to mention.
       Keep it professional, concise, and helpful.
