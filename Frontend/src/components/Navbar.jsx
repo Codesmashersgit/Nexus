@@ -49,6 +49,7 @@ function Navbar() {
             { name: "Home", path: "/" },
             { name: "Analytics", path: "/analytics" },
             { name: "Pricing", path: "/pricing" },
+            ...(user?.role === 'admin' ? [{ name: "Admin", path: "/admin" }] : []),
           ].map((link) => (
             <li key={link.name}>
               <Link
@@ -96,7 +97,7 @@ function Navbar() {
             </div>
 
             <ul className="flex flex-col space-y-8">
-              {["Home", "Analytics", "Pricing"].map((item) => (
+              {["Home", "Analytics", "Pricing", ...(user?.role === 'admin' ? ["Admin"] : [])].map((item) => (
                 <li key={item}>
                   <Link
                     to={item === "Home" ? "/" : `/${item.toLowerCase()}`}

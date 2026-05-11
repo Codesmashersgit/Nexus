@@ -21,8 +21,7 @@ import {
   FaLock
 } from "react-icons/fa";
 import Avatar from "../components/Avatar";
-import AIAssistant from "../components/AIAssistant";
-import { FaRobot } from "react-icons/fa";
+
 
 // Stable Video Component to prevent freezing/re-renders
 const VideoPlayer = memo(({ stream, isLocal = false, label = "", mode = "grid", isCameraOn = true }) => {
@@ -97,15 +96,23 @@ const VideoPlayer = memo(({ stream, isLocal = false, label = "", mode = "grid", 
       {!isCameraOn && (
         <div className="flex flex-col items-center justify-center w-full h-full relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
           <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent animate-pulse" />
-          <div className={`relative z-10 ${isSpeaking ? "scale-110" : "scale-100"} transition-transform duration-300`}>
-            <div className={`relative ${isSpeaking ? "animate-pulse" : ""}`}>
+          <div className={`relative z-10 ${isSpeaking ? "scale-110" : "scale-100"} transition-all duration-500`}>
+            <div className="relative">
               <Avatar name={label} size={mode === "pip" ? "lg" : "xl"} />
+              
+              {/* Dynamic Wave Effect */}
               {isSpeaking && (
                 <>
-                  <div className="absolute -inset-4 rounded-full border-2 border-[#fa1239]/40 animate-ping" />
-                  <div className="absolute -inset-2 rounded-full border-2 border-[#fa1239]/60 animate-pulse" />
+                  <div className="absolute -inset-2 rounded-full border-2 border-[#fa1239]/40 animate-ping opacity-75" />
+                  <div className="absolute -inset-4 rounded-full border-2 border-[#fa1239]/20 animate-ping opacity-50 [animation-delay:0.2s]" />
+                  <div className="absolute -inset-6 rounded-full border border-[#fa1239]/10 animate-ping opacity-25 [animation-delay:0.4s]" />
+                  <div className="absolute -inset-1 rounded-full bg-[#fa1239]/20 animate-pulse" />
                 </>
               )}
+            </div>
+            
+            <div className="absolute top-full mt-4 left-1/2 -translate-x-1/2">
+               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 whitespace-nowrap">{label}</span>
             </div>
           </div>
         </div>
@@ -162,7 +169,6 @@ const Room = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [hasPro, setHasPro] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [isAIOpen, setIsAIOpen] = useState(false);
 
   const chatEndRef = useRef(null);
   const prevMessagesCount = useRef(0);
@@ -413,12 +419,7 @@ const Room = () => {
 
         </div>
 
-        {/* AI Assistant Sidebar */}
-        <AIAssistant
-          isOpen={isAIOpen}
-          onClose={() => setIsAIOpen(false)}
-          isMicOn={isMicOn}
-        />
+
 
         {/* Chat Sidebar */}
         <div className={`
@@ -532,13 +533,7 @@ const Room = () => {
             </span>
           )}
         </button>
-        <button
-          onClick={() => setIsAIOpen(!isAIOpen)}
-          className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all border ${isAIOpen ? "bg-blue-600 border-blue-600 shadow-[0_0_20px_rgba(59,130,246,0.3)]" : "bg-white/5 border-white/5 hover:bg-white/10"}`}
-          title="AI Assistant"
-        >
-          <FaRobot size={14} className={isAIOpen ? "text-white" : "text-blue-400"} />
-        </button>
+
         <div className="w-px h-6 md:h-9 bg-white/10 mx-1 md:mx-2" />
         <button onClick={endCall} className="w-10 h-10 md:w-14 md:h-12 flex items-center justify-center rounded-xl md:rounded-2xl bg-[#fa1239] hover:brightness-110 text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] transition-all active:scale-95 group" title="End Call"><FaPhoneSlash className="text-sm md:text-xl group-hover:scale-110 transition-transform" /></button>
       </div>

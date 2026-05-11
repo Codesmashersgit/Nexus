@@ -33,6 +33,7 @@ function Signup() {
       localStorage.setItem("authToken", token);
       localStorage.setItem("username", user.username);
       localStorage.setItem("email", user.email);
+      localStorage.setItem("role", user.role || 'user');
       localStorage.setItem("createdAt", user.createdAt);
       if (user.subscription) {
         localStorage.setItem("subscription", JSON.stringify(user.subscription));
