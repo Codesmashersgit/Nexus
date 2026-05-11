@@ -12,12 +12,12 @@ const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ email, password: hashedPassword, username });
     await user.save();
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
     res.status(201).json({
       token,
-      user: { username: user.username, email: user.email, createdAt: user.createdAt },
+      user: { username: user.username, email: user.email, role: user.role, createdAt: user.createdAt },
     });
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -32,12 +32,12 @@ const login = async (req, res) => {
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
     res.json({
       token,
-      user: { username: user.username, email: user.email, createdAt: user.createdAt },
+      user: { username: user.username, email: user.email, role: user.role, createdAt: user.createdAt },
     });
   } catch (err) {
     res.status(500).json({ message: err.message });

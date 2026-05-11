@@ -20,7 +20,8 @@ const userSchema = new mongoose.Schema(
     callUsage: {
       count: { type: Number, default: 0 },
       lastUsedDate: { type: String, default: "" } // Format: YYYY-MM-DD
-    }
+    },
+    role: { type: String, enum: ['user', 'admin'], default: 'user' }
   },
   { timestamps: true }
 );
