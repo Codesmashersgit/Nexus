@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./Backend/.env
+    restart: unless-stopped
+    # If your backend connects to a local MongoDB, you can add a mongodb service below and link it.
+    # Otherwise, assuming MONGO_URI in .env points to MongoDB Atlas.
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
