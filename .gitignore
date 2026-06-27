@@ -30,3 +30,9 @@ build/
 # Cache
 .cache/
 .tmp/
+
+# ── AWS Deployment (NEVER commit these) ─────────────────────
+*.pem                          # EC2 SSH private keys
+aws/**/.env                    # Actual AWS env files (only .example is safe)
+Frontend/.env.production.local # Local AWS build env
+.env.production.local

@@ -26,6 +26,11 @@
   <h3>📅 Pricing & Subscription</h3>
   <img src="./Frontend/src/assets/Screenshot 2026-02-21 225506.png" alt="Pricing Placeholder" width="600"/>
   <p><i>Flexible plans with integrated Razorpay payment flow.</i></p>
+  <br/>
+
+   <h3>📅 Admin Dashboard</h3>
+  <img src="./Frontend/src/assets/Screenshot 2026-06-27 112613.png" alt="Pricing Placeholder" width="600"/>
+  <p><i> Manage users, settings, and system data efficiently from a centralized admin panel.</i></p>
 </div>
 
 ---
