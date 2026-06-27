@@ -122,7 +122,9 @@ const checkOtp = async (req, res) => {
 // Reset Password
 const resetPassword = async (req, res) => {
   try {
-    const { email, password, code } = req.body;
+    let { email, password, code } = req.body;
+
+    email = email.trim().toLowerCase();
 
     const user = await User.findOne({ email });
     if (!user)
@@ -130,7 +132,7 @@ const resetPassword = async (req, res) => {
 
     if (
       !user.otp ||
-      user.otp !== code ||
+      user.otp !== String(code) ||
       user.otpExpires < Date.now()
     ) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
